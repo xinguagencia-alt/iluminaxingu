@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS admin_users (
   username VARCHAR(50) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   nome_completo VARCHAR(200) NOT NULL,
+  perfil VARCHAR(30) NOT NULL DEFAULT 'operador',
   ativo BOOLEAN DEFAULT TRUE,
   criado_em TIMESTAMP DEFAULT NOW()
 );
@@ -134,4 +135,6 @@ CREATE TRIGGER update_solicitacoes_timestamp
 CREATE TRIGGER update_ordens_servico_timestamp
   BEFORE UPDATE ON ordens_servico
   FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+
 

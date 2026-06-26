@@ -6,6 +6,7 @@ export interface AuthPayload {
   userId: number
   username: string
   nomeCompleto: string
+  perfil: string
 }
 
 declare global {
@@ -32,6 +33,17 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
     next()
   } catch {
     res.status(401).json({ error: 'Token invalido' })
+  }
+}
+
+export function requireRole(roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user || !roles.includes(req.user.perfil)) {
+      res.status(403).json({ error: 'Acesso nao autorizado' })
+      return
+    }
+
+    next()
   }
 }
 

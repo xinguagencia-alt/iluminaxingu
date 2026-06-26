@@ -7,9 +7,18 @@ import postesRoutes from './modules/postes/routes'
 import ordensServicoRoutes from './modules/ordens_servico/routes'
 import equipesRoutes from './modules/equipes/routes'
 import anexosRoutes from './modules/anexos/routes'
+import { db } from './db'
 
 const app = express()
 const port = process.env.PORT || 3333
+
+async function ensureDatabaseSchema() {
+  await db.query(
+    `ALTER TABLE admin_users
+      ADD COLUMN IF NOT EXISTS perfil VARCHAR(30) NOT NULL DEFAULT 'operador'`
+  )
+  await db.query("UPDATE admin_users SET perfil = 'admin' WHERE username = 'admin' AND perfil = 'operador'")
+}
 
 app.use(
   cors({
@@ -52,6 +61,13 @@ app.post('/api/requests', (request, response) => {
   })
 })
 
-app.listen(port, () => {
-  console.log(`IluminaXingu API running at http://localhost:${port}`)
-})
+ensureDatabaseSchema()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`IluminaXingu API running at http://localhost:${port}`)
+    })
+  })
+  .catch((error) => {
+    console.error('Erro ao preparar banco de dados:', error)
+    process.exit(1)
+  })

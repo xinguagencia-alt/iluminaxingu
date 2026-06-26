@@ -5,6 +5,7 @@ interface User {
   id: number
   username: string
   nomeCompleto: string
+  perfil: string
 }
 
 interface AuthContextType {
@@ -111,3 +112,5 @@ export function useAuth() {
   }
   return context
 }
+
+

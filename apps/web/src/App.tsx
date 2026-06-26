@@ -11,8 +11,9 @@ import { OrdemServicoList } from './components/OrdemServicoList/OrdemServicoList
 import { OrdemServicoDetail } from './components/OrdemServicoDetail/OrdemServicoDetail'
 import { EquipeList } from './components/EquipeList/EquipeList'
 import { SolicitacaoPublica } from './components/SolicitacaoPublica/SolicitacaoPublica'
+import { UserManagement } from './components/UserManagement/UserManagement'
 
-type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'ordens' | 'ordem-detail' | 'equipes'
+type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios'
 
 function usePathname() {
   const [path, setPath] = useState(window.location.pathname)
@@ -155,6 +156,14 @@ function AdminLayout() {
           >
             Equipes
           </button>
+          {user.perfil === 'admin' && (
+            <button
+              className={`navButton ${currentPage === 'usuarios' ? 'navButtonActive' : ''}`}
+              onClick={() => setCurrentPage('usuarios')}
+            >
+              Usuarios
+            </button>
+          )}
           <div className="userInfo">
             <span className="userName">{user.nomeCompleto}</span>
             <button className="navButton" onClick={handleLogout}>
@@ -184,6 +193,7 @@ function AdminLayout() {
           />
         )}
         {currentPage === 'equipes' && <EquipeList />}
+        {currentPage === 'usuarios' && user.perfil === 'admin' && <UserManagement />}
         {currentPage === 'postes' && (
           <PosteList onNovoPoste={() => setCurrentPage('postes-novo')} />
         )}
@@ -221,5 +231,7 @@ function App() {
 }
 
 export default App
+
+
 
 

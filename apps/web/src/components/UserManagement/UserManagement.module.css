@@ -1,0 +1,275 @@
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 8px 0 32px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.header h2 {
+  margin: 0;
+  color: #1f2937;
+}
+
+.header p {
+  margin: 4px 0 0;
+  color: #6b7280;
+}
+
+.addButton,
+.saveButton {
+  border: none;
+  border-radius: 10px;
+  background: #f59e0b;
+  color: white;
+  font-weight: 700;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.addButton:hover,
+.saveButton:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+}
+
+.addButton:disabled,
+.saveButton:disabled {
+  background: #fdba74;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.perfilCard {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.perfilCard strong {
+  display: block;
+  color: #b45309;
+  margin-bottom: 4px;
+}
+
+.perfilCard span {
+  color: #6b7280;
+  font-size: 0.86rem;
+}
+
+.tableWrapper {
+  background: white;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  overflow-x: auto;
+  box-shadow: 0 12px 28px rgba(180, 83, 9, 0.08);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid #ffedd5;
+}
+
+.table th {
+  background: #fff7ed;
+  color: #92400e;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.name {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.badge,
+.status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.badge {
+  background: #ffedd5;
+  color: #92400e;
+}
+
+.statusActive {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusInactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.actionButton,
+.cancelButton {
+  border: 1px solid #fed7aa;
+  border-radius: 9px;
+  background: white;
+  color: #b45309;
+  font-weight: 700;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.actionButton:hover,
+.cancelButton:hover {
+  background: #fff7ed;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(31, 41, 55, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  width: min(520px, 100%);
+  background: white;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 28px 70px rgba(31, 41, 55, 0.24);
+}
+
+.modal h3 {
+  margin: 0 0 4px;
+  color: #1f2937;
+}
+
+.modalHint,
+.perfilHelp {
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+.modalLabel {
+  display: block;
+  margin: 14px 0 6px;
+  color: #374151;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.modalInput {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.modalInput:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.16);
+}
+
+.checkboxLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: #374151;
+  font-weight: 700;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.toast {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 16px 30px rgba(31, 41, 55, 0.18);
+}
+
+.toastSuccess {
+  background: #16a34a;
+}
+
+.toastError {
+  background: #dc2626;
+}
+
+.toastClose {
+  border: none;
+  background: rgba(255, 255, 255, 0.22);
+  color: white;
+  border-radius: 999px;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+}
+
+.loading,
+.errorState {
+  background: white;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  padding: 28px;
+  text-align: center;
+  color: #6b7280;
+}
+
+@media (max-width: 760px) {
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+}
