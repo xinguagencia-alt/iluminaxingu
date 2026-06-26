@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { RequestForm } from './components/RequestForm/RequestForm'
 import { SolicitacaoList } from './components/SolicitacaoList/SolicitacaoList'
@@ -14,38 +14,22 @@ import { SolicitacaoPublica } from './components/SolicitacaoPublica/SolicitacaoP
 
 type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'ordens' | 'ordem-detail' | 'equipes'
 
-function AppContent() {
-  const { user, logout, loading, needsBootstrap, token } = useAuth()
-  const [currentPage, setCurrentPage] = useState<Page>('home')
-  const [selectedOrdemId, setSelectedOrdemId] = useState<number | null>(null)
+function usePathname() {
+  const [path, setPath] = useState(window.location.pathname)
 
-  if (loading) {
-    return (
-      <div className="app">
-        <header className="header">
-          <h1>IluminaXingu</h1>
-          <p>Registro de Solicitação de Iluminação Pública</p>
-        </header>
-        <main className="main">
-          <p style={{ textAlign: 'center', color: '#6b7280' }}>Carregando...</p>
-        </main>
-      </div>
-    )
-  }
+  useEffect(() => {
+    function onPopState() {
+      setPath(window.location.pathname)
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
 
-  if (needsBootstrap) {
-    return (
-      <div className="app">
-        <header className="header">
-          <h1>IluminaXingu</h1>
-          <p>Registro de Solicitação de Iluminação Pública</p>
-        </header>
-        <main className="main">
-          <BootstrapForm />
-        </main>
-      </div>
-    )
-  }
+  return path
+}
+
+function PublicLayout() {
+  const [currentPage, setCurrentPage] = useState<'home' | 'consultar'>('home')
 
   return (
     <div className="app">
@@ -65,56 +49,6 @@ function AppContent() {
           >
             Consultar Protocolo
           </button>
-          {!user && (
-            <button
-              className={`navButton ${currentPage === 'dashboard' ? 'navButtonActive' : ''}`}
-              onClick={() => setCurrentPage('dashboard')}
-            >
-              Acesso Prefeitura
-            </button>
-          )}
-          {user && (
-            <>
-              <button
-                className={`navButton ${currentPage === 'dashboard' ? 'navButtonActive' : ''}`}
-                onClick={() => setCurrentPage('dashboard')}
-              >
-                Painel
-              </button>
-              <button
-                className={`navButton ${currentPage === 'admin' ? 'navButtonActive' : ''}`}
-                onClick={() => setCurrentPage('admin')}
-              >
-                Solicitacoes
-              </button>
-              <button
-                className={`navButton ${currentPage === 'postes' || currentPage === 'postes-novo' ? 'navButtonActive' : ''}`}
-                onClick={() => setCurrentPage('postes')}
-              >
-                Postes
-              </button>
-              <button
-                className={`navButton ${currentPage === 'ordens' ? 'navButtonActive' : ''}`}
-                onClick={() => setCurrentPage('ordens')}
-              >
-                Ordens
-              </button>
-              <button
-                className={`navButton ${currentPage === 'equipes' ? 'navButtonActive' : ''}`}
-                onClick={() => setCurrentPage('equipes')}
-              >
-                Equipes
-              </button>
-            </>
-          )}
-          {user && (currentPage === 'admin' || currentPage === 'postes' || currentPage === 'postes-novo' || currentPage === 'dashboard' || currentPage === 'ordens' || currentPage === 'equipes' || currentPage === 'ordem-detail') && (
-            <div className="userInfo">
-              <span className="userName">{user.nomeCompleto}</span>
-              <button className="navButton" onClick={logout}>
-                Sair
-              </button>
-            </div>
-          )}
         </nav>
       </header>
       <main className="main">
@@ -122,9 +56,117 @@ function AppContent() {
         {currentPage === 'consultar' && (
           <SolicitacaoPublica onVoltar={() => setCurrentPage('home')} />
         )}
-        {currentPage === 'dashboard' && (user ? <Dashboard /> : <LoginForm />)}
-        {currentPage === 'admin' && (user ? <SolicitacaoList /> : <LoginForm />)}
-        {currentPage === 'ordens' && user && (
+      </main>
+      <footer className="footer">
+        <img src="/logo.png" alt="Xingu Marketing & Publicidade" className="footerLogo" />
+      </footer>
+    </div>
+  )
+}
+
+function AdminLayout() {
+  const { user, logout, loading, needsBootstrap, token } = useAuth()
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard')
+  const [selectedOrdemId, setSelectedOrdemId] = useState<number | null>(null)
+
+  function handleLogout() {
+    logout()
+    setCurrentPage('dashboard')
+  }
+
+  if (loading) {
+    return (
+      <div className="app">
+        <header className="header">
+          <h1>IluminaXingu</h1>
+          <p>Painel Administrativo</p>
+        </header>
+        <main className="main">
+          <p style={{ textAlign: 'center', color: '#6b7280' }}>Carregando...</p>
+        </main>
+      </div>
+    )
+  }
+
+  if (needsBootstrap) {
+    return (
+      <div className="app">
+        <header className="header">
+          <h1>IluminaXingu</h1>
+          <p>Painel Administrativo</p>
+        </header>
+        <main className="main">
+          <BootstrapForm />
+        </main>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="app">
+        <header className="header">
+          <h1>IluminaXingu</h1>
+          <p>Painel Administrativo</p>
+        </header>
+        <main className="main">
+          <LoginForm />
+        </main>
+        <footer className="footer">
+          <img src="/logo.png" alt="Xingu Marketing & Publicidade" className="footerLogo" />
+        </footer>
+      </div>
+    )
+  }
+
+  return (
+    <div className="app">
+      <header className="header">
+        <h1>IluminaXingu</h1>
+        <p>Painel Administrativo</p>
+        <nav className="nav">
+          <button
+            className={`navButton ${currentPage === 'dashboard' ? 'navButtonActive' : ''}`}
+            onClick={() => setCurrentPage('dashboard')}
+          >
+            Painel
+          </button>
+          <button
+            className={`navButton ${currentPage === 'admin' ? 'navButtonActive' : ''}`}
+            onClick={() => setCurrentPage('admin')}
+          >
+            Solicitacoes
+          </button>
+          <button
+            className={`navButton ${currentPage === 'postes' || currentPage === 'postes-novo' ? 'navButtonActive' : ''}`}
+            onClick={() => setCurrentPage('postes')}
+          >
+            Postes
+          </button>
+          <button
+            className={`navButton ${currentPage === 'ordens' ? 'navButtonActive' : ''}`}
+            onClick={() => setCurrentPage('ordens')}
+          >
+            Ordens
+          </button>
+          <button
+            className={`navButton ${currentPage === 'equipes' ? 'navButtonActive' : ''}`}
+            onClick={() => setCurrentPage('equipes')}
+          >
+            Equipes
+          </button>
+          <div className="userInfo">
+            <span className="userName">{user.nomeCompleto}</span>
+            <button className="navButton" onClick={handleLogout}>
+              Sair
+            </button>
+          </div>
+        </nav>
+      </header>
+      <main className="main">
+        {currentPage === 'dashboard' && <Dashboard />}
+        {currentPage === 'admin' && <SolicitacaoList />}
+        {currentPage === 'ordens' && (
           <OrdemServicoList
             onDetalhes={(id) => {
               setSelectedOrdemId(id)
@@ -132,7 +174,7 @@ function AppContent() {
             }}
           />
         )}
-        {currentPage === 'ordem-detail' && user && selectedOrdemId && (
+        {currentPage === 'ordem-detail' && selectedOrdemId && (
           <OrdemServicoDetail
             ordemId={selectedOrdemId}
             onVoltar={() => {
@@ -141,11 +183,11 @@ function AppContent() {
             }}
           />
         )}
-        {currentPage === 'equipes' && (user ? <EquipeList /> : <LoginForm />)}
-        {currentPage === 'postes' && user && (
+        {currentPage === 'equipes' && <EquipeList />}
+        {currentPage === 'postes' && (
           <PosteList onNovoPoste={() => setCurrentPage('postes-novo')} />
         )}
-        {currentPage === 'postes-novo' && user && (
+        {currentPage === 'postes-novo' && (
           <PosteForm
             token={token!}
             onSaved={() => setCurrentPage('postes')}
@@ -160,12 +202,22 @@ function AppContent() {
   )
 }
 
+function AppRoutes() {
+  const path = usePathname()
+
+  if (path.startsWith('/prefeitura')) {
+    return (
+      <AuthProvider>
+        <AdminLayout />
+      </AuthProvider>
+    )
+  }
+
+  return <PublicLayout />
+}
+
 function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  )
+  return <AppRoutes />
 }
 
 export default App

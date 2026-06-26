@@ -2,5 +2,10 @@
   "installCommand": "npm install",
   "buildCommand": "npm --workspace @iluminaxingu/web run build",
   "outputDirectory": "apps/web/dist",
-  "framework": "vite"
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/prefeitura", "destination": "/index.html" },
+    { "source": "/prefeitura/(.*)", "destination": "/index.html" },
+    { "source": "/((?!assets/|api/).*)", "destination": "/index.html" }
+  ]
 }
