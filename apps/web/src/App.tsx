@@ -206,18 +206,20 @@ function AppRoutes() {
   const path = usePathname()
 
   if (path.startsWith('/prefeitura')) {
-    return (
-      <AuthProvider>
-        <AdminLayout />
-      </AuthProvider>
-    )
+    return <AdminLayout />
   }
 
   return <PublicLayout />
 }
 
 function App() {
-  return <AppRoutes />
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  )
 }
 
 export default App
+
+
