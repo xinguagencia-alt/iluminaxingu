@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { OrdemServicoDetailData } from './types'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333'
+import { API_URL } from '../../config/api'
 
 interface UseOrdemServicoDetailResult {
   data: OrdemServicoDetailData | null

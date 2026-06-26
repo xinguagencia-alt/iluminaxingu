@@ -5,9 +5,8 @@ import { usePostes } from '../../hooks/usePostes'
 import { useAnexos } from '../../hooks/useAnexos'
 import { FileUpload } from '../FileUpload/FileUpload'
 import { SolicitacaoPublica } from '../SolicitacaoPublica/SolicitacaoPublica'
+import { API_URL } from '../../config/api'
 import styles from './RequestForm.module.css'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333'
 
 const INITIAL_STATE: FormData = {
   nome: '',

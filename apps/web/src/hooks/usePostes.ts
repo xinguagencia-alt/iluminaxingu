@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { MapMarker } from '../components/MapPicker/MapPicker'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333'
+import { API_URL } from '../config/api'
 
 interface UsePostesResult {
   postes: MapMarker[]

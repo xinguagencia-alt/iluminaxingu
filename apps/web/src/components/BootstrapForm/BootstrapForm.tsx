@@ -1,4 +1,5 @@
 import { useState, FormEvent } from 'react'
+import { API_URL } from '../../config/api'
 import styles from './BootstrapForm.module.css'
 
 export function BootstrapForm() {
@@ -15,7 +16,6 @@ export function BootstrapForm() {
     setLoading(true)
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333'
       const response = await fetch(`${API_URL}/api/auth/bootstrap`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
