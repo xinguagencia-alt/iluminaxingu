@@ -152,7 +152,6 @@ function AppContent() {
             onCancel={() => setCurrentPage('postes')}
           />
         )}
-        {!user && currentPage !== 'home' && <LoginForm />}
       </main>
       <footer className="footer">
         <img src="/logo.png" alt="Xingu Marketing & Publicidade" className="footerLogo" />
