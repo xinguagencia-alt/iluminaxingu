@@ -1,0 +1,263 @@
+.form {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.pageContainer {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  margin-bottom: 24px;
+}
+
+.searchBarLabel {
+  font-size: 0.9rem;
+  color: #1e40af;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.searchBarForm {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.searchBarInput {
+  flex: 1;
+  border: 1px solid #93c5fd;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+  min-width: 0;
+}
+
+.searchBarInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.searchBarButton {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.searchBarButton:hover {
+  background: #1d4ed8;
+}
+
+.searchBarButton:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+.section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.section h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.1rem;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 8px;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.error {
+  display: block;
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.geoLoading {
+  color: #2563eb;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.geoInfo {
+  color: #16a34a;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+  word-break: break-all;
+}
+
+.fileInfo {
+  color: #666;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+.button {
+  width: 100%;
+  padding: 14px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.button:hover {
+  background: #1d4ed8;
+}
+
+.button:active {
+  background: #1e40af;
+}
+
+.success {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 32px;
+  text-align: center;
+  background: #f0fdf4;
+  border: 2px solid #16a34a;
+  border-radius: 12px;
+}
+
+.success h2 {
+  color: #16a34a;
+  margin: 0 0 12px 0;
+}
+
+.success p {
+  color: #555;
+  margin: 8px 0;
+}
+
+.protocol {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #16a34a;
+  margin: 16px 0;
+  padding: 12px;
+  background: white;
+  border: 2px dashed #16a34a;
+  border-radius: 8px;
+  letter-spacing: 2px;
+}
+
+.info {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.fileList {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #166534;
+}
+
+.removeFileButton {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.removeFileButton:hover {
+  color: #b91c1c;
+}
+
+@media (max-width: 640px) {
+  .form {
+    padding: 12px;
+  }
+
+  .section {
+    padding: 12px;
+  }
+
+  .searchBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchBarForm {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,672 @@
+/* ============================================
+   Consulta Publica - Layout Moderno
+   ============================================ */
+
+.container {
+  display: grid;
+  gap: 16px;
+  max-width: 680px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+}
+
+/* Back Link */
+.backLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #64748b;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.15s;
+  width: fit-content;
+}
+
+.backLink:hover {
+  color: #2563eb;
+}
+
+/* Loading */
+.loadingBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 32px;
+  gap: 16px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   Search Card (Estado inicial)
+   ============================================ */
+
+.searchCard {
+  background: white;
+  border-radius: 16px;
+  padding: 56px 32px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  text-align: center;
+}
+
+.searchIcon {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.searchTitle {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.searchDesc {
+  color: #64748b;
+  margin: 0 0 28px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.searchForm {
+  display: flex;
+  gap: 10px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.searchInput {
+  flex: 1;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-size: 0.95rem;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  letter-spacing: 0.3px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.searchInput::placeholder {
+  font-family: system-ui, -apple-system, sans-serif;
+  letter-spacing: 0;
+  color: #94a3b8;
+}
+
+.searchBtn {
+  background: #2563eb;
+  color: white;
+  border: 0;
+  border-radius: 10px;
+  padding: 13px 28px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.searchBtn:hover {
+  background: #1d4ed8;
+}
+
+.searchBtn:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+.searchError {
+  margin-top: 20px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+/* ============================================
+   Hero (Protocolo + Status)
+   ============================================ */
+
+.hero {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  text-align: center;
+}
+
+.heroBadge {
+  display: inline-block;
+  padding: 5px 16px;
+  border-radius: 999px;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  margin-bottom: 12px;
+}
+
+.heroProtocol {
+  margin: 0 0 6px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+}
+
+.heroDate {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+/* ============================================
+   Pills (Info rapida)
+   ============================================ */
+
+.pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  flex: 1;
+  min-width: 140px;
+  background: white;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  display: grid;
+  gap: 4px;
+}
+
+.pillLabel {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.pillValue {
+  color: #1e293b;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ============================================
+   Address Card
+   ============================================ */
+
+.addressCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: white;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+
+.addressIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.addressText {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.addressTag {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+}
+
+/* ============================================
+   Card (Secoes)
+   ============================================ */
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+
+.cardTitle {
+  margin: 0 0 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cardText {
+  margin: 0;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* ============================================
+   OS Card
+   ============================================ */
+
+.osBox {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 16px;
+  border-left: 4px solid;
+}
+
+.osTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.osNumber {
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.osGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.osField {
+  display: grid;
+  gap: 2px;
+}
+
+.osFieldLabel {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.osFieldValue {
+  color: #1e293b;
+  font-size: 0.85rem;
+}
+
+.osNote {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.osNote p {
+  margin: 4px 0 0;
+  color: #475569;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.osPending {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  background: #fffbeb;
+  border-radius: 10px;
+  border: 1px solid #fde68a;
+}
+
+.osPendingIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+.osPendingTitle {
+  margin: 0 0 4px;
+  font-weight: 600;
+  color: #92400e;
+  font-size: 0.9rem;
+}
+
+.osPendingText {
+  margin: 0;
+  color: #a16207;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+/* ============================================
+   Timeline
+   ============================================ */
+
+.timeline {
+  display: grid;
+  gap: 0;
+}
+
+.timelineItem {
+  display: flex;
+  gap: 14px;
+}
+
+.timelineLeft {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.timelineDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.timelineDotActive {
+  width: 12px;
+  height: 12px;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.timelineLine {
+  width: 2px;
+  flex: 1;
+  background: #e2e8f0;
+  margin: 4px 0;
+}
+
+.timelineBody {
+  flex: 1;
+  padding: 0 0 16px;
+  min-width: 0;
+}
+
+.timelineItem:last-child .timelineBody {
+  padding-bottom: 0;
+}
+
+.timelineTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.timelineStatuses {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.timelineArrow {
+  color: #cbd5e1;
+  font-size: 0.75rem;
+}
+
+.timelineDate {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.timelineUser {
+  display: block;
+  font-size: 0.7rem;
+  color: #64748b;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.timelineObs {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border-left: 2px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+/* ============================================
+   Empty State
+   ============================================ */
+
+.emptyBox {
+  text-align: center;
+  padding: 24px 16px;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+/* ============================================
+   Attachments
+   ============================================ */
+
+.attachments {
+  display: grid;
+  gap: 8px;
+}
+
+.attachmentLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s;
+}
+
+.attachmentLink:hover {
+  background: #f1f5f9;
+}
+
+.attachmentIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #e0e7ff;
+  color: #4f46e5;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.attachmentInfo {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.attachmentName {
+  color: #1e293b;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.attachmentMeta {
+  color: #64748b;
+  font-size: 0.7rem;
+}
+
+.attachmentAction {
+  color: #2563eb;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   New Search Button
+   ============================================ */
+
+.newSearchBtn {
+  width: 100%;
+  padding: 13px;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.newSearchBtn:hover {
+  background: #f1f5f9;
+}
+
+/* ============================================
+   Badge
+   ============================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: white;
+  letter-spacing: 0.2px;
+  width: fit-content;
+}
+
+.badgeLarge {
+  padding: 5px 14px;
+  font-size: 0.8rem;
+}
+
+/* ============================================
+   Mobile
+   ============================================ */
+
+@media (max-width: 640px) {
+  .container {
+    gap: 12px;
+  }
+
+  .searchCard {
+    padding: 40px 20px;
+  }
+
+  .searchTitle {
+    font-size: 1.15rem;
+  }
+
+  .searchForm {
+    flex-direction: column;
+  }
+
+  .hero {
+    padding: 24px 20px;
+  }
+
+  .heroProtocol {
+    font-size: 1.2rem;
+  }
+
+  .pills {
+    flex-direction: column;
+  }
+
+  .pill {
+    min-width: 0;
+  }
+
+  .card {
+    padding: 18px 16px;
+  }
+
+  .osGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .osBox {
+    padding: 14px;
+  }
+
+  .timelineTop {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .timelineDate {
+    order: -1;
+  }
+
+  .addressCard {
+    flex-wrap: wrap;
+  }
+
+  .addressText {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .attachmentLink {
+    padding: 10px 12px;
+  }
+}

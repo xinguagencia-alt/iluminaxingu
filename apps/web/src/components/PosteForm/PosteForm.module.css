@@ -1,0 +1,151 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.1rem;
+  color: #1e40af;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.field input,
+.field select {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: white;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.field input:disabled,
+.field select:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.error {
+  font-size: 0.85rem;
+  color: #dc2626;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.buttonPrimary {
+  background: #2563eb;
+  color: white;
+}
+
+.buttonPrimary:hover {
+  background: #1d4ed8;
+}
+
+.buttonPrimary:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+.buttonSecondary {
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.buttonSecondary:hover {
+  background: #f3f4f6;
+}
+
+.success {
+  text-align: center;
+  padding: 40px 20px;
+  background: #dcfce7;
+  border-radius: 12px;
+  border: 1px solid #bbf7d0;
+}
+
+.success h3 {
+  margin: 0 0 8px 0;
+  color: #166534;
+}
+
+.success p {
+  margin: 0 0 16px 0;
+  color: #166534;
+}
+
+.success .button {
+  background: #166534;
+  color: white;
+}
+
+.success .button:hover {
+  background: #14532d;
+}
+
+.mapSection {
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .fields {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
+  }
+}

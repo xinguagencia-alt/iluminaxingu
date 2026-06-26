@@ -1,0 +1,99 @@
+.container {
+  display: grid;
+  gap: 8px;
+}
+
+.input {
+  display: none;
+}
+
+.addButton {
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.addButton:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.addButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.fileName {
+  color: #0c4a6e;
+  font-weight: 500;
+  flex: 1;
+  min-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileSize {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.uploadButton,
+.clearButton {
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.uploadButton {
+  background: #2563eb;
+  color: white;
+}
+
+.uploadButton:hover {
+  background: #1d4ed8;
+}
+
+.uploadButton:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+.clearButton {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.clearButton:hover {
+  background: #d1d5db;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 0.8rem;
+}
