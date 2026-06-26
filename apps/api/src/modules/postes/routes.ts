@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express'
 import { db } from '../../db'
+import { authMiddleware } from '../auth/middleware'
 
 const router = Router()
 
-// Listar todos os postes
 router.get('/', async (_req: Request, res: Response) => {
   try {
     const result = await db.query(
@@ -19,7 +19,50 @@ router.get('/', async (_req: Request, res: Response) => {
   }
 })
 
-// Buscar poste por ID
+router.get('/proximos/:lat/:lng/:raio', async (req: Request, res: Response) => {
+  const lat = parseFloat(String(req.params.lat))
+  const lng = parseFloat(String(req.params.lng))
+  const raio = parseFloat(String(req.params.raio))
+
+  if (isNaN(lat) || isNaN(lng) || isNaN(raio)) {
+    res.status(400).json({ error: 'Parametros invalidos' })
+    return
+  }
+
+  try {
+    const result = await db.query(
+      `SELECT id, codigo, endereco, latitude, longitude,
+        tipo_luminaria, potencia,
+        CASE
+          WHEN latitude IS NOT NULL AND longitude IS NOT NULL
+          THEN (
+            6371000 * acos(
+              cos(radians($1)) * cos(radians(latitude)) *
+              cos(radians(longitude) - radians($2)) +
+              sin(radians($1)) * sin(radians(latitude))
+            )
+          )
+          ELSE NULL
+        END as distancia_metros
+      FROM postes
+      WHERE status_ativo = TRUE
+        AND latitude IS NOT NULL AND longitude IS NOT NULL
+      ORDER BY distancia_metros
+      LIMIT 50`,
+      [lat, lng]
+    )
+
+    const filtrados = result.rows.filter((r: { distancia_metros: number | null }) =>
+      r.distancia_metros !== null && r.distancia_metros <= raio
+    )
+
+    res.json(filtrados)
+  } catch (error) {
+    console.error('Erro ao buscar postes proximos:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
 router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
   try {
@@ -41,8 +84,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 })
 
-// Criar novo poste
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', authMiddleware, async (req: Request, res: Response) => {
   const {
     codigo,
     endereco,
@@ -87,8 +129,7 @@ router.post('/', async (req: Request, res: Response) => {
   }
 })
 
-// Atualizar poste
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
   const { id } = req.params
   const {
     codigo,
@@ -145,51 +186,6 @@ router.put('/:id', async (req: Request, res: Response) => {
       return
     }
     console.error('Erro ao atualizar poste:', error)
-    res.status(500).json({ error: 'Erro interno do servidor' })
-  }
-})
-
-// Buscar postes proximos (raio em metros) - approximacao sem PostGIS
-router.get('/proximos/:lat/:lng/:raio', async (req: Request, res: Response) => {
-  const lat = parseFloat(String(req.params.lat))
-  const lng = parseFloat(String(req.params.lng))
-  const raio = parseFloat(String(req.params.raio))
-
-  if (isNaN(lat) || isNaN(lng) || isNaN(raio)) {
-    res.status(400).json({ error: 'Parametros invalidos' })
-    return
-  }
-
-  try {
-    const result = await db.query(
-      `SELECT id, codigo, endereco, latitude, longitude,
-        tipo_luminaria, potencia,
-        CASE
-          WHEN latitude IS NOT NULL AND longitude IS NOT NULL
-          THEN (
-            6371000 * acos(
-              cos(radians($1)) * cos(radians(latitude)) *
-              cos(radians(longitude) - radians($2)) +
-              sin(radians($1)) * sin(radians(latitude))
-            )
-          )
-          ELSE NULL
-        END as distancia_metros
-      FROM postes
-      WHERE status_ativo = TRUE
-        AND latitude IS NOT NULL AND longitude IS NOT NULL
-      ORDER BY distancia_metros
-      LIMIT 50`,
-      [lat, lng]
-    )
-
-    const filtrados = result.rows.filter((r: { distancia_metros: number | null }) =>
-      r.distancia_metros !== null && r.distancia_metros <= raio
-    )
-
-    res.json(filtrados)
-  } catch (error) {
-    console.error('Erro ao buscar postes proximos:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
   }
 })

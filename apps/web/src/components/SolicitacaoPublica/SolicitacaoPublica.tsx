@@ -9,7 +9,6 @@ import {
   type StatusSolicitacao,
 } from '../SolicitacaoList/types'
 import { STATUS_ORDEM_LABELS, STATUS_ORDEM_COLORS, type StatusOrdemServico } from '../OrdemServicoList/types'
-import { getDownloadUrl } from '../../hooks/useAnexos'
 import styles from './SolicitacaoPublica.module.css'
 
 function formatDate(dateString: string | null): string {
@@ -243,13 +242,7 @@ export function SolicitacaoPublica({ onVoltar, initialProtocolo }: SolicitacaoPu
           ) : (
             <div className={styles.attachments}>
               {anexos.map((anexo) => (
-                <a
-                  key={anexo.id}
-                  href={getDownloadUrl(anexo.id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.attachmentLink}
-                >
+                <div key={anexo.id} className={styles.attachmentLink}>
                   <div className={styles.attachmentIcon}>
                     {anexo.arquivo_tipo?.startsWith('image/') ? '🖼️' : '📄'}
                   </div>
@@ -261,8 +254,8 @@ export function SolicitacaoPublica({ onVoltar, initialProtocolo }: SolicitacaoPu
                       {' · '}{formatDate(anexo.criado_em)}
                     </span>
                   </div>
-                  <span className={styles.attachmentAction}>Abrir →</span>
-                </a>
+                  <span className={styles.attachmentAction}>Painel interno</span>
+                </div>
               ))}
             </div>
           )}

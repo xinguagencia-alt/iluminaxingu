@@ -23,7 +23,7 @@
 }
 
 .backLink:hover {
-  color: #2563eb;
+  color: #f59e0b;
 }
 
 /* Loading */
@@ -42,7 +42,7 @@
   width: 28px;
   height: 28px;
   border: 3px solid #e2e8f0;
-  border-top-color: #2563eb;
+  border-top-color: #f59e0b;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -103,8 +103,8 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.10);
 }
 
 .searchInput::placeholder {
@@ -114,7 +114,7 @@
 }
 
 .searchBtn {
-  background: #2563eb;
+  background: #f59e0b;
   color: white;
   border: 0;
   border-radius: 10px;
@@ -127,11 +127,11 @@
 }
 
 .searchBtn:hover {
-  background: #1d4ed8;
+  background: #d97706;
 }
 
 .searchBtn:disabled {
-  background: #93c5fd;
+  background: #fdba74;
   cursor: not-allowed;
 }
 
@@ -306,7 +306,7 @@
   font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
   font-size: 1rem;
   font-weight: 700;
-  color: #1d4ed8;
+  color: #d97706;
 }
 
 .osGrid {
@@ -410,7 +410,7 @@
 .timelineDotActive {
   width: 12px;
   height: 12px;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
 }
 
 .timelineLine {
@@ -517,8 +517,8 @@
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  background: #e0e7ff;
-  color: #4f46e5;
+  background: #ffedd5;
+  color: #d97706;
   display: grid;
   place-items: center;
   font-size: 0.9rem;
@@ -547,7 +547,7 @@
 }
 
 .attachmentAction {
-  color: #2563eb;
+  color: #f59e0b;
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
@@ -670,3 +670,6 @@
     padding: 10px 12px;
   }
 }
+
+
+

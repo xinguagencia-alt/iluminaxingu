@@ -13,7 +13,7 @@
 
 .header h2 {
   font-size: 1.5rem;
-  color: #1e40af;
+  color: #b45309;
   margin: 0;
 }
 
@@ -41,8 +41,8 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
 }
 
 .select {
@@ -56,8 +56,8 @@
 
 .select:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
 }
 
 .clearButton {
@@ -113,7 +113,7 @@
 .modal h3 {
   margin: 0 0 4px 0;
   font-size: 1.2rem;
-  color: #1e40af;
+  color: #b45309;
 }
 
 .modalProtocol {
@@ -145,8 +145,8 @@
 .modalSelect:focus,
 .modalTextarea:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
 }
 
 .modalTextarea {
@@ -177,7 +177,7 @@
   padding: 10px 16px;
   border: none;
   border-radius: 8px;
-  background: #2563eb;
+  background: #f59e0b;
   color: white;
   font-size: 0.95rem;
   font-weight: 500;
@@ -185,11 +185,11 @@
 }
 
 .modalConfirmButton:hover {
-  background: #1d4ed8;
+  background: #d97706;
 }
 
 .modalConfirmButton:disabled {
-  background: #93c5fd;
+  background: #fdba74;
   cursor: not-allowed;
 }
 
@@ -270,7 +270,7 @@
 .protocol {
   font-family: monospace;
   font-weight: 600;
-  color: #1e40af;
+  color: #b45309;
 }
 
 .date {
@@ -283,7 +283,7 @@
   padding: 6px 12px;
   border: none;
   border-radius: 6px;
-  background: #2563eb;
+  background: #f59e0b;
   color: white;
   font-size: 0.85rem;
   font-weight: 500;
@@ -292,11 +292,11 @@
 }
 
 .gerarOrdemButton:hover {
-  background: #1d4ed8;
+  background: #d97706;
 }
 
 .gerarOrdemButton:disabled {
-  background: #93c5fd;
+  background: #fdba74;
   cursor: not-allowed;
 }
 
@@ -343,7 +343,7 @@
   width: 40px;
   height: 40px;
   border: 3px solid #e2e8f0;
-  border-top-color: #2563eb;
+  border-top-color: #f59e0b;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 16px;
@@ -427,3 +427,4 @@
     font-size: 0.85rem;
   }
 }
+

@@ -17,7 +17,7 @@
 .form h2 {
   margin: 0 0 24px 0;
   font-size: 1.3rem;
-  color: #1e40af;
+  color: #b45309;
   text-align: center;
 }
 
@@ -44,8 +44,8 @@
 
 .field input:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
 }
 
 .error {
@@ -58,7 +58,7 @@
 .button {
   width: 100%;
   padding: 12px;
-  background: #2563eb;
+  background: #f59e0b;
   color: white;
   border: none;
   border-radius: 8px;
@@ -68,10 +68,11 @@
 }
 
 .button:hover {
-  background: #1d4ed8;
+  background: #d97706;
 }
 
 .button:disabled {
-  background: #93c5fd;
+  background: #fdba74;
   cursor: not-allowed;
 }
+

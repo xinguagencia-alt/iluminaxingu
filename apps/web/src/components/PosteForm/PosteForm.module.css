@@ -14,7 +14,7 @@
 .section h3 {
   margin: 0 0 16px 0;
   font-size: 1.1rem;
-  color: #1e40af;
+  color: #b45309;
 }
 
 .fields {
@@ -51,8 +51,8 @@
 .field input:focus,
 .field select:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
 }
 
 .field input:disabled,
@@ -82,16 +82,16 @@
 }
 
 .buttonPrimary {
-  background: #2563eb;
+  background: #f59e0b;
   color: white;
 }
 
 .buttonPrimary:hover {
-  background: #1d4ed8;
+  background: #d97706;
 }
 
 .buttonPrimary:disabled {
-  background: #93c5fd;
+  background: #fdba74;
   cursor: not-allowed;
 }
 

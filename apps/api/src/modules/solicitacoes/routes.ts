@@ -5,7 +5,6 @@ import { notificarStatusSolicitacao } from '../notificacoes/notificacoes'
 
 const router = Router()
 
-// Listar solicitacoes com filtros (requer autenticacao)
 router.get('/', authMiddleware, async (req: Request, res: Response) => {
   const { status, prioridade, busca } = req.query
 
@@ -49,14 +48,10 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
   }
 })
 
-// Buscar solicitacao por protocolo
-router.get('/protocolo/:protocolo', async (req: Request, res: Response) => {
+router.get('/protocolo/:protocolo', authMiddleware, async (req: Request, res: Response) => {
   const { protocolo } = req.params
   try {
-    const result = await db.query(
-      'SELECT * FROM solicitacoes WHERE protocolo = $1',
-      [protocolo]
-    )
+    const result = await db.query('SELECT * FROM solicitacoes WHERE protocolo = $1', [protocolo])
     if (result.rows.length === 0) {
       res.status(404).json({ error: 'Solicitacao nao encontrada' })
       return
@@ -68,7 +63,6 @@ router.get('/protocolo/:protocolo', async (req: Request, res: Response) => {
   }
 })
 
-// Consulta publica por protocolo (dados completos sem auth)
 router.get('/publica/:protocolo', async (req: Request, res: Response) => {
   const { protocolo } = req.params
   try {
@@ -119,13 +113,10 @@ router.get('/publica/:protocolo', async (req: Request, res: Response) => {
   }
 })
 
-// Buscar solicitacao por ID
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
   const { id } = req.params
   try {
-    const result = await db.query('SELECT * FROM solicitacoes WHERE id = $1', [
-      id,
-    ])
+    const result = await db.query('SELECT * FROM solicitacoes WHERE id = $1', [id])
     if (result.rows.length === 0) {
       res.status(404).json({ error: 'Solicitacao nao encontrada' })
       return
@@ -137,7 +128,6 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 })
 
-// Criar nova solicitacao
 router.post('/', async (req: Request, res: Response) => {
   const {
     nome_solicitante,
@@ -164,25 +154,19 @@ router.post('/', async (req: Request, res: Response) => {
   }
 
   try {
-    // Gerar protocolo unico
     const now = new Date()
     const datePart = now.toISOString().slice(0, 10).replace(/-/g, '')
     const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase()
     const protocolo = `ILX${datePart}-${randomPart}`
 
-    // Buscar poste pelo codigo se informado
     let poste_id = null
     if (codigo_poste) {
-      const posteResult = await db.query(
-        'SELECT id FROM postes WHERE codigo = $1',
-        [codigo_poste]
-      )
+      const posteResult = await db.query('SELECT id FROM postes WHERE codigo = $1', [codigo_poste])
       if (posteResult.rows.length > 0) {
         poste_id = posteResult.rows[0].id
       }
     }
 
-    // Construir query de insercao
     const query = `
       INSERT INTO solicitacoes (
         protocolo, nome_solicitante, telefone, email,
@@ -213,7 +197,6 @@ router.post('/', async (req: Request, res: Response) => {
 
     const result = await db.query(query, values)
 
-    // Registrar log de status
     await db.query(
       'INSERT INTO status_logs (solicitacao_id, status_novo, criado_por) VALUES ($1, $2, $3)',
       [result.rows[0].id, 'enviada', 'sistema']
@@ -226,7 +209,6 @@ router.post('/', async (req: Request, res: Response) => {
   }
 })
 
-// Atualizar status da solicitacao (requer autenticacao)
 router.patch('/:id/status', authMiddleware, async (req: Request, res: Response) => {
   const { id } = req.params
   const { status, observacao } = req.body
@@ -248,7 +230,6 @@ router.patch('/:id/status', authMiddleware, async (req: Request, res: Response) 
   }
 
   try {
-    // Buscar status atual e email
     const current = await db.query(
       'SELECT status_atual, email, protocolo FROM solicitacoes WHERE id = $1',
       [id]
@@ -261,19 +242,13 @@ router.patch('/:id/status', authMiddleware, async (req: Request, res: Response) 
 
     const { status_atual: statusAnterior, email, protocolo } = current.rows[0]
 
-    // Atualizar solicitacao
-    await db.query('UPDATE solicitacoes SET status_atual = $1 WHERE id = $2', [
-      status,
-      id,
-    ])
+    await db.query('UPDATE solicitacoes SET status_atual = $1 WHERE id = $2', [status, id])
 
-    // Registrar log
     await db.query(
       'INSERT INTO status_logs (solicitacao_id, status_anterior, status_novo, observacao, criado_por) VALUES ($1, $2, $3, $4, $5)',
       [id, statusAnterior, status, observacao || null, criado_por || 'sistema']
     )
 
-    // Enviar notificacao por e-mail (nao bloqueia resposta)
     notificarStatusSolicitacao({
       email,
       protocolo,
@@ -288,14 +263,10 @@ router.patch('/:id/status', authMiddleware, async (req: Request, res: Response) 
   }
 })
 
-// Buscar historico de status
-router.get('/:id/historico', async (req: Request, res: Response) => {
+router.get('/:id/historico', authMiddleware, async (req: Request, res: Response) => {
   const { id } = req.params
   try {
-    const result = await db.query(
-      'SELECT * FROM status_logs WHERE solicitacao_id = $1 ORDER BY criado_em ASC',
-      [id]
-    )
+    const result = await db.query('SELECT * FROM status_logs WHERE solicitacao_id = $1 ORDER BY criado_em ASC', [id])
     res.json(result.rows)
   } catch (error) {
     console.error('Erro ao buscar historico:', error)

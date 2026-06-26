@@ -1,7 +1,7 @@
 .form {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 20px 20px 8px;
 }
 
 .pageContainer {
@@ -14,15 +14,15 @@
   align-items: center;
   gap: 12px;
   padding: 14px 20px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
   border-radius: 10px;
   margin-bottom: 24px;
 }
 
 .searchBarLabel {
   font-size: 0.9rem;
-  color: #1e40af;
+  color: #b45309;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -35,7 +35,7 @@
 
 .searchBarInput {
   flex: 1;
-  border: 1px solid #93c5fd;
+  border: 1px solid #fdba74;
   border-radius: 6px;
   padding: 8px 12px;
   font-size: 0.9rem;
@@ -46,12 +46,12 @@
 
 .searchBarInput:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18);
 }
 
 .searchBarButton {
-  background: #2563eb;
+  background: #f59e0b;
   color: white;
   border: none;
   border-radius: 6px;
@@ -63,11 +63,11 @@
 }
 
 .searchBarButton:hover {
-  background: #1d4ed8;
+  background: #d97706;
 }
 
 .searchBarButton:disabled {
-  background: #93c5fd;
+  background: #fdba74;
   cursor: not-allowed;
 }
 
@@ -114,8 +114,8 @@
 .field select:focus,
 .field textarea:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
 }
 
 .field textarea {
@@ -131,7 +131,7 @@
 }
 
 .geoLoading {
-  color: #2563eb;
+  color: #f59e0b;
   font-size: 0.9rem;
   margin-bottom: 12px;
 }
@@ -152,7 +152,7 @@
 .button {
   width: 100%;
   padding: 14px;
-  background: #2563eb;
+  background: #f59e0b;
   color: white;
   border: none;
   border-radius: 8px;
@@ -160,14 +160,15 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  margin-top: -8px;
 }
 
 .button:hover {
-  background: #1d4ed8;
+  background: #d97706;
 }
 
 .button:active {
-  background: #1e40af;
+  background: #b45309;
 }
 
 .success {
@@ -245,7 +246,7 @@
 
 @media (max-width: 640px) {
   .form {
-    padding: 12px;
+    padding: 12px 12px 4px;
   }
 
   .section {
@@ -261,3 +262,4 @@
     flex-direction: column;
   }
 }
+

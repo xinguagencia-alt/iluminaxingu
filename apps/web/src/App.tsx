@@ -51,7 +51,7 @@ function AppContent() {
     <div className="app">
       <header className="header">
         <h1>IluminaXingu</h1>
-        <p>Registro de Solicitacao de Iluminação Pública</p>
+        <p>Registro de Solicitação de Iluminação Pública</p>
         <nav className="nav">
           <button
             className={`navButton ${currentPage === 'home' ? 'navButtonActive' : ''}`}
@@ -65,6 +65,14 @@ function AppContent() {
           >
             Consultar Protocolo
           </button>
+          {!user && (
+            <button
+              className={`navButton ${currentPage === 'dashboard' ? 'navButtonActive' : ''}`}
+              onClick={() => setCurrentPage('dashboard')}
+            >
+              Acesso Prefeitura
+            </button>
+          )}
           {user && (
             <>
               <button
@@ -146,6 +154,9 @@ function AppContent() {
         )}
         {!user && currentPage !== 'home' && <LoginForm />}
       </main>
+      <footer className="footer">
+        <img src="/logo.png" alt="Xingu Marketing & Publicidade" className="footerLogo" />
+      </footer>
     </div>
   )
 }

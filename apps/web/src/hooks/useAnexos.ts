@@ -18,6 +18,7 @@ interface UseAnexosResult {
   uploading: boolean
   upload: (file: File, solicitacaoId?: number, ordemServicoId?: number) => Promise<Anexo | null>
   remover: (id: number) => Promise<boolean>
+  download: (id: number, filename: string) => Promise<boolean>
 }
 
 export function useAnexos(): UseAnexosResult {
@@ -27,6 +28,10 @@ export function useAnexos(): UseAnexosResult {
   const upload = useCallback(
     async (file: File, solicitacaoId?: number, ordemServicoId?: number): Promise<Anexo | null> => {
       setUploading(true)
+      if (!token) {
+        setUploading(false)
+        return null
+      }
       try {
         const formData = new FormData()
         formData.append('arquivo', file)
@@ -58,6 +63,7 @@ export function useAnexos(): UseAnexosResult {
 
   const remover = useCallback(
     async (id: number): Promise<boolean> => {
+      if (!token) return false
       try {
         const response = await fetch(`${API_URL}/api/anexos/${id}`, {
           method: 'DELETE',
@@ -73,9 +79,40 @@ export function useAnexos(): UseAnexosResult {
     [token]
   )
 
-  return { uploading, upload, remover }
+  const download = useCallback(
+    async (id: number, filename: string): Promise<boolean> => {
+      if (!token) return false
+      try {
+        const response = await fetch(`${API_URL}/api/anexos/${id}/download`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) return false
+
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const anchor = document.createElement('a')
+        anchor.href = url
+        anchor.download = filename
+        document.body.appendChild(anchor)
+        anchor.click()
+        anchor.remove()
+        window.URL.revokeObjectURL(url)
+        return true
+      } catch {
+        return false
+      }
+    },
+    [token]
+  )
+
+  return { uploading, upload, remover, download }
 }
 
-export function getDownloadUrl(anexoId: number): string {
-  return `${API_URL}/api/anexos/${anexoId}/download`
-}
+
+
+
+
+

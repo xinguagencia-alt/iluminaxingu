@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useOrdemServicoDetail } from './useOrdemServicoDetail'
-import { useAnexos, getDownloadUrl } from '../../hooks/useAnexos'
+import { useAnexos } from '../../hooks/useAnexos'
 import {
   STATUS_ORDEM_COLORS,
   STATUS_ORDEM_LABELS,
@@ -42,7 +42,7 @@ interface OrdemServicoDetailProps {
 
 export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProps) {
   const { data, loading, error, refetch } = useOrdemServicoDetail(ordemId)
-  const { uploading, upload, remover } = useAnexos()
+  const { uploading, upload, remover, download } = useAnexos()
   const [removingId, setRemovingId] = useState<number | null>(null)
 
   async function handleUpload(file: File): Promise<boolean> {
@@ -59,6 +59,10 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
     const success = await remover(id)
     setRemovingId(null)
     if (success) refetch()
+  }
+
+  async function handleDownload(id: number, filename: string) {
+    await download(id, filename)
   }
 
   if (loading) {
@@ -267,11 +271,11 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
           <div className={styles.attachmentsList}>
             {anexos.map((anexo) => (
               <div key={anexo.id} className={styles.attachmentItem}>
-                <a
-                  href={getDownloadUrl(anexo.id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
                   className={styles.attachmentLink}
+                  onClick={() => handleDownload(anexo.id, anexo.arquivo_nome)}
+                  title="Baixar anexo"
                 >
                   <div className={styles.attachmentIcon}>📄</div>
                   <div className={styles.attachmentInfo}>
@@ -282,7 +286,7 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
                       · {formatDate(anexo.criado_em)}
                     </div>
                   </div>
-                </a>
+                </button>
                 <button
                   className={styles.removeButton}
                   onClick={() => handleRemove(anexo.id)}
