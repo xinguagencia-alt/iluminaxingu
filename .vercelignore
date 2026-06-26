@@ -1,0 +1,9 @@
+apps/api
+apps/web/node_modules
+node_modules
+.git
+*.md
+scripts
+docker-compose.yml
+Dockerfile
+.prettierrc

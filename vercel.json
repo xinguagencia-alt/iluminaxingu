@@ -1,0 +1,6 @@
+{
+  "installCommand": "npm install",
+  "buildCommand": "npm --workspace @iluminaxingu/web run build",
+  "outputDirectory": "apps/web/dist",
+  "framework": "vite"
+}
