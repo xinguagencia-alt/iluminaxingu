@@ -7,8 +7,7 @@ const router = Router()
 router.get('/', async (_req: Request, res: Response) => {
   try {
     const result = await db.query(
-      `SELECT id, codigo, endereco,
-        ST_Y(geom) as latitude, ST_X(geom) as longitude,
+      `SELECT id, codigo, endereco, latitude, longitude,
         tipo_luminaria, potencia, data_instalacao,
         data_ultima_manutencao, status_ativo
       FROM postes WHERE status_ativo = TRUE ORDER BY codigo`
@@ -25,8 +24,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
   try {
     const result = await db.query(
-      `SELECT id, codigo, endereco,
-        ST_Y(geom) as latitude, ST_X(geom) as longitude,
+      `SELECT id, codigo, endereco, latitude, longitude,
         tipo_luminaria, potencia, data_instalacao,
         data_ultima_manutencao, status_ativo
       FROM postes WHERE id = $1`,
@@ -62,13 +60,8 @@ router.post('/', async (req: Request, res: Response) => {
 
   try {
     const query = `
-      INSERT INTO postes (codigo, endereco, geom, tipo_luminaria, potencia, data_instalacao)
-      VALUES ($1, $2,
-        CASE WHEN $3 IS NOT NULL AND $4 IS NOT NULL
-          THEN ST_SetSRID(ST_MakePoint($4, $3), 4326)
-          ELSE NULL
-        END,
-        $5, $6, $7)
+      INSERT INTO postes (codigo, endereco, latitude, longitude, tipo_luminaria, potencia, data_instalacao)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `
 
@@ -114,11 +107,8 @@ router.put('/:id', async (req: Request, res: Response) => {
       UPDATE postes SET
         codigo = COALESCE($1, codigo),
         endereco = COALESCE($2, endereco),
-        geom = CASE
-          WHEN $3 IS NOT NULL AND $4 IS NOT NULL
-          THEN ST_SetSRID(ST_MakePoint($4, $3), 4326)
-          ELSE geom
-        END,
+        latitude = COALESCE($3, latitude),
+        longitude = COALESCE($4, longitude),
         tipo_luminaria = COALESCE($5, tipo_luminaria),
         potencia = COALESCE($6, potencia),
         data_instalacao = COALESCE($7, data_instalacao),
@@ -159,22 +149,45 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 })
 
-// Buscar postes proximos (raio em metros)
+// Buscar postes proximos (raio em metros) - approximacao sem PostGIS
 router.get('/proximos/:lat/:lng/:raio', async (req: Request, res: Response) => {
-  const { lat, lng, raio } = req.params
+  const lat = parseFloat(String(req.params.lat))
+  const lng = parseFloat(String(req.params.lng))
+  const raio = parseFloat(String(req.params.raio))
+
+  if (isNaN(lat) || isNaN(lng) || isNaN(raio)) {
+    res.status(400).json({ error: 'Parametros invalidos' })
+    return
+  }
+
   try {
     const result = await db.query(
-      `SELECT id, codigo, endereco,
-        ST_Y(geom) as latitude, ST_X(geom) as longitude,
+      `SELECT id, codigo, endereco, latitude, longitude,
         tipo_luminaria, potencia,
-        ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography) as distancia_metros
+        CASE
+          WHEN latitude IS NOT NULL AND longitude IS NOT NULL
+          THEN (
+            6371000 * acos(
+              cos(radians($1)) * cos(radians(latitude)) *
+              cos(radians(longitude) - radians($2)) +
+              sin(radians($1)) * sin(radians(latitude))
+            )
+          )
+          ELSE NULL
+        END as distancia_metros
       FROM postes
       WHERE status_ativo = TRUE
-        AND ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography, $3)
-      ORDER BY distancia_metros`,
-      [lat, lng, raio]
+        AND latitude IS NOT NULL AND longitude IS NOT NULL
+      ORDER BY distancia_metros
+      LIMIT 50`,
+      [lat, lng]
     )
-    res.json(result.rows)
+
+    const filtrados = result.rows.filter((r: { distancia_metros: number | null }) =>
+      r.distancia_metros !== null && r.distancia_metros <= raio
+    )
+
+    res.json(filtrados)
   } catch (error) {
     console.error('Erro ao buscar postes proximos:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
