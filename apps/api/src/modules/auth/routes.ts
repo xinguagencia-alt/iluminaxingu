@@ -68,36 +68,6 @@ router.get('/bootstrap', async (_req: Request, res: Response) => {
   }
 })
 
-// Seed: criar ou resetar admin (protegido por SEED_SECRET)
-router.post('/seed', async (req: Request, res: Response) => {
-  const { secret } = req.body
-
-  if (secret !== process.env.SEED_SECRET) {
-    res.status(403).json({ error: 'Secret invalido' })
-    return
-  }
-
-  try {
-    const existing = await db.query('SELECT id FROM admin_users WHERE username = $1', ['admin'])
-
-    const passwordHash = await bcrypt.hash('admin123', 10)
-
-    if (existing.rows.length > 0) {
-      await db.query('UPDATE admin_users SET password_hash = $1, ativo = TRUE WHERE username = $2', [passwordHash, 'admin'])
-      res.json({ message: 'Senha do admin resetada para admin123' })
-    } else {
-      await db.query(
-        'INSERT INTO admin_users (username, password_hash, nome_completo) VALUES ($1, $2, $3)',
-        ['admin', passwordHash, 'Administrador']
-      )
-      res.json({ message: 'Admin criado com sucesso' })
-    }
-  } catch (error) {
-    console.error('Erro no seed:', error)
-    res.status(500).json({ error: 'Erro interno do servidor' })
-  }
-})
-
 router.post('/login', async (req: Request, res: Response) => {
   const { username, password } = req.body
 
