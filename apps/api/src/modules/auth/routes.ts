@@ -328,8 +328,9 @@ router.put('/users/:id', authMiddleware, requireRole(['admin']), async (req: Req
 // Migration: adicionar colunas de endereco estruturado (protegido por SEED_SECRET)
 router.post('/migrate', async (req: Request, res: Response) => {
   const { secret } = req.body
+  const seedSecret = process.env.SEED_SECRET
 
-  if (secret !== process.env.SEED_SECRET) {
+  if (!seedSecret || secret !== seedSecret) {
     res.status(403).json({ error: 'Secret invalido' })
     return
   }
@@ -357,3 +358,4 @@ router.post('/migrate', async (req: Request, res: Response) => {
 })
 
 export default router
+

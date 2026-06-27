@@ -34,6 +34,48 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const [loadingGeo, setLoadingGeo] = useState(false)
+  const [geoError, setGeoError] = useState<string | null>(null)
+  const [locationSource, setLocationSource] = useState<'gps' | 'manual' | 'map' | null>(null)
+
+  function captureLocation() {
+    if (!navigator.geolocation) {
+      setGeoError('Seu navegador nao suporta geolocalizacao')
+      return
+    }
+
+    setLoadingGeo(true)
+    setGeoError(null)
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData((prev) => ({
+          ...prev,
+          latitude: position.coords.latitude.toFixed(8),
+          longitude: position.coords.longitude.toFixed(8),
+        }))
+        setLocationSource('gps')
+        setLoadingGeo(false)
+      },
+      (error) => {
+        setLoadingGeo(false)
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setGeoError('Permissao de localizacao negada. Ative nas configuracoes do navegador.')
+            break
+          case error.POSITION_UNAVAILABLE:
+            setGeoError('Localizacao indisponivel. Verifique se o GPS esta ativo.')
+            break
+          case error.TIMEOUT:
+            setGeoError('Tempo esgotado. Tente novamente.')
+            break
+          default:
+            setGeoError('Erro ao obter localizacao.')
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    )
+  }
 
   function validate(): PosteFormErrors {
     const newErrors: PosteFormErrors = {}
@@ -131,6 +173,9 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
   }
 
   function handleChange(field: keyof PosteFormData, value: string) {
+    if (field === 'latitude' || field === 'longitude') {
+      setLocationSource('manual')
+    }
     setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field as keyof PosteFormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
@@ -143,6 +188,8 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
       latitude: lat.toFixed(8),
       longitude: lng.toFixed(8),
     }))
+    setGeoError(null)
+    setLocationSource('map')
   }
 
   if (saved) {
@@ -282,6 +329,21 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
 
       <div className={styles.section}>
         <h3>Localizacao</h3>
+        <p className={styles.hint}>Use o botao abaixo para capturar a localizacao atual do celular. Fique proximo ao poste antes de capturar.</p>
+        <button
+          type="button"
+          className={styles.geoButton}
+          onClick={captureLocation}
+          disabled={loadingGeo || submitting}
+        >
+          {loadingGeo ? 'Obtendo localizacao...' : 'Usar minha localizacao atual'}
+        </button>
+        {geoError && <p className={styles.error}>{geoError}</p>}
+        {formData.latitude && formData.longitude && !geoError && locationSource === 'gps' && (
+          <p className={styles.geoSuccess}>
+            Localizacao capturada pelo GPS: {formData.latitude}, {formData.longitude}
+          </p>
+        )}
         <div className={styles.fields}>
           <div className={styles.field}>
             <label htmlFor="latitude">Latitude</label>
@@ -341,3 +403,6 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
     </form>
   )
 }
+
+
+
