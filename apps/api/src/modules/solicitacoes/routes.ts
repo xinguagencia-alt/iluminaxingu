@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express'
-import { db } from '../../db'
+import { db } from '../../db.js'
 import rateLimit from 'express-rate-limit'
-import { authMiddleware, requireRole } from '../auth/middleware'
-import { notificarStatusSolicitacao, notificarNovaSolicitacao } from '../notificacoes/notificacoes'
+import { authMiddleware, requireRole } from '../auth/middleware.js'
+import { notificarStatusSolicitacao, notificarNovaSolicitacao } from '../notificacoes/notificacoes.js'
 
 const router = Router()
 

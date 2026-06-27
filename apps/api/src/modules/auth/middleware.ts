@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import { getJwtSecret } from '../../config/env'
+import { getJwtSecret } from '../../config/env.js'
 
 export interface AuthPayload {
   userId: number

@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
-import { db } from '../../db'
-import { authMiddleware, requireRole } from '../auth/middleware'
-import { registrarAuditoria } from '../auditoria/helper'
+import { db } from '../../db.js'
+import { authMiddleware, requireRole } from '../auth/middleware.js'
+import { registrarAuditoria } from '../auditoria/helper.js'
 
 const router = Router()
 

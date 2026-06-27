@@ -3,8 +3,8 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
-import { db } from '../../db'
-import { authMiddleware, requireRole } from '../auth/middleware'
+import { db } from '../../db.js'
+import { authMiddleware, requireRole } from '../auth/middleware.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

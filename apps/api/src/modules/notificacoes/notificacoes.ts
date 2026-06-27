@@ -1,4 +1,4 @@
-import { sendEmail } from './email'
+import { sendEmail } from './email.js'
 
 function escapeHtml(str: string): string {
   return str

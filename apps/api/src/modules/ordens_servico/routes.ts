@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
-import { db } from '../../db'
-import { authMiddleware, requireRole } from '../auth/middleware'
-import { notificarStatusSolicitacao } from '../notificacoes/notificacoes'
+import { db } from '../../db.js'
+import { authMiddleware, requireRole } from '../auth/middleware.js'
+import { notificarStatusSolicitacao } from '../notificacoes/notificacoes.js'
 
 const router = Router()
 

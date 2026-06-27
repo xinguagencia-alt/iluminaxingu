@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express'
 import bcrypt from 'bcrypt'
-import { db } from '../../db'
-import { getJwtSecret } from '../../config/env'
-import { authMiddleware, requireRole, signToken } from './middleware'
+import { db } from '../../db.js'
+import { getJwtSecret } from '../../config/env.js'
+import { authMiddleware, requireRole, signToken } from './middleware.js'
 import jwt from 'jsonwebtoken'
 
 const router = Router()
