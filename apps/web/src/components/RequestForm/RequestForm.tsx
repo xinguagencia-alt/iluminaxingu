@@ -42,34 +42,39 @@ export function RequestForm() {
       return
     }
 
-    setLoadingGeo(true)
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setFormData((prev) => ({
-          ...prev,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        }))
-        setLoadingGeo(false)
-      },
-      (error) => {
-        setLoadingGeo(false)
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            setGeoError('Permissao de localizacao negada. Use o botao abaixo ou ative o GPS nas configuracoes do navegador.')
-            break
-          case error.POSITION_UNAVAILABLE:
-            setGeoError('Localizacao indisponivel. Verifique se o GPS esta ativo.')
-            break
-          case error.TIMEOUT:
-            setGeoError('Tempo esgotado. Tente novamente com o botao abaixo.')
-            break
-          default:
-            setGeoError('Nao foi possivel obter a localizacao. Use o botao abaixo.')
-        }
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    )
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+
+    if (!isIOS && !isSafari) {
+      setLoadingGeo(true)
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData((prev) => ({
+            ...prev,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          }))
+          setLoadingGeo(false)
+        },
+        (error) => {
+          setLoadingGeo(false)
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              setGeoError('Permissao de localizacao negada. Toque no botao abaixo para tentar novamente.')
+              break
+            case error.POSITION_UNAVAILABLE:
+              setGeoError('Localizacao indisponivel. Verifique se o GPS esta ativo.')
+              break
+            case error.TIMEOUT:
+              setGeoError('Tempo esgotado. Toque no botao abaixo para tentar novamente.')
+              break
+            default:
+              setGeoError('Nao foi possivel obter a localizacao. Toque no botao abaixo.')
+          }
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      )
+    }
   }, [])
 
   function validate(): FormErrors {
@@ -326,25 +331,26 @@ export function RequestForm() {
         )}
 
         {geoError && (
-          <>
-            <p className={styles.geoError}>{geoError}</p>
-            <button
-              type="button"
-              className={styles.geoButton}
-              onClick={captureLocation}
-            >
-              Tentar obter localizacao novamente
-            </button>
-          </>
+          <p className={styles.geoError}>{geoError}</p>
         )}
 
-        {!loadingGeo && formData.latitude === null && !geoError && (
+        {formData.latitude === null && !loadingGeo && (
           <button
             type="button"
             className={styles.geoButton}
             onClick={captureLocation}
           >
-            Capturar minha localizacao
+            Detectar minha localizacao
+          </button>
+        )}
+
+        {formData.latitude !== null && !loadingGeo && (
+          <button
+            type="button"
+            className={styles.geoButtonSecondary}
+            onClick={captureLocation}
+          >
+            Atualizar localizacao
           </button>
         )}
 
