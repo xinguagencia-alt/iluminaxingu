@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react'
+import { useState, useMemo, FormEvent } from 'react'
 import { PosteFormData, PosteFormErrors, TIPOS_LUMINARIA } from './types'
 import { MapPicker } from '../MapPicker/MapPicker'
 import { useBairros } from '../../hooks/useBairros'
@@ -48,6 +48,31 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
   const [novaRuaTipo, setNovaRuaTipo] = useState<'avenida' | 'rua'>('rua')
   const [buscaBairro, setBuscaBairro] = useState('')
   const [buscaRua, setBuscaRua] = useState('')
+
+  const bairrosFiltrados = useMemo(() => {
+    if (!buscaBairro) return bairros
+    return bairros.filter((b) =>
+      b.nome.toLowerCase().includes(buscaBairro.toLowerCase())
+    )
+  }, [bairros, buscaBairro])
+
+  const buscaBairrosFiltrados = bairrosFiltrados.length
+
+  const avenidasFiltradas = useMemo(() => {
+    if (!buscaRua) return avenidas
+    return avenidas.filter((a) =>
+      a.nome.toLowerCase().includes(buscaRua.toLowerCase())
+    )
+  }, [avenidas, buscaRua])
+
+  const ruasFiltradas = useMemo(() => {
+    if (!buscaRua) return ruasOficiais
+    return ruasOficiais.filter((r) =>
+      r.nome.toLowerCase().includes(buscaRua.toLowerCase())
+    )
+  }, [ruasOficiais, buscaRua])
+
+  const buscaRuasFiltradas = avenidasFiltradas.length + ruasFiltradas.length
 
   function captureLocation() {
     if (!navigator.geolocation) {
@@ -343,14 +368,39 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
               </div>
             ) : (
               <div className={styles.ruaSelectWrapper}>
-                <input
-                  type="text"
-                  className={styles.buscaInput}
-                  placeholder="Buscar rua/avenida..."
-                  value={buscaRua}
-                  onChange={(e) => setBuscaRua(e.target.value)}
-                  disabled={submitting || loadingRuas}
-                />
+                <div className={styles.buscaWrapper}>
+                  <input
+                    type="text"
+                    className={styles.buscaInput}
+                    placeholder={loadingRuas ? 'Carregando ruas...' : 'Buscar rua/avenida...'}
+                    value={buscaRua}
+                    onChange={(e) => setBuscaRua(e.target.value)}
+                    disabled={submitting || loadingRuas}
+                  />
+                  {buscaRua && (
+                    <button
+                      type="button"
+                      className={styles.buscaLimpar}
+                      onClick={() => setBuscaRua('')}
+                      disabled={submitting}
+                      title="Limpar busca"
+                    >
+                      x
+                    </button>
+                  )}
+                </div>
+                {!loadingRuas && buscaRuasFiltradas === 0 && buscaRua && (
+                  <span className={styles.buscaNenhum}>
+                    Nenhuma rua/avenida encontrada para "{buscaRua}"
+                  </span>
+                )}
+                {!loadingRuas && (
+                  <span className={styles.buscaContador}>
+                    {buscaRua
+                      ? `${buscaRuasFiltradas} de ${avenidas.length + ruasOficiais.length} ruas/avenidas`
+                      : `${avenidas.length + ruasOficiais.length} ruas/avenidas disponiveis`}
+                  </span>
+                )}
                 <select
                   id="rua"
                   value={formData.rua}
@@ -366,36 +416,20 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
                     }
                   }}
                   disabled={submitting || loadingRuas}
-                  {...(buscaRua ? { size: Math.min(
-                    (avenidas.filter((a) =>
-                      a.nome.toLowerCase().includes(buscaRua.toLowerCase())
-                    ).length +
-                    ruasOficiais.filter((r) =>
-                      r.nome.toLowerCase().includes(buscaRua.toLowerCase())
-                    ).length +
-                    1),
-                    8
-                  ) } : {})}
                 >
-                  <option value="">Selecione a rua/avenida...</option>
-                  {avenidas.filter((a) =>
-                    !buscaRua || a.nome.toLowerCase().includes(buscaRua.toLowerCase())
-                  ).length > 0 && (
+                  <option value="">
+                    {loadingRuas ? 'Carregando...' : 'Selecione a rua/avenida...'}
+                  </option>
+                  {avenidasFiltradas.length > 0 && (
                     <optgroup label="Avenidas">
-                      {avenidas.filter((a) =>
-                        !buscaRua || a.nome.toLowerCase().includes(buscaRua.toLowerCase())
-                      ).map((a) => (
+                      {avenidasFiltradas.map((a) => (
                         <option key={a.id} value={a.nome}>{a.nome}</option>
                       ))}
                     </optgroup>
                   )}
-                  {ruasOficiais.filter((r) =>
-                    !buscaRua || r.nome.toLowerCase().includes(buscaRua.toLowerCase())
-                  ).length > 0 && (
+                  {ruasFiltradas.length > 0 && (
                     <optgroup label="Ruas">
-                      {ruasOficiais.filter((r) =>
-                        !buscaRua || r.nome.toLowerCase().includes(buscaRua.toLowerCase())
-                      ).map((r) => (
+                      {ruasFiltradas.map((r) => (
                         <option key={r.id} value={r.nome}>{r.nome}</option>
                       ))}
                     </optgroup>
@@ -444,14 +478,39 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
               </div>
             ) : (
               <div className={styles.bairroSelectWrapper}>
-                <input
-                  type="text"
-                  className={styles.buscaInput}
-                  placeholder="Buscar bairro..."
-                  value={buscaBairro}
-                  onChange={(e) => setBuscaBairro(e.target.value)}
-                  disabled={submitting || loadingBairros}
-                />
+                <div className={styles.buscaWrapper}>
+                  <input
+                    type="text"
+                    className={styles.buscaInput}
+                    placeholder={loadingBairros ? 'Carregando bairros...' : 'Buscar bairro...'}
+                    value={buscaBairro}
+                    onChange={(e) => setBuscaBairro(e.target.value)}
+                    disabled={submitting || loadingBairros}
+                  />
+                  {buscaBairro && (
+                    <button
+                      type="button"
+                      className={styles.buscaLimpar}
+                      onClick={() => setBuscaBairro('')}
+                      disabled={submitting}
+                      title="Limpar busca"
+                    >
+                      x
+                    </button>
+                  )}
+                </div>
+                {!loadingBairros && buscaBairrosFiltrados === 0 && buscaBairro && (
+                  <span className={styles.buscaNenhum}>
+                    Nenhum bairro encontrado para "{buscaBairro}"
+                  </span>
+                )}
+                {!loadingBairros && (
+                  <span className={styles.buscaContador}>
+                    {buscaBairro
+                      ? `${buscaBairrosFiltrados} de ${bairros.length} bairros`
+                      : `${bairros.length} bairros disponiveis`}
+                  </span>
+                )}
                 <select
                   id="bairro"
                   value={formData.bairro}
@@ -466,17 +525,11 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
                     }
                   }}
                   disabled={submitting || loadingBairros}
-                  {...(buscaBairro ? { size: Math.min(
-                    (bairros.filter((b) =>
-                      b.nome.toLowerCase().includes(buscaBairro.toLowerCase())
-                    ).length + 1),
-                    8
-                  ) } : {})}
                 >
-                  <option value="">Selecione o bairro...</option>
-                  {bairros.filter((b) =>
-                    !buscaBairro || b.nome.toLowerCase().includes(buscaBairro.toLowerCase())
-                  ).map((b) => (
+                  <option value="">
+                    {loadingBairros ? 'Carregando...' : 'Selecione o bairro...'}
+                  </option>
+                  {bairrosFiltrados.map((b) => (
                     <option key={b.id} value={b.nome}>{b.nome}</option>
                   ))}
                   <option value="__novo__">+ Cadastrar novo bairro</option>

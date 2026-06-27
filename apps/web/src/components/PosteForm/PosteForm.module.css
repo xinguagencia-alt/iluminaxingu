@@ -251,12 +251,18 @@
 .ruaSelectWrapper {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+}
+
+.buscaWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .buscaInput {
   width: 100%;
-  padding: 8px 10px;
+  padding: 8px 28px 8px 10px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   font-size: 0.85em;
@@ -266,6 +272,39 @@
 .buscaInput:focus {
   outline: none;
   border-color: #3b82f6;
+}
+
+.buscaInput:disabled {
+  background: #f3f4f6;
+}
+
+.buscaLimpar {
+  position: absolute;
+  right: 4px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+.buscaLimpar:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.buscaContador {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.buscaNenhum {
+  font-size: 0.82rem;
+  color: #dc2626;
+  font-style: italic;
 }
 
 @media (max-width: 640px) {
