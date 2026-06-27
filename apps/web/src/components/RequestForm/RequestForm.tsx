@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, FormEvent } from 'react'
 import { FormData, FormErrors, TIPOS_PROBLEMA } from './types'
 import { MapPicker, MapMarker } from '../MapPicker/MapPicker'
 import { usePostes } from '../../hooks/usePostes'
@@ -27,6 +27,7 @@ export function RequestForm() {
   const [errors, setErrors] = useState<FormErrors>({})
   const [protocolo, setProtocolo] = useState<string | null>(null)
   const [loadingGeo, setLoadingGeo] = useState(false)
+  const [geoError, setGeoError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [filesToUpload, setFilesToUpload] = useState<File[]>([])
@@ -34,25 +35,6 @@ export function RequestForm() {
   const [protocoloBusca, setProtocoloBusca] = useState<string | null>(null)
   const { postes } = usePostes()
   const { uploading, upload } = useAnexos()
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      setLoadingGeo(true)
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setFormData((prev) => ({
-            ...prev,
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          }))
-          setLoadingGeo(false)
-        },
-        () => {
-          setLoadingGeo(false)
-        }
-      )
-    }
-  }, [])
 
   function validate(): FormErrors {
     const newErrors: FormErrors = {}
@@ -148,6 +130,44 @@ export function RequestForm() {
 
   function handleLocationSelect(lat: number, lng: number) {
     setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }))
+  }
+
+  function captureLocation() {
+    if (!navigator.geolocation) {
+      setGeoError('Seu navegador nao suporta geolocalizacao')
+      return
+    }
+
+    setLoadingGeo(true)
+    setGeoError(null)
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData((prev) => ({
+          ...prev,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }))
+        setLoadingGeo(false)
+      },
+      (error) => {
+        setLoadingGeo(false)
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setGeoError('Permissao de localizacao negada. Ative nas configuracoes do navegador.')
+            break
+          case error.POSITION_UNAVAILABLE:
+            setGeoError('Localizacao indisponivel. Verifique se o GPS esta ativo.')
+            break
+          case error.TIMEOUT:
+            setGeoError('Tempo esgotado. Tente novamente.')
+            break
+          default:
+            setGeoError('Erro ao obter localizacao.')
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    )
   }
 
   function handlePostSelect(marker: MapMarker) {
@@ -258,12 +278,22 @@ export function RequestForm() {
 
       <section className={styles.section}>
         <h2>Localizacao</h2>
+        <p className={styles.geoHint}>
+          Se estiver embaixo do poste, toque em "Capturar minha localizacao". Depois, se quiser, ajuste no mapa.
+        </p>
 
-        {loadingGeo && (
-          <p className={styles.geoLoading}>Obtendo localizacao GPS...</p>
-        )}
+        <button
+          type="button"
+          className={styles.geoButton}
+          onClick={captureLocation}
+          disabled={loadingGeo}
+        >
+          {loadingGeo ? 'Capturando localizacao...' : 'Capturar minha localizacao'}
+        </button>
 
-        {formData.latitude !== null && formData.longitude !== null && (
+        {geoError && <p className={styles.geoError}>{geoError}</p>}
+
+        {formData.latitude !== null && formData.longitude !== null && !geoError && (
           <p className={styles.geoInfo}>
             Localizacao detectada: {formData.latitude.toFixed(6)},{' '}
             {formData.longitude.toFixed(6)}
