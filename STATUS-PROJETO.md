@@ -114,11 +114,11 @@ iluminaxingu/
 - Separacao de rotas (publica vs admin)
 - Deploy automatizado (Vercel + Railway)
 - Migration de endereco estruturado (rua, numero, bairro)
+- Relatorios por bairro
+- Dashboard com metricas
 
 ### Pendente
 - Trocar senha admin123 por senha forte
-- Relatorios por bairro
-- Dashboard com metricas
 - Notificacoes por email
 - Relatorios PDF
 
@@ -146,5 +146,6 @@ docker-compose up -d
 3. **Notificacoes:** Email quando solicitacao muda de status
 4. **Relatorios PDF:** Gerar relatorio de postes por bairro
 5. **Performance:** Otimizar queries para muitos registros
+
 
 

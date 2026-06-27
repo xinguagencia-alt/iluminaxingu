@@ -6,13 +6,44 @@ const router = Router()
 
 const POSTE_SELECT = `id, codigo, endereco, rua, numero, bairro, complemento, latitude, longitude,
   tipo_luminaria, potencia, data_instalacao, data_ultima_manutencao, status_ativo`
+const BAIRRO_NORMALIZADO = `COALESCE(NULLIF(TRIM(bairro), ''), 'Sem bairro informado')`
 
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/relatorio-bairros', async (_req: Request, res: Response) => {
   try {
     const result = await db.query(
-      `SELECT ${POSTE_SELECT}
-      FROM postes WHERE status_ativo = TRUE ORDER BY codigo`
+      `SELECT
+        ${BAIRRO_NORMALIZADO} AS bairro,
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE tipo_luminaria IS NOT NULL) AS com_luminaria,
+        COUNT(*) FILTER (WHERE latitude IS NOT NULL AND longitude IS NOT NULL) AS com_localizacao,
+        COUNT(*) FILTER (WHERE data_ultima_manutencao IS NOT NULL) AS com_manutencao
+      FROM postes
+      WHERE status_ativo = TRUE
+      GROUP BY ${BAIRRO_NORMALIZADO}
+      ORDER BY total DESC`
     )
+    res.json(result.rows)
+  } catch (error) {
+    console.error('Erro ao gerar relatorio por bairros:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const bairro = req.query.bairro as string | undefined
+
+    let query = `SELECT ${POSTE_SELECT} FROM postes WHERE status_ativo = TRUE`
+    const params: string[] = []
+
+    if (bairro) {
+      params.push(bairro.trim())
+      query += ` AND LOWER(${BAIRRO_NORMALIZADO}) = LOWER($1)`
+    }
+
+    query += ' ORDER BY codigo'
+
+    const result = await db.query(query, params)
     res.json(result.rows)
   } catch (error) {
     console.error('Erro ao listar postes:', error)

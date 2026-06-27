@@ -1,24 +1,35 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Poste } from '../components/PosteForm/types'
 import { useAuth } from '../contexts/AuthContext'
 import { API_URL } from '../config/api'
 
 interface UseAdminPostesResult {
   postes: Poste[]
+  todosPostes: Poste[]
   loading: boolean
   error: string | null
   busca: string
   setBusca: (valor: string) => void
+  bairroFiltro: string
+  setBairroFiltro: (valor: string) => void
+  bairrosDisponiveis: string[]
   refetch: () => void
   excluir: (id: number) => Promise<boolean>
 }
 
 export function useAdminPostes(): UseAdminPostesResult {
   const { token } = useAuth()
-  const [postes, setPostes] = useState<Poste[]>([])
+  const [todosPostes, setTodosPostes] = useState<Poste[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busca, setBusca] = useState('')
+  const [bairroFiltro, setBairroFiltro] = useState('')
+  const BAIRRO_SEM_INFORMACAO = 'Sem bairro informado'
+
+  function normalizaBairro(bairro?: string | null) {
+    const valor = bairro?.trim()
+    return valor ? valor : BAIRRO_SEM_INFORMACAO
+  }
 
   const fetchPostes = useCallback(async () => {
     setLoading(true)
@@ -34,7 +45,7 @@ export function useAdminPostes(): UseAdminPostesResult {
       }
 
       const data = await response.json()
-      setPostes(data)
+      setTodosPostes(data)
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Erro ao conectar com o servidor'
@@ -48,16 +59,35 @@ export function useAdminPostes(): UseAdminPostesResult {
     fetchPostes()
   }, [fetchPostes])
 
-  const postesFiltrados = busca
-    ? postes.filter(
+  const bairrosDisponiveis = useMemo(() => {
+    const set = new Set<string>()
+    for (const p of todosPostes) {
+      set.add(normalizaBairro(p.bairro))
+    }
+    return Array.from(set).sort()
+  }, [todosPostes])
+
+  const postesFiltrados = useMemo(() => {
+    let resultado = todosPostes
+
+    if (bairroFiltro) {
+      resultado = resultado.filter((p) => normalizaBairro(p.bairro) === bairroFiltro)
+    }
+
+    if (busca) {
+      const termo = busca.toLowerCase()
+      resultado = resultado.filter(
         (p) =>
-          p.codigo.toLowerCase().includes(busca.toLowerCase()) ||
-          (p.rua && p.rua.toLowerCase().includes(busca.toLowerCase())) ||
-          (p.bairro && p.bairro.toLowerCase().includes(busca.toLowerCase())) ||
-          (p.numero && p.numero.toLowerCase().includes(busca.toLowerCase())) ||
-          (p.endereco && p.endereco.toLowerCase().includes(busca.toLowerCase()))
+          p.codigo.toLowerCase().includes(termo) ||
+          (p.rua && p.rua.toLowerCase().includes(termo)) ||
+          (p.bairro && p.bairro.toLowerCase().includes(termo)) ||
+          (p.numero && p.numero.toLowerCase().includes(termo)) ||
+          (p.endereco && p.endereco.toLowerCase().includes(termo))
       )
-    : postes
+    }
+
+    return resultado
+  }, [todosPostes, bairroFiltro, busca])
 
   const excluir = useCallback(
     async (id: number): Promise<boolean> => {
@@ -86,10 +116,14 @@ export function useAdminPostes(): UseAdminPostesResult {
 
   return {
     postes: postesFiltrados,
+    todosPostes,
     loading,
     error,
     busca,
     setBusca,
+    bairroFiltro,
+    setBairroFiltro,
+    bairrosDisponiveis,
     refetch: fetchPostes,
     excluir,
   }

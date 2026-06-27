@@ -115,6 +115,20 @@ export function Dashboard() {
     const ordensAbertas = ordens.filter((ordem) => ordem.status === 'aberta').length
     const ordensEmExecucao = ordens.filter((ordem) => ordem.status === 'em_execucao').length
 
+    const postesPorBairro = postes
+      .filter((p) => p.status_ativo)
+      .reduce<Record<string, number>>((acc, p) => {
+        const bairro = p.bairro || 'Sem bairro informado'
+        acc[bairro] = (acc[bairro] || 0) + 1
+        return acc
+      }, {})
+
+    const bairrosOrdenados = Object.entries(postesPorBairro)
+      .map(([bairro, total]) => ({ bairro, total }))
+      .sort((a, b) => b.total - a.total)
+
+    const maxBairroCount = Math.max(...bairrosOrdenados.map((b) => b.total), 1)
+
     return {
       totalSolicitacoes,
       abertas,
@@ -133,6 +147,8 @@ export function Dashboard() {
       ordensAbertas,
       ordensEmExecucao,
       equipesMaisCarregadas,
+      bairrosOrdenados,
+      maxBairroCount,
     }
   }, [ordens, postes, solicitacoes])
 
@@ -362,7 +378,10 @@ export function Dashboard() {
                   </div>
                   <div className={styles.listItemBody}>
                     <span className={styles.listItemName}>
-                      {p.endereco || 'Sem endereço informado'}
+                      {[p.rua, p.numero].filter(Boolean).join(', ') || 'Sem endereco informado'}
+                    </span>
+                    <span className={styles.miniBadgeNeutral}>
+                      {p.bairro || 'Sem bairro informado'}
                     </span>
                   </div>
                   {p.latitude !== null && p.longitude !== null && (
@@ -396,6 +415,37 @@ export function Dashboard() {
           </div>
         </section>
       </div>
+
+      <section className={styles.panel}>
+        <div className={styles.panelHeader}>
+          <h3>Postes por bairro</h3>
+          <span className={styles.panelBadge}>{metrics.bairrosOrdenados.length} bairro(s)</span>
+        </div>
+        {metrics.bairrosOrdenados.length === 0 ? (
+          <p className={styles.emptyText}>Nenhum poste com bairro informado.</p>
+        ) : (
+          <div className={styles.barChart}>
+            {metrics.bairrosOrdenados.map(({ bairro, total }) => {
+              const pct = (total / metrics.maxBairroCount) * 100
+              return (
+                <div key={bairro} className={styles.barRow}>
+                  <span className={styles.barLabel}>{bairro}</span>
+                  <div className={styles.barTrack}>
+                    <div
+                      className={styles.barFill}
+                      style={{
+                        width: `${pct}%`,
+                        backgroundColor: '#f59e0b',
+                      }}
+                    />
+                  </div>
+                  <span className={styles.barValue}>{formatCount(total)}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
     </div>
   )
 }

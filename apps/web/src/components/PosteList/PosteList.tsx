@@ -22,7 +22,7 @@ interface PosteListProps {
 }
 
 export function PosteList({ onNovoPoste }: PosteListProps) {
-  const { postes, loading, error, busca, setBusca, refetch, excluir } = useAdminPostes()
+  const { postes, loading, error, busca, setBusca, bairroFiltro, setBairroFiltro, bairrosDisponiveis, refetch, excluir } = useAdminPostes()
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   function showToast(message: string, type: 'success' | 'error') {
@@ -78,7 +78,9 @@ export function PosteList({ onNovoPoste }: PosteListProps) {
 
       <div className={styles.header}>
         <h2>Postes</h2>
-        <span className={styles.count}>{postes.length} registro(s)</span>
+        <span className={styles.count}>
+          {bairroFiltro ? `${postes.length} registro(s) em "${bairroFiltro}"` : `${postes.length} registro(s)`}
+        </span>
       </div>
 
       <div className={styles.toolbar}>
@@ -89,6 +91,24 @@ export function PosteList({ onNovoPoste }: PosteListProps) {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
+        <select
+          className={styles.bairroSelect}
+          value={bairroFiltro}
+          onChange={(e) => setBairroFiltro(e.target.value)}
+        >
+          <option value="">Todos os bairros</option>
+          {bairrosDisponiveis.map((b) => (
+            <option key={b} value={b}>{b}</option>
+          ))}
+        </select>
+        {bairroFiltro && (
+          <button
+            className={styles.clearFilterButton}
+            onClick={() => setBairroFiltro('')}
+          >
+            Limpar filtro
+          </button>
+        )}
         <button className={styles.addButton} onClick={onNovoPoste}>
           Novo Poste
         </button>
@@ -125,7 +145,7 @@ export function PosteList({ onNovoPoste }: PosteListProps) {
                   <td className={styles.codigo}>{poste.codigo}</td>
                   <td>{poste.rua || '-'}</td>
                   <td>{poste.numero || '-'}</td>
-                  <td>{poste.bairro || '-'}</td>
+                  <td>{poste.bairro || 'Sem bairro informado'}</td>
                   <td className={styles.location}>
                     {poste.latitude !== null && poste.longitude !== null
                       ? `${poste.latitude.toFixed(6)}, ${poste.longitude.toFixed(6)}`
