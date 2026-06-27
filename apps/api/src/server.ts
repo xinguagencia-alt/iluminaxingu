@@ -18,6 +18,14 @@ async function ensureDatabaseSchema() {
       ADD COLUMN IF NOT EXISTS perfil VARCHAR(30) NOT NULL DEFAULT 'operador'`
   )
   await db.query("UPDATE admin_users SET perfil = 'admin' WHERE username = 'admin' AND perfil = 'operador'")
+
+  await db.query(
+    `ALTER TABLE postes
+      ADD COLUMN IF NOT EXISTS rua VARCHAR(200),
+      ADD COLUMN IF NOT EXISTS numero VARCHAR(30),
+      ADD COLUMN IF NOT EXISTS bairro VARCHAR(120),
+      ADD COLUMN IF NOT EXISTS complemento TEXT`
+  )
 }
 
 app.use(
@@ -71,3 +79,4 @@ ensureDatabaseSchema()
     console.error('Erro ao preparar banco de dados:', error)
     process.exit(1)
   })
+

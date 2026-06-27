@@ -325,4 +325,35 @@ router.put('/users/:id', authMiddleware, requireRole(['admin']), async (req: Req
   }
 })
 
+// Migration: adicionar colunas de endereco estruturado (protegido por SEED_SECRET)
+router.post('/migrate', async (req: Request, res: Response) => {
+  const { secret } = req.body
+
+  if (secret !== process.env.SEED_SECRET) {
+    res.status(403).json({ error: 'Secret invalido' })
+    return
+  }
+
+  const migrations = [
+    `ALTER TABLE postes ADD COLUMN IF NOT EXISTS rua VARCHAR(200)`,
+    `ALTER TABLE postes ADD COLUMN IF NOT EXISTS numero VARCHAR(20)`,
+    `ALTER TABLE postes ADD COLUMN IF NOT EXISTS bairro VARCHAR(100)`,
+    `ALTER TABLE postes ADD COLUMN IF NOT EXISTS complemento VARCHAR(200)`,
+    `CREATE INDEX IF NOT EXISTS idx_postes_bairro ON postes (bairro)`,
+  ]
+
+  const results: string[] = []
+
+  try {
+    for (const sql of migrations) {
+      await db.query(sql)
+      results.push(`OK: ${sql.substring(0, 50)}...`)
+    }
+    res.json({ message: 'Migration executada com sucesso', results })
+  } catch (error) {
+    console.error('Erro na migration:', error)
+    res.status(500).json({ error: 'Erro na migration', results })
+  }
+})
+
 export default router

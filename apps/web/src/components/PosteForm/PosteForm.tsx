@@ -6,7 +6,10 @@ import styles from './PosteForm.module.css'
 
 const INITIAL_STATE: PosteFormData = {
   codigo: '',
-  endereco: '',
+  rua: '',
+  numero: '',
+  bairro: '',
+  complemento: '',
   latitude: '',
   longitude: '',
   tipo_luminaria: '',
@@ -18,6 +21,11 @@ interface PosteFormProps {
   token: string
   onSaved: () => void
   onCancel: () => void
+}
+
+function montarEndereco(formData: PosteFormData) {
+  const ruaNumero = [formData.rua.trim(), formData.numero.trim()].filter(Boolean).join(', ')
+  return [ruaNumero, formData.bairro.trim(), formData.complemento.trim()].filter(Boolean).join(' - ')
 }
 
 export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
@@ -80,9 +88,14 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
     setSubmitError(null)
 
     try {
+      const endereco = montarEndereco(formData)
       const body: Record<string, unknown> = {
         codigo: formData.codigo.trim(),
-        endereco: formData.endereco.trim() || null,
+        rua: formData.rua.trim() || null,
+        numero: formData.numero.trim() || null,
+        bairro: formData.bairro.trim() || null,
+        complemento: formData.complemento.trim() || null,
+        endereco: endereco || null,
         tipo_luminaria: formData.tipo_luminaria || null,
         potencia: formData.potencia ? parseInt(formData.potencia) : null,
         data_instalacao: formData.data_instalacao || null,
@@ -210,15 +223,57 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
               disabled={submitting}
             />
           </div>
+        </div>
+      </div>
 
-          <div className={`${styles.field} ${styles.fieldFull}`}>
-            <label htmlFor="endereco">Endereco</label>
+      <div className={styles.section}>
+        <h3>Endereco estruturado</h3>
+        <p className={styles.hint}>Separar o bairro agora ajuda depois nos relatorios de maior incidencia por regiao.</p>
+        <div className={styles.fields}>
+          <div className={styles.field}>
+            <label htmlFor="rua">Rua / Avenida</label>
             <input
-              id="endereco"
+              id="rua"
               type="text"
-              value={formData.endereco}
-              onChange={(e) => handleChange('endereco', e.target.value)}
-              placeholder="Rua, numero, bairro"
+              value={formData.rua}
+              onChange={(e) => handleChange('rua', e.target.value)}
+              placeholder="Ex: Avenida Xingu"
+              disabled={submitting}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor="numero">Numero</label>
+            <input
+              id="numero"
+              type="text"
+              value={formData.numero}
+              onChange={(e) => handleChange('numero', e.target.value)}
+              placeholder="Ex: 123 ou S/N"
+              disabled={submitting}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor="bairro">Bairro</label>
+            <input
+              id="bairro"
+              type="text"
+              value={formData.bairro}
+              onChange={(e) => handleChange('bairro', e.target.value)}
+              placeholder="Ex: Centro"
+              disabled={submitting}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor="complemento">Complemento / Referencia</label>
+            <input
+              id="complemento"
+              type="text"
+              value={formData.complemento}
+              onChange={(e) => handleChange('complemento', e.target.value)}
+              placeholder="Ex: Proximo a escola municipal"
               disabled={submitting}
             />
           </div>

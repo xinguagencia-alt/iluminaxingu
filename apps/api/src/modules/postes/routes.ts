@@ -4,12 +4,13 @@ import { authMiddleware } from '../auth/middleware'
 
 const router = Router()
 
+const POSTE_SELECT = `id, codigo, endereco, rua, numero, bairro, complemento, latitude, longitude,
+  tipo_luminaria, potencia, data_instalacao, data_ultima_manutencao, status_ativo`
+
 router.get('/', async (_req: Request, res: Response) => {
   try {
     const result = await db.query(
-      `SELECT id, codigo, endereco, latitude, longitude,
-        tipo_luminaria, potencia, data_instalacao,
-        data_ultima_manutencao, status_ativo
+      `SELECT ${POSTE_SELECT}
       FROM postes WHERE status_ativo = TRUE ORDER BY codigo`
     )
     res.json(result.rows)
@@ -31,8 +32,7 @@ router.get('/proximos/:lat/:lng/:raio', async (req: Request, res: Response) => {
 
   try {
     const result = await db.query(
-      `SELECT id, codigo, endereco, latitude, longitude,
-        tipo_luminaria, potencia,
+      `SELECT ${POSTE_SELECT},
         CASE
           WHEN latitude IS NOT NULL AND longitude IS NOT NULL
           THEN (
@@ -67,9 +67,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
   try {
     const result = await db.query(
-      `SELECT id, codigo, endereco, latitude, longitude,
-        tipo_luminaria, potencia, data_instalacao,
-        data_ultima_manutencao, status_ativo
+      `SELECT ${POSTE_SELECT}
       FROM postes WHERE id = $1`,
       [id]
     )
@@ -88,6 +86,10 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
   const {
     codigo,
     endereco,
+    rua,
+    numero,
+    bairro,
+    complemento,
     latitude,
     longitude,
     tipo_luminaria,
@@ -102,14 +104,21 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
 
   try {
     const query = `
-      INSERT INTO postes (codigo, endereco, latitude, longitude, tipo_luminaria, potencia, data_instalacao)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO postes (
+        codigo, endereco, rua, numero, bairro, complemento,
+        latitude, longitude, tipo_luminaria, potencia, data_instalacao
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
     `
 
     const values = [
       codigo,
       endereco || null,
+      rua || null,
+      numero || null,
+      bairro || null,
+      complemento || null,
       latitude || null,
       longitude || null,
       tipo_luminaria || null,
@@ -134,6 +143,10 @@ router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
   const {
     codigo,
     endereco,
+    rua,
+    numero,
+    bairro,
+    complemento,
     latitude,
     longitude,
     tipo_luminaria,
@@ -148,20 +161,28 @@ router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
       UPDATE postes SET
         codigo = COALESCE($1, codigo),
         endereco = COALESCE($2, endereco),
-        latitude = COALESCE($3, latitude),
-        longitude = COALESCE($4, longitude),
-        tipo_luminaria = COALESCE($5, tipo_luminaria),
-        potencia = COALESCE($6, potencia),
-        data_instalacao = COALESCE($7, data_instalacao),
-        data_ultima_manutencao = COALESCE($8, data_ultima_manutencao),
-        status_ativo = COALESCE($9, status_ativo)
-      WHERE id = $10
+        rua = COALESCE($3, rua),
+        numero = COALESCE($4, numero),
+        bairro = COALESCE($5, bairro),
+        complemento = COALESCE($6, complemento),
+        latitude = COALESCE($7, latitude),
+        longitude = COALESCE($8, longitude),
+        tipo_luminaria = COALESCE($9, tipo_luminaria),
+        potencia = COALESCE($10, potencia),
+        data_instalacao = COALESCE($11, data_instalacao),
+        data_ultima_manutencao = COALESCE($12, data_ultima_manutencao),
+        status_ativo = COALESCE($13, status_ativo)
+      WHERE id = $14
       RETURNING *
     `
 
     const values = [
       codigo || null,
       endereco || null,
+      rua || null,
+      numero || null,
+      bairro || null,
+      complemento || null,
       latitude || null,
       longitude || null,
       tipo_luminaria || null,

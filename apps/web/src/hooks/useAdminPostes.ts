@@ -52,6 +52,9 @@ export function useAdminPostes(): UseAdminPostesResult {
     ? postes.filter(
         (p) =>
           p.codigo.toLowerCase().includes(busca.toLowerCase()) ||
+          (p.rua && p.rua.toLowerCase().includes(busca.toLowerCase())) ||
+          (p.bairro && p.bairro.toLowerCase().includes(busca.toLowerCase())) ||
+          (p.numero && p.numero.toLowerCase().includes(busca.toLowerCase())) ||
           (p.endereco && p.endereco.toLowerCase().includes(busca.toLowerCase()))
       )
     : postes

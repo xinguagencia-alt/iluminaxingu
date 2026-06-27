@@ -2,6 +2,10 @@ export interface Poste {
   id: number
   codigo: string
   endereco: string | null
+  rua: string | null
+  numero: string | null
+  bairro: string | null
+  complemento: string | null
   latitude: number | null
   longitude: number | null
   tipo_luminaria: string | null
@@ -15,7 +19,10 @@ export interface Poste {
 
 export interface PosteFormData {
   codigo: string
-  endereco: string
+  rua: string
+  numero: string
+  bairro: string
+  complemento: string
   latitude: string
   longitude: string
   tipo_luminaria: string

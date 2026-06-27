@@ -17,6 +17,12 @@
   color: #b45309;
 }
 
+.hint {
+  margin: 0 0 16px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
 .fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -137,7 +143,13 @@
 }
 
 @media (max-width: 640px) {
-  .fields {
+  .hint {
+  margin: 0 0 16px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.fields {
     grid-template-columns: 1fr;
   }
 
@@ -149,3 +161,4 @@
     width: 100%;
   }
 }
+

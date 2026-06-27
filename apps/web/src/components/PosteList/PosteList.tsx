@@ -85,7 +85,7 @@ export function PosteList({ onNovoPoste }: PosteListProps) {
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="Buscar por codigo ou endereco..."
+          placeholder="Buscar por codigo, rua ou bairro..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
@@ -109,7 +109,9 @@ export function PosteList({ onNovoPoste }: PosteListProps) {
             <thead>
               <tr>
                 <th>Codigo</th>
-                <th>Endereco</th>
+                <th>Rua</th>
+                <th>Numero</th>
+                <th>Bairro</th>
                 <th>Localizacao</th>
                 <th>Luminaria</th>
                 <th>Potencia</th>
@@ -121,7 +123,9 @@ export function PosteList({ onNovoPoste }: PosteListProps) {
               {postes.map((poste) => (
                 <tr key={poste.id}>
                   <td className={styles.codigo}>{poste.codigo}</td>
-                  <td>{poste.endereco || '-'}</td>
+                  <td>{poste.rua || '-'}</td>
+                  <td>{poste.numero || '-'}</td>
+                  <td>{poste.bairro || '-'}</td>
                   <td className={styles.location}>
                     {poste.latitude !== null && poste.longitude !== null
                       ? `${poste.latitude.toFixed(6)}, ${poste.longitude.toFixed(6)}`

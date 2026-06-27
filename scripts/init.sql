@@ -8,7 +8,13 @@ CREATE TABLE IF NOT EXISTS postes (
   id SERIAL PRIMARY KEY,
   codigo VARCHAR(50) UNIQUE NOT NULL,
   endereco TEXT,
+  rua VARCHAR(200),
+  numero VARCHAR(20),
+  bairro VARCHAR(100),
+  complemento VARCHAR(200),
   geom GEOMETRY(POINT, 4326),
+  latitude DECIMAL(10, 8),
+  longitude DECIMAL(11, 8),
   tipo_luminaria VARCHAR(100),
   potencia INTEGER,
   data_instalacao DATE,
@@ -20,6 +26,7 @@ CREATE TABLE IF NOT EXISTS postes (
 
 CREATE INDEX idx_postes_geom ON postes USING GIST (geom);
 CREATE INDEX idx_postes_codigo ON postes (codigo);
+CREATE INDEX idx_postes_bairro ON postes (bairro);
 
 -- Tabela de solicitacoes
 CREATE TABLE IF NOT EXISTS solicitacoes (
