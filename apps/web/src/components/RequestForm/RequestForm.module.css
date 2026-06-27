@@ -137,13 +137,6 @@
 }
 
 
-.geoHint {
-  margin: 0 0 12px 0;
-  color: #92400e;
-  font-size: 0.92rem;
-  line-height: 1.4;
-}
-
 .geoButton {
   width: 100%;
   padding: 14px 16px;
@@ -175,6 +168,13 @@
   color: #dc2626;
   font-size: 0.9rem;
   margin: -4px 0 12px;
+}
+
+.geoLoading {
+  color: #2563eb;
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 12px;
 }
 
 .geoInfo {

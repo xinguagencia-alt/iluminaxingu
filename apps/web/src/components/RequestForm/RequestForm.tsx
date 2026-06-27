@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import { FormData, FormErrors, TIPOS_PROBLEMA } from './types'
 import { MapPicker, MapMarker } from '../MapPicker/MapPicker'
 import { usePostes } from '../../hooks/usePostes'
@@ -35,6 +35,42 @@ export function RequestForm() {
   const [protocoloBusca, setProtocoloBusca] = useState<string | null>(null)
   const { postes } = usePostes()
   const { uploading, upload } = useAnexos()
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setGeoError('Seu navegador nao suporta geolocalizacao')
+      return
+    }
+
+    setLoadingGeo(true)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData((prev) => ({
+          ...prev,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }))
+        setLoadingGeo(false)
+      },
+      (error) => {
+        setLoadingGeo(false)
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setGeoError('Permissao de localizacao negada. Use o botao abaixo ou ative o GPS nas configuracoes do navegador.')
+            break
+          case error.POSITION_UNAVAILABLE:
+            setGeoError('Localizacao indisponivel. Verifique se o GPS esta ativo.')
+            break
+          case error.TIMEOUT:
+            setGeoError('Tempo esgotado. Tente novamente com o botao abaixo.')
+            break
+          default:
+            setGeoError('Nao foi possivel obter a localizacao. Use o botao abaixo.')
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    )
+  }, [])
 
   function validate(): FormErrors {
     const newErrors: FormErrors = {}
@@ -278,26 +314,38 @@ export function RequestForm() {
 
       <section className={styles.section}>
         <h2>Localizacao</h2>
-        <p className={styles.geoHint}>
-          Se estiver embaixo do poste, toque em "Capturar minha localizacao". Depois, se quiser, ajuste no mapa.
-        </p>
 
-        <button
-          type="button"
-          className={styles.geoButton}
-          onClick={captureLocation}
-          disabled={loadingGeo}
-        >
-          {loadingGeo ? 'Capturando localizacao...' : 'Capturar minha localizacao'}
-        </button>
+        {loadingGeo && (
+          <p className={styles.geoLoading}>Obtendo localizacao GPS...</p>
+        )}
 
-        {geoError && <p className={styles.geoError}>{geoError}</p>}
-
-        {formData.latitude !== null && formData.longitude !== null && !geoError && (
+        {!loadingGeo && formData.latitude !== null && formData.longitude !== null && (
           <p className={styles.geoInfo}>
-            Localizacao detectada: {formData.latitude.toFixed(6)},{' '}
-            {formData.longitude.toFixed(6)}
+            Localizacao capturada com sucesso!
           </p>
+        )}
+
+        {geoError && (
+          <>
+            <p className={styles.geoError}>{geoError}</p>
+            <button
+              type="button"
+              className={styles.geoButton}
+              onClick={captureLocation}
+            >
+              Tentar obter localizacao novamente
+            </button>
+          </>
+        )}
+
+        {!loadingGeo && formData.latitude === null && !geoError && (
+          <button
+            type="button"
+            className={styles.geoButton}
+            onClick={captureLocation}
+          >
+            Capturar minha localizacao
+          </button>
         )}
 
         <MapPicker
