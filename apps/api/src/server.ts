@@ -145,6 +145,7 @@ app.get('/health', (_request, response) => {
   response.json({
     status: 'ok',
     service: 'iluminaxingu-api',
+    deploy: 'v2-helmet-ratelimit',
   })
 })
 
