@@ -51,6 +51,7 @@ const router = Router()
 router.post(
   '/upload',
   authMiddleware,
+  requireRole(['admin', 'gestor', 'operador']),
   upload.single('arquivo'),
   async (req: Request, res: Response) => {
     if (!req.file) {
@@ -104,7 +105,7 @@ router.post(
   }
 )
 
-router.get('/:id/download', authMiddleware, async (req: Request, res: Response) => {
+router.get('/:id/download', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
   const id = String(req.params.id)
   try {
     const result = await db.query('SELECT * FROM anexos WHERE id = $1', [id])

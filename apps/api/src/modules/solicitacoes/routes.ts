@@ -1,9 +1,18 @@
 import { Router, Request, Response } from 'express'
 import { db } from '../../db'
+import rateLimit from 'express-rate-limit'
 import { authMiddleware, requireRole } from '../auth/middleware'
 import { notificarStatusSolicitacao, notificarNovaSolicitacao } from '../notificacoes/notificacoes'
 
 const router = Router()
+
+const publicSolicitacaoLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 8,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas solicitacoes enviadas. Tente novamente em 15 minutos.' },
+})
 
 router.get('/', authMiddleware, async (req: Request, res: Response) => {
   const { status, prioridade, busca } = req.query
@@ -128,7 +137,7 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
   }
 })
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) => {
   const {
     nome_solicitante,
     telefone,
