@@ -22,7 +22,7 @@ interface PosteListProps {
 }
 
 export function PosteList({ onNovoPoste }: PosteListProps) {
-  const { postes, loading, error, busca, setBusca, bairroFiltro, setBairroFiltro, bairrosDisponiveis, refetch, excluir } = useAdminPostes()
+  const { postes, loading, error, busca, setBusca, bairroFiltro, setBairroFiltro, bairrosDisponiveis, ruaFiltro, setRuaFiltro, ruasDisponiveis, refetch, excluir } = useAdminPostes()
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   function showToast(message: string, type: 'success' | 'error') {
@@ -79,7 +79,9 @@ export function PosteList({ onNovoPoste }: PosteListProps) {
       <div className={styles.header}>
         <h2>Postes</h2>
         <span className={styles.count}>
-          {bairroFiltro ? `${postes.length} registro(s) em "${bairroFiltro}"` : `${postes.length} registro(s)`}
+          {bairroFiltro || ruaFiltro
+            ? `${postes.length} registro(s)${bairroFiltro ? ` em "${bairroFiltro}"` : ''}${ruaFiltro ? ` na "${ruaFiltro}"` : ''}`
+            : `${postes.length} registro(s)`}
         </span>
       </div>
 
@@ -101,10 +103,23 @@ export function PosteList({ onNovoPoste }: PosteListProps) {
             <option key={b} value={b}>{b}</option>
           ))}
         </select>
-        {bairroFiltro && (
+        <select
+          className={styles.bairroSelect}
+          value={ruaFiltro}
+          onChange={(e) => setRuaFiltro(e.target.value)}
+        >
+          <option value="">Todas as ruas</option>
+          {ruasDisponiveis.map((r) => (
+            <option key={r} value={r}>{r}</option>
+          ))}
+        </select>
+        {(bairroFiltro || ruaFiltro) && (
           <button
             className={styles.clearFilterButton}
-            onClick={() => setBairroFiltro('')}
+            onClick={() => {
+              setBairroFiltro('')
+              setRuaFiltro('')
+            }}
           >
             Limpar filtro
           </button>

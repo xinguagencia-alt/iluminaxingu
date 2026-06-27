@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { db } from '../../db'
+import { authMiddleware, requireRole } from '../auth/middleware'
 import { notificarStatusSolicitacao } from '../notificacoes/notificacoes'
 
 const router = Router()
@@ -96,7 +97,7 @@ router.get('/:id/detalhe', async (req: Request, res: Response) => {
 })
 
 // Criar nova ordem de servico
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
   const { solicitacao_id, equipe_id } = req.body
 
   if (!solicitacao_id) {
@@ -174,7 +175,7 @@ router.post('/', async (req: Request, res: Response) => {
 })
 
 // Atualizar status da ordem
-router.patch('/:id/status', async (req: Request, res: Response) => {
+router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
   const id = String(req.params.id)
   const { status, observacao_execucao, resultado } = req.body
 

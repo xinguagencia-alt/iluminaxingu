@@ -12,8 +12,10 @@ import { OrdemServicoDetail } from './components/OrdemServicoDetail/OrdemServico
 import { EquipeList } from './components/EquipeList/EquipeList'
 import { SolicitacaoPublica } from './components/SolicitacaoPublica/SolicitacaoPublica'
 import { UserManagement } from './components/UserManagement/UserManagement'
+import { LogradouroManager } from './components/LogradouroManager/LogradouroManager'
+import { AdminPanel } from './components/AdminPanel/AdminPanel'
 
-type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios'
+type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema'
 
 function usePathname() {
   const [path, setPath] = useState(window.location.pathname)
@@ -156,12 +158,26 @@ function AdminLayout() {
           >
             Equipes
           </button>
+          <button
+            className={`navButton ${currentPage === 'logradouros' ? 'navButtonActive' : ''}`}
+            onClick={() => setCurrentPage('logradouros')}
+          >
+            Logradouros
+          </button>
           {user.perfil === 'admin' && (
             <button
               className={`navButton ${currentPage === 'usuarios' ? 'navButtonActive' : ''}`}
               onClick={() => setCurrentPage('usuarios')}
             >
               Usuarios
+            </button>
+          )}
+          {user.perfil === 'admin' && (
+            <button
+              className={`navButton ${currentPage === 'sistema' ? 'navButtonActive' : ''}`}
+              onClick={() => setCurrentPage('sistema')}
+            >
+              Sistema
             </button>
           )}
           <div className="userInfo">
@@ -194,6 +210,8 @@ function AdminLayout() {
         )}
         {currentPage === 'equipes' && <EquipeList />}
         {currentPage === 'usuarios' && user.perfil === 'admin' && <UserManagement />}
+        {currentPage === 'sistema' && user.perfil === 'admin' && <AdminPanel />}
+        {currentPage === 'logradouros' && <LogradouroManager />}
         {currentPage === 'postes' && (
           <PosteList onNovoPoste={() => setCurrentPage('postes-novo')} />
         )}

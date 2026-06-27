@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Poste } from '../components/PosteForm/types'
 import { useAuth } from '../contexts/AuthContext'
 import { API_URL } from '../config/api'
+import { useBairros, type Bairro } from './useBairros'
 
 interface UseAdminPostesResult {
   postes: Poste[]
@@ -13,17 +14,22 @@ interface UseAdminPostesResult {
   bairroFiltro: string
   setBairroFiltro: (valor: string) => void
   bairrosDisponiveis: string[]
+  ruaFiltro: string
+  setRuaFiltro: (valor: string) => void
+  ruasDisponiveis: string[]
   refetch: () => void
   excluir: (id: number) => Promise<boolean>
 }
 
 export function useAdminPostes(): UseAdminPostesResult {
   const { token } = useAuth()
+  const { bairros } = useBairros()
   const [todosPostes, setTodosPostes] = useState<Poste[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busca, setBusca] = useState('')
   const [bairroFiltro, setBairroFiltro] = useState('')
+  const [ruaFiltro, setRuaFiltro] = useState('')
   const BAIRRO_SEM_INFORMACAO = 'Sem bairro informado'
 
   function normalizaBairro(bairro?: string | null) {
@@ -60,11 +66,26 @@ export function useAdminPostes(): UseAdminPostesResult {
   }, [fetchPostes])
 
   const bairrosDisponiveis = useMemo(() => {
-    const set = new Set<string>()
+    const nomesApi = bairros.map((b: Bairro) => b.nome)
+    const nomesPostes = new Set<string>()
     for (const p of todosPostes) {
-      set.add(normalizaBairro(p.bairro))
+      const normalizado = normalizaBairro(p.bairro)
+      if (normalizado !== BAIRRO_SEM_INFORMACAO) {
+        nomesPostes.add(normalizado)
+      }
     }
-    return Array.from(set).sort()
+    const todos = new Set([...nomesApi, ...nomesPostes])
+    return Array.from(todos).sort((a, b) => a.localeCompare(b))
+  }, [bairros, todosPostes])
+
+  const ruasDisponiveis = useMemo(() => {
+    const nomes = new Set<string>()
+    for (const p of todosPostes) {
+      if (p.rua && p.rua.trim()) {
+        nomes.add(p.rua.trim())
+      }
+    }
+    return Array.from(nomes).sort((a, b) => a.localeCompare(b, 'pt-BR'))
   }, [todosPostes])
 
   const postesFiltrados = useMemo(() => {
@@ -72,6 +93,10 @@ export function useAdminPostes(): UseAdminPostesResult {
 
     if (bairroFiltro) {
       resultado = resultado.filter((p) => normalizaBairro(p.bairro) === bairroFiltro)
+    }
+
+    if (ruaFiltro) {
+      resultado = resultado.filter((p) => p.rua === ruaFiltro)
     }
 
     if (busca) {
@@ -87,7 +112,7 @@ export function useAdminPostes(): UseAdminPostesResult {
     }
 
     return resultado
-  }, [todosPostes, bairroFiltro, busca])
+  }, [todosPostes, bairroFiltro, ruaFiltro, busca])
 
   const excluir = useCallback(
     async (id: number): Promise<boolean> => {
@@ -124,6 +149,9 @@ export function useAdminPostes(): UseAdminPostesResult {
     bairroFiltro,
     setBairroFiltro,
     bairrosDisponiveis,
+    ruaFiltro,
+    setRuaFiltro,
+    ruasDisponiveis,
     refetch: fetchPostes,
     excluir,
   }

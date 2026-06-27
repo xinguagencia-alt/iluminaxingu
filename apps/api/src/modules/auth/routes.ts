@@ -86,26 +86,48 @@ router.get('/bootstrap', async (_req: Request, res: Response) => {
   }
 })
 
-// Seed: criar ou resetar admin (protegido por SEED_SECRET)
+// Seed: criar ou resetar admin (protegido por SEED_SECRET, apenas em dev)
 router.post('/seed', async (req: Request, res: Response) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.status(403).json({ error: 'Endpoint indisponivel em producao' })
+    return
+  }
+
   const { secret } = req.body
   const seedSecret = process.env.SEED_SECRET
 
-  if (!seedSecret || secret !== seedSecret) {
+  if (!seedSecret) {
+    res.status(403).json({ error: 'SEED_SECRET nao configurado. Seed indisponivel.' })
+    return
+  }
+
+  if (secret !== seedSecret) {
     res.status(403).json({ error: 'Secret invalido' })
+    return
+  }
+
+  const { password } = req.body
+
+  if (!password) {
+    res.status(400).json({ error: 'Senha e obrigatoria. Envie "password" no body.' })
+    return
+  }
+
+  if (password.length < 8) {
+    res.status(400).json({ error: 'Senha deve ter pelo menos 8 caracteres' })
     return
   }
 
   try {
     const existing = await db.query('SELECT id FROM admin_users WHERE username = $1', ['admin'])
-    const passwordHash = await bcrypt.hash('admin123', 10)
+    const passwordHash = await bcrypt.hash(password, 10)
 
     if (existing.rows.length > 0) {
       await db.query(
         'UPDATE admin_users SET password_hash = $1, ativo = TRUE, perfil = $2 WHERE username = $3',
         [passwordHash, 'admin', 'admin']
       )
-      res.json({ message: 'Senha do admin resetada para admin123' })
+      res.json({ message: 'Senha do admin atualizada' })
     } else {
       await db.query(
         'INSERT INTO admin_users (username, password_hash, nome_completo, perfil) VALUES ($1, $2, $3, $4)',

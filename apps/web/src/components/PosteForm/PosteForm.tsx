@@ -1,6 +1,8 @@
 import { useState, FormEvent } from 'react'
 import { PosteFormData, PosteFormErrors, TIPOS_LUMINARIA } from './types'
 import { MapPicker } from '../MapPicker/MapPicker'
+import { useBairros } from '../../hooks/useBairros'
+import { useRuas } from '../../hooks/useRuas'
 import { API_URL } from '../../config/api'
 import styles from './PosteForm.module.css'
 
@@ -29,6 +31,8 @@ function montarEndereco(formData: PosteFormData) {
 }
 
 export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
+  const { bairros, loading: loadingBairros, criarBairro } = useBairros()
+  const { avenidas, ruas: ruasOficiais, loading: loadingRuas, criarRua } = useRuas()
   const [formData, setFormData] = useState<PosteFormData>(INITIAL_STATE)
   const [errors, setErrors] = useState<PosteFormErrors>({})
   const [submitting, setSubmitting] = useState(false)
@@ -37,6 +41,13 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
   const [loadingGeo, setLoadingGeo] = useState(false)
   const [geoError, setGeoError] = useState<string | null>(null)
   const [locationSource, setLocationSource] = useState<'gps' | 'manual' | 'map' | null>(null)
+  const [criandoBairro, setCriandoBairro] = useState(false)
+  const [novoBairro, setNovoBairro] = useState('')
+  const [criandoRua, setCriandoRua] = useState(false)
+  const [novaRuaNome, setNovaRuaNome] = useState('')
+  const [novaRuaTipo, setNovaRuaTipo] = useState<'avenida' | 'rua'>('rua')
+  const [buscaBairro, setBuscaBairro] = useState('')
+  const [buscaRua, setBuscaRua] = useState('')
 
   function captureLocation() {
     if (!navigator.geolocation) {
@@ -130,12 +141,32 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
     setSubmitError(null)
 
     try {
-      const endereco = montarEndereco(formData)
+      let bairroFinal = formData.bairro.trim() || null
+
+      if (criandoBairro && novoBairro.trim()) {
+        const resultado = await criarBairro(novoBairro.trim())
+        if (!resultado.ok) {
+          throw new Error(resultado.erro || 'Erro ao cadastrar novo bairro')
+        }
+        bairroFinal = novoBairro.trim()
+      }
+
+      let ruaFinal = formData.rua.trim() || null
+
+      if (criandoRua && novaRuaNome.trim()) {
+        const resultado = await criarRua(novaRuaNome.trim(), novaRuaTipo)
+        if (!resultado.ok) {
+          throw new Error(resultado.erro || 'Erro ao cadastrar nova rua/avenida')
+        }
+        ruaFinal = novaRuaNome.trim()
+      }
+
+      const endereco = montarEndereco({ ...formData, rua: ruaFinal || '', bairro: bairroFinal || '' })
       const body: Record<string, unknown> = {
         codigo: formData.codigo.trim(),
-        rua: formData.rua.trim() || null,
+        rua: ruaFinal,
         numero: formData.numero.trim() || null,
-        bairro: formData.bairro.trim() || null,
+        bairro: bairroFinal,
         complemento: formData.complemento.trim() || null,
         endereco: endereco || null,
         tipo_luminaria: formData.tipo_luminaria || null,
@@ -279,14 +310,100 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
         <div className={styles.fields}>
           <div className={styles.field}>
             <label htmlFor="rua">Rua / Avenida</label>
-            <input
-              id="rua"
-              type="text"
-              value={formData.rua}
-              onChange={(e) => handleChange('rua', e.target.value)}
-              placeholder="Ex: Avenida Xingu"
-              disabled={submitting}
-            />
+            {criandoRua ? (
+              <div className={styles.ruaNova}>
+                <select
+                  value={novaRuaTipo}
+                  onChange={(e) => setNovaRuaTipo(e.target.value as 'avenida' | 'rua')}
+                  disabled={submitting}
+                >
+                  <option value="rua">Rua</option>
+                  <option value="avenida">Avenida</option>
+                </select>
+                <input
+                  id="rua"
+                  type="text"
+                  value={novaRuaNome}
+                  onChange={(e) => setNovaRuaNome(e.target.value)}
+                  placeholder="Nome da nova rua/avenida"
+                  disabled={submitting}
+                />
+                <button
+                  type="button"
+                  className={styles.bairroCancelarBtn}
+                  onClick={() => {
+                    setCriandoRua(false)
+                    setNovaRuaNome('')
+                    setNovaRuaTipo('rua')
+                  }}
+                  disabled={submitting}
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <div className={styles.ruaSelectWrapper}>
+                <input
+                  type="text"
+                  className={styles.buscaInput}
+                  placeholder="Buscar rua/avenida..."
+                  value={buscaRua}
+                  onChange={(e) => setBuscaRua(e.target.value)}
+                  disabled={submitting || loadingRuas}
+                />
+                <select
+                  id="rua"
+                  value={formData.rua}
+                  onChange={(e) => {
+                    if (e.target.value === '__novo__') {
+                      setCriandoRua(true)
+                      setNovaRuaNome('')
+                      setNovaRuaTipo('rua')
+                      setBuscaRua('')
+                    } else {
+                      handleChange('rua', e.target.value)
+                      setBuscaRua('')
+                    }
+                  }}
+                  disabled={submitting || loadingRuas}
+                  {...(buscaRua ? { size: Math.min(
+                    (avenidas.filter((a) =>
+                      a.nome.toLowerCase().includes(buscaRua.toLowerCase())
+                    ).length +
+                    ruasOficiais.filter((r) =>
+                      r.nome.toLowerCase().includes(buscaRua.toLowerCase())
+                    ).length +
+                    1),
+                    8
+                  ) } : {})}
+                >
+                  <option value="">Selecione a rua/avenida...</option>
+                  {avenidas.filter((a) =>
+                    !buscaRua || a.nome.toLowerCase().includes(buscaRua.toLowerCase())
+                  ).length > 0 && (
+                    <optgroup label="Avenidas">
+                      {avenidas.filter((a) =>
+                        !buscaRua || a.nome.toLowerCase().includes(buscaRua.toLowerCase())
+                      ).map((a) => (
+                        <option key={a.id} value={a.nome}>{a.nome}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {ruasOficiais.filter((r) =>
+                    !buscaRua || r.nome.toLowerCase().includes(buscaRua.toLowerCase())
+                  ).length > 0 && (
+                    <optgroup label="Ruas">
+                      {ruasOficiais.filter((r) =>
+                        !buscaRua || r.nome.toLowerCase().includes(buscaRua.toLowerCase())
+                      ).map((r) => (
+                        <option key={r.id} value={r.nome}>{r.nome}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <option value="__novo__">+ Cadastrar nova rua/avenida</option>
+                </select>
+              </div>
+            )}
           </div>
 
           <div className={styles.field}>
@@ -303,14 +420,69 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
 
           <div className={styles.field}>
             <label htmlFor="bairro">Bairro</label>
-            <input
-              id="bairro"
-              type="text"
-              value={formData.bairro}
-              onChange={(e) => handleChange('bairro', e.target.value)}
-              placeholder="Ex: Centro"
-              disabled={submitting}
-            />
+            {criandoBairro ? (
+              <div className={styles.bairroNovo}>
+                <input
+                  id="bairro"
+                  type="text"
+                  value={novoBairro}
+                  onChange={(e) => setNovoBairro(e.target.value)}
+                  placeholder="Nome do novo bairro"
+                  disabled={submitting}
+                />
+                <button
+                  type="button"
+                  className={styles.bairroCancelarBtn}
+                  onClick={() => {
+                    setCriandoBairro(false)
+                    setNovoBairro('')
+                  }}
+                  disabled={submitting}
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <div className={styles.bairroSelectWrapper}>
+                <input
+                  type="text"
+                  className={styles.buscaInput}
+                  placeholder="Buscar bairro..."
+                  value={buscaBairro}
+                  onChange={(e) => setBuscaBairro(e.target.value)}
+                  disabled={submitting || loadingBairros}
+                />
+                <select
+                  id="bairro"
+                  value={formData.bairro}
+                  onChange={(e) => {
+                    if (e.target.value === '__novo__') {
+                      setCriandoBairro(true)
+                      setNovoBairro('')
+                      setBuscaBairro('')
+                    } else {
+                      handleChange('bairro', e.target.value)
+                      setBuscaBairro('')
+                    }
+                  }}
+                  disabled={submitting || loadingBairros}
+                  {...(buscaBairro ? { size: Math.min(
+                    (bairros.filter((b) =>
+                      b.nome.toLowerCase().includes(buscaBairro.toLowerCase())
+                    ).length + 1),
+                    8
+                  ) } : {})}
+                >
+                  <option value="">Selecione o bairro...</option>
+                  {bairros.filter((b) =>
+                    !buscaBairro || b.nome.toLowerCase().includes(buscaBairro.toLowerCase())
+                  ).map((b) => (
+                    <option key={b.id} value={b.nome}>{b.nome}</option>
+                  ))}
+                  <option value="__novo__">+ Cadastrar novo bairro</option>
+                </select>
+              </div>
+            )}
           </div>
 
           <div className={styles.field}>

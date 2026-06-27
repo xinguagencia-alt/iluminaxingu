@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { db } from '../../db'
-import { authMiddleware } from '../auth/middleware'
+import { authMiddleware, requireRole } from '../auth/middleware'
+import { registrarAuditoria } from '../auditoria/helper'
 
 const router = Router()
 
@@ -113,7 +114,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 })
 
-router.post('/', authMiddleware, async (req: Request, res: Response) => {
+router.post('/', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
   const {
     codigo,
     endereco,
@@ -158,6 +159,16 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
     ]
 
     const result = await db.query(query, values)
+
+    await registrarAuditoria({
+      tabela: 'postes',
+      registroId: result.rows[0].id,
+      acao: 'criar',
+      dadosDepois: result.rows[0],
+      usuarioId: req.user?.userId ?? null,
+      usuarioNome: req.user?.nomeCompleto ?? null,
+    })
+
     res.status(201).json(result.rows[0])
   } catch (error) {
     if ((error as { code?: string }).code === '23505') {
@@ -169,7 +180,7 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
   }
 })
 
-router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
+router.put('/:id', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
   const { id } = req.params
   const {
     codigo,
@@ -188,6 +199,9 @@ router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
   } = req.body
 
   try {
+    const oldResult = await db.query(`SELECT ${POSTE_SELECT} FROM postes WHERE id = $1`, [id])
+    const dadosAntes = oldResult.rows[0] || null
+
     const query = `
       UPDATE postes SET
         codigo = COALESCE($1, codigo),
@@ -230,6 +244,16 @@ router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
       res.status(404).json({ error: 'Poste nao encontrado' })
       return
     }
+
+    await registrarAuditoria({
+      tabela: 'postes',
+      registroId: Number(id),
+      acao: 'editar',
+      dadosAntes,
+      dadosDepois: result.rows[0],
+      usuarioId: req.user?.userId ?? null,
+      usuarioNome: req.user?.nomeCompleto ?? null,
+    })
 
     res.json(result.rows[0])
   } catch (error) {

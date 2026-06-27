@@ -176,6 +176,98 @@
   font-size: 0.9rem;
 }
 
+.bairroSelectWrapper select {
+  width: 100%;
+}
+
+.bairroNovo {
+  display: flex;
+  gap: 8px;
+}
+
+.bairroNovo input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.bairroNovo input:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
+}
+
+.bairroCancelarBtn {
+  padding: 10px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bairroCancelarBtn:hover {
+  background: #fee2e2;
+}
+
+.ruaSelectWrapper select {
+  width: 100%;
+}
+
+.ruaNova {
+  display: flex;
+  gap: 8px;
+}
+
+.ruaNova select {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: white;
+  min-width: 120px;
+}
+
+.ruaNova input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.ruaNova input:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
+}
+
+.bairroSelectWrapper,
+.ruaSelectWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.buscaInput {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.85em;
+  box-sizing: border-box;
+}
+
+.buscaInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
 @media (max-width: 640px) {
   .hint {
   margin: 0 0 16px;

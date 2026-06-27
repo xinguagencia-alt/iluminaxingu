@@ -19,6 +19,7 @@ const INITIAL_STATE: FormData = {
   posteId: null,
   tipoProblema: '',
   descricao: '',
+  consentimentoLgpd: false,
 }
 
 export function RequestForm() {
@@ -72,6 +73,10 @@ export function RequestForm() {
       newErrors.tipoProblema = 'Selecione o tipo de problema'
     }
 
+    if (!formData.consentimentoLgpd) {
+      newErrors.consentimentoLgpd = 'Voce deve concordar com o uso dos dados para enviar a solicitacao'
+    }
+
     return newErrors
   }
 
@@ -109,6 +114,7 @@ export function RequestForm() {
           longitude: formData.longitude,
           tipo_problema: formData.tipoProblema,
           descricao: formData.descricao.trim() || null,
+          consentimento_lgpd: formData.consentimentoLgpd,
         }),
       })
 
@@ -361,6 +367,25 @@ export function RequestForm() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.lgpdConsent}>
+          <label className={styles.lgpdLabel}>
+            <input
+              type="checkbox"
+              checked={formData.consentimentoLgpd}
+              onChange={(e) => handleChange('consentimentoLgpd', String(e.target.checked))}
+              className={styles.lgpdCheckbox}
+            />
+            <span className={styles.lgpdText}>
+              Declaro que li e concordo com o uso dos meus dados para fins de atendimento da solicitacao, conforme a LGPD.
+            </span>
+          </label>
+          {errors.consentimentoLgpd && (
+            <span className={styles.error}>{errors.consentimentoLgpd}</span>
+          )}
+        </div>
       </section>
 
       {submitError && <p className={styles.error}>{submitError}</p>}

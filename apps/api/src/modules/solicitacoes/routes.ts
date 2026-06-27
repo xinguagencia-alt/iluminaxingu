@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { db } from '../../db'
-import { authMiddleware } from '../auth/middleware'
-import { notificarStatusSolicitacao } from '../notificacoes/notificacoes'
+import { authMiddleware, requireRole } from '../auth/middleware'
+import { notificarStatusSolicitacao, notificarNovaSolicitacao } from '../notificacoes/notificacoes'
 
 const router = Router()
 
@@ -139,6 +139,7 @@ router.post('/', async (req: Request, res: Response) => {
     longitude,
     tipo_problema,
     descricao,
+    consentimento_lgpd,
   } = req.body
 
   if (!nome_solicitante || !tipo_problema) {
@@ -149,6 +150,13 @@ router.post('/', async (req: Request, res: Response) => {
   if (!telefone && !email) {
     res.status(400).json({
       error: 'Informe pelo menos um contato (telefone ou email)',
+    })
+    return
+  }
+
+  if (!consentimento_lgpd) {
+    res.status(400).json({
+      error: 'O consentimento com a LGPD e obrigatorio para enviar a solicitacao',
     })
     return
   }
@@ -171,13 +179,13 @@ router.post('/', async (req: Request, res: Response) => {
       INSERT INTO solicitacoes (
         protocolo, nome_solicitante, telefone, email,
         poste_id, codigo_poste_informado, endereco_informado, latitude, longitude,
-        geom, tipo_problema, descricao
+        geom, tipo_problema, descricao, consentimento_lgpd
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
         CASE WHEN $8 IS NOT NULL AND $9 IS NOT NULL
           THEN ST_SetSRID(ST_MakePoint($9, $8), 4326)
           ELSE NULL
         END,
-        $10, $11)
+        $10, $11, $12)
       RETURNING *
     `
 
@@ -193,6 +201,7 @@ router.post('/', async (req: Request, res: Response) => {
       longitude || null,
       tipo_problema,
       descricao || null,
+      Boolean(consentimento_lgpd),
     ]
 
     const result = await db.query(query, values)
@@ -202,6 +211,14 @@ router.post('/', async (req: Request, res: Response) => {
       [result.rows[0].id, 'enviada', 'sistema']
     )
 
+    notificarNovaSolicitacao({
+      protocolo,
+      nomeSolicitante: nome_solicitante,
+      tipoProblema: tipo_problema,
+      descricao,
+      endereco: endereco_informado,
+    }).catch((err) => console.error('Falha ao enviar notificacao para admin:', err))
+
     res.status(201).json(result.rows[0])
   } catch (error) {
     console.error('Erro ao criar solicitacao:', error)
@@ -209,7 +226,7 @@ router.post('/', async (req: Request, res: Response) => {
   }
 })
 
-router.patch('/:id/status', authMiddleware, async (req: Request, res: Response) => {
+router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
   const { id } = req.params
   const { status, observacao } = req.body
   const criado_por = req.user?.username || 'sistema'

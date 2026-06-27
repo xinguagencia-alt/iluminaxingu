@@ -1,18 +1,37 @@
 import cors from 'cors'
 import express from 'express'
+import helmet from 'helmet'
+import rateLimit from 'express-rate-limit'
 import authRoutes from './modules/auth/routes'
 import { authMiddleware } from './modules/auth/middleware'
 import solicitacoesRoutes from './modules/solicitacoes/routes'
 import postesRoutes from './modules/postes/routes'
 import ordensServicoRoutes from './modules/ordens_servico/routes'
 import equipesRoutes from './modules/equipes/routes'
+import bairrosRoutes from './modules/bairros/routes'
+import ruasRoutes from './modules/ruas/routes'
 import anexosRoutes from './modules/anexos/routes'
+import auditoriaRoutes from './modules/auditoria/routes'
+import exportRoutes from './modules/export/routes'
+import { criarTabelaAuditoria } from './modules/auditoria/helper'
 import { db } from './db'
 
 const app = express()
 const port = process.env.PORT || 3333
 
+app.use(helmet())
+
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas requisicoes. Tente novamente em 15 minutos.' },
+})
+app.use(globalLimiter)
+
 async function ensureDatabaseSchema() {
+  await db.query(`CREATE EXTENSION IF NOT EXISTS unaccent`)
   await db.query(
     `ALTER TABLE admin_users
       ADD COLUMN IF NOT EXISTS perfil VARCHAR(30) NOT NULL DEFAULT 'operador'`
@@ -26,6 +45,93 @@ async function ensureDatabaseSchema() {
       ADD COLUMN IF NOT EXISTS bairro VARCHAR(120),
       ADD COLUMN IF NOT EXISTS complemento TEXT`
   )
+
+  await db.query(
+    `ALTER TABLE solicitacoes
+      ADD COLUMN IF NOT EXISTS consentimento_lgpd BOOLEAN DEFAULT FALSE`
+  )
+
+  await db.query(
+    `CREATE TABLE IF NOT EXISTS bairros (
+      id SERIAL PRIMARY KEY,
+      nome VARCHAR(120) UNIQUE NOT NULL,
+      ativo BOOLEAN DEFAULT TRUE,
+      criado_em TIMESTAMP DEFAULT NOW()
+    )`
+  )
+  await db.query(
+    `CREATE INDEX IF NOT EXISTS idx_bairros_nome ON bairros (nome)`
+  )
+  await db.query(
+    `CREATE INDEX IF NOT EXISTS idx_bairros_ativo ON bairros (ativo)`
+  )
+  await db.query(
+    `INSERT INTO bairros (nome) VALUES
+      ('Aeroporto'),
+      ('Atalaia'),
+      ('Bela Vista'),
+      ('Centro'),
+      ('Jardim Novo Planalto'),
+      ('Liberdade'),
+      ('Minerador'),
+      ('Montenegro'),
+      ('Primavera'),
+      ('Rodoviário'),
+      ('São José'),
+      ('Triângulo'),
+      ('Vale da Serra (Cai N''Água)')
+    ON CONFLICT (nome) DO NOTHING`
+  )
+
+  await db.query(
+    `CREATE TABLE IF NOT EXISTS ruas (
+      id SERIAL PRIMARY KEY,
+      nome VARCHAR(200) NOT NULL,
+      tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('avenida', 'rua')),
+      ativo BOOLEAN DEFAULT TRUE,
+      criado_em TIMESTAMP DEFAULT NOW(),
+      UNIQUE (nome, tipo)
+    )`
+  )
+  await db.query(
+    `CREATE INDEX IF NOT EXISTS idx_ruas_nome ON ruas (nome)`
+  )
+  await db.query(
+    `CREATE INDEX IF NOT EXISTS idx_ruas_tipo ON ruas (tipo)`
+  )
+  await db.query(
+    `INSERT INTO ruas (nome, tipo) VALUES
+      ('Avenida 22 de Março', 'avenida'),
+      ('Avenida Antonio Marques Ribeiro', 'avenida'),
+      ('Avenida Araguaia', 'avenida'),
+      ('Avenida Ceará', 'avenida'),
+      ('Avenida Cerejeira', 'avenida'),
+      ('Avenida Coronel Tancredo Neves', 'avenida'),
+      ('Avenida das Nações', 'avenida'),
+      ('Avenida Gardênia', 'avenida'),
+      ('Avenida Goiás', 'avenida'),
+      ('Avenida JK', 'avenida'),
+      ('Avenida Maranhão', 'avenida'),
+      ('Avenida Piauí', 'avenida'),
+      ('Avenida Rio Xingu', 'avenida'),
+      ('Avenida Serra', 'avenida'),
+      ('Rua 7 de Setembro', 'rua'),
+      ('Rua Antúrio', 'rua'),
+      ('Rua Chuva de Prata', 'rua'),
+      ('Rua Constantino Ferreira Viana', 'rua'),
+      ('Rua Copo de Leite', 'rua'),
+      ('Rua Crisântemo', 'rua'),
+      ('Rua Esporinha', 'rua'),
+      ('Rua Flor de Cenoura', 'rua'),
+      ('Rua Gravina', 'rua'),
+      ('Rua Íris', 'rua'),
+      ('Rua Leônidas', 'rua'),
+      ('Rua Neusin Celestino dos Santos', 'rua'),
+      ('Rua Osterno Maia', 'rua')
+    ON CONFLICT (nome, tipo) DO NOTHING`
+  )
+
+  await criarTabelaAuditoria()
 }
 
 app.use(
@@ -33,7 +139,7 @@ app.use(
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   })
 )
-app.use(express.json())
+app.use(express.json({ limit: '1mb' }))
 
 app.get('/health', (_request, response) => {
   response.json({
@@ -53,21 +159,30 @@ app.get('/api/problem-types', (_request, response) => {
   ])
 })
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Muitas tentativas de login. Aguarde 15 minutos.' },
+})
+
+const bootstrapLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  message: { error: 'Muitas tentativas de bootstrap. Aguarde 1 hora.' },
+})
+
+app.use('/api/auth/login', loginLimiter)
+app.use('/api/auth/bootstrap', bootstrapLimiter)
 app.use('/api/auth', authRoutes)
 app.use('/api/solicitacoes', solicitacoesRoutes)
 app.use('/api/postes', postesRoutes)
 app.use('/api/ordens-servico', authMiddleware, ordensServicoRoutes)
 app.use('/api/equipes', authMiddleware, equipesRoutes)
+app.use('/api/bairros', bairrosRoutes)
+app.use('/api/ruas', ruasRoutes)
 app.use('/api/anexos', anexosRoutes)
-
-app.post('/api/requests', (request, response) => {
-  const protocol = `ILX-${Date.now()}`
-  response.status(201).json({
-    protocol,
-    status: 'enviada',
-    receivedData: request.body,
-  })
-})
+app.use('/api/auditoria', auditoriaRoutes)
+app.use('/api/export', exportRoutes)
 
 ensureDatabaseSchema()
   .then(() => {

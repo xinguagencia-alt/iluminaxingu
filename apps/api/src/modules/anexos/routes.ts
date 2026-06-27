@@ -4,7 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
 import { db } from '../../db'
-import { authMiddleware } from '../auth/middleware'
+import { authMiddleware, requireRole } from '../auth/middleware'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -128,7 +128,7 @@ router.get('/:id/download', authMiddleware, async (req: Request, res: Response) 
   }
 })
 
-router.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
+router.delete('/:id', authMiddleware, requireRole(['admin', 'gestor']), async (req: Request, res: Response) => {
   const id = String(req.params.id)
   try {
     const result = await db.query('SELECT * FROM anexos WHERE id = $1', [id])

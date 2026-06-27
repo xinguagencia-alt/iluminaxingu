@@ -9,12 +9,14 @@ export interface FormData {
   posteId: number | null
   tipoProblema: string
   descricao: string
+  consentimentoLgpd: boolean
 }
 
 export interface FormErrors {
   nome?: string
   contato?: string
   tipoProblema?: string
+  consentimentoLgpd?: string
 }
 
 export type TipoProblema = 

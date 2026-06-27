@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { db } from '../../db'
+import { authMiddleware, requireRole } from '../auth/middleware'
 
 const router = Router()
 
@@ -33,7 +34,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 })
 
 // Criar nova equipe
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', authMiddleware, requireRole(['admin', 'gestor']), async (req: Request, res: Response) => {
   const { nome, descricao, responsavel } = req.body
 
   if (!nome) {
@@ -56,7 +57,7 @@ router.post('/', async (req: Request, res: Response) => {
 })
 
 // Atualizar equipe
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', authMiddleware, requireRole(['admin', 'gestor']), async (req: Request, res: Response) => {
   const id = String(req.params.id)
   const { nome, descricao, responsavel, ativo } = req.body
 
@@ -85,7 +86,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 })
 
 // Desativar equipe (soft delete)
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', authMiddleware, requireRole(['admin', 'gestor']), async (req: Request, res: Response) => {
   const id = String(req.params.id)
   try {
     const result = await db.query(
