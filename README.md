@@ -65,3 +65,4 @@ CORS_ORIGIN=http://localhost:3000
 ## Autenticacao
 
 O seed de administrador deve ser usado apenas em desenvolvimento ou homologacao interna. Em producao, o primeiro usuario admin deve ser criado por um fluxo controlado pela equipe responsavel.
+
