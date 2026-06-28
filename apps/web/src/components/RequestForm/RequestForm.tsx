@@ -84,8 +84,8 @@ export function RequestForm() {
       newErrors.nome = 'Nome e obrigatorio'
     }
 
-    if (!formData.telefone.trim() && !formData.email.trim()) {
-      newErrors.contato = 'Informe pelo menos um contato (telefone ou e-mail)'
+    if (!formData.telefone.trim()) {
+      newErrors.contato = 'Informe um telefone para receber o protocolo e o retorno'
     }
 
     if (formData.email.trim() && !isValidEmail(formData.email)) {
@@ -128,7 +128,7 @@ export function RequestForm() {
         },
         body: JSON.stringify({
           nome_solicitante: formData.nome.trim(),
-          telefone: formData.telefone.trim() || null,
+          telefone: formData.telefone.trim(),
           email: formData.email.trim() || null,
           codigo_poste: formData.codigoPoste.trim() || null,
           poste_id: formData.posteId,
@@ -291,7 +291,7 @@ export function RequestForm() {
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="telefone">Telefone</label>
+          <label htmlFor="telefone">Telefone *</label>
           <input
             id="telefone"
             type="tel"
@@ -302,7 +302,7 @@ export function RequestForm() {
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="email">E-mail</label>
+          <label htmlFor="email">E-mail (opcional)</label>
           <input
             id="email"
             type="email"
@@ -459,7 +459,7 @@ export function RequestForm() {
             <input
               type="checkbox"
               checked={formData.consentimentoLgpd}
-              onChange={(e) => handleChange('consentimentoLgpd', String(e.target.checked))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, consentimentoLgpd: e.target.checked }))}
               className={styles.lgpdCheckbox}
             />
             <span className={styles.lgpdText}>

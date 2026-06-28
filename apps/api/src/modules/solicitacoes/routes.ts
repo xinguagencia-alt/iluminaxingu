@@ -156,9 +156,9 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     return
   }
 
-  if (!telefone && !email) {
+  if (!telefone || !String(telefone).trim()) {
     res.status(400).json({
-      error: 'Informe pelo menos um contato (telefone ou email)',
+      error: 'Informe um telefone para receber o protocolo e o retorno',
     })
     return
   }
@@ -188,12 +188,8 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
       INSERT INTO solicitacoes (
         protocolo, nome_solicitante, telefone, email,
         poste_id, codigo_poste_informado, endereco_informado, latitude, longitude,
-        geom, tipo_problema, descricao, consentimento_lgpd
+        tipo_problema, descricao, consentimento_lgpd
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
-        CASE WHEN $8 IS NOT NULL AND $9 IS NOT NULL
-          THEN ST_SetSRID(ST_MakePoint($9, $8), 4326)
-          ELSE NULL
-        END,
         $10, $11, $12)
       RETURNING *
     `
@@ -201,7 +197,7 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     const values = [
       protocolo,
       nome_solicitante,
-      telefone || null,
+      telefone,
       email || null,
       poste_id,
       codigo_poste || null,
