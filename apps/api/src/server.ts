@@ -165,7 +165,7 @@ app.get('/health', async (_request, response) => {
   response.json({
     status: 'ok',
     service: 'iluminaxingu-api',
-    deploy: 'v4-fix-os-detail',
+    deploy: 'v5-fechamento-os',
     solicitacoes_columns: columns,
   })
 })
