@@ -1,8 +1,8 @@
 import { useState, useEffect, FormEvent } from 'react'
-import { FormData, FormErrors, TIPOS_PROBLEMA } from './types'
+import type { FormData, FormErrors } from './types'
+import { TIPOS_PROBLEMA } from './types'
 import { MapPicker, MapMarker } from '../MapPicker/MapPicker'
 import { usePostes } from '../../hooks/usePostes'
-import { useAnexos } from '../../hooks/useAnexos'
 import { FileUpload } from '../FileUpload/FileUpload'
 import { SolicitacaoPublica } from '../SolicitacaoPublica/SolicitacaoPublica'
 import { API_URL } from '../../config/api'
@@ -31,10 +31,10 @@ export function RequestForm() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [filesToUpload, setFilesToUpload] = useState<File[]>([])
+  const [uploadingFiles, setUploadingFiles] = useState(false)
   const [buscaProtocolo, setBuscaProtocolo] = useState('')
   const [protocoloBusca, setProtocoloBusca] = useState<string | null>(null)
   const { postes } = usePostes()
-  const { uploading, upload } = useAnexos()
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -107,6 +107,23 @@ export function RequestForm() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
 
+  async function uploadFilePublico(file: File, solicitacaoId: number): Promise<boolean> {
+    try {
+      const formData = new FormData()
+      formData.append('arquivo', file)
+      formData.append('solicitacao_id', String(solicitacaoId))
+
+      const response = await fetch(`${API_URL}/api/anexos/upload-public`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      return response.ok
+    } catch {
+      return false
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const validationErrors = validate()
@@ -149,10 +166,14 @@ export function RequestForm() {
       const data = await response.json()
       setProtocolo(data.protocolo)
 
-      for (const file of filesToUpload) {
-        await upload(file, data.id)
+      if (filesToUpload.length > 0) {
+        setUploadingFiles(true)
+        for (const file of filesToUpload) {
+          await uploadFilePublico(file, data.id)
+        }
+        setUploadingFiles(false)
+        setFilesToUpload([])
       }
-      setFilesToUpload([])
     } catch (err) {
       setSubmitError(
         err instanceof Error ? err.message : 'Erro ao conectar com o servidor'
@@ -431,7 +452,7 @@ export function RequestForm() {
             setFilesToUpload((prev) => [...prev, file])
             return true
           }}
-          uploading={uploading}
+          uploading={uploadingFiles}
           disabled={submitting}
         />
         {filesToUpload.length > 0 && (

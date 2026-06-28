@@ -184,32 +184,28 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
       }
     }
 
-    const query = `
-      INSERT INTO solicitacoes (
+    const result = await db.query(
+      `INSERT INTO solicitacoes (
         protocolo, nome_solicitante, telefone, email,
         poste_id, codigo_poste_informado, endereco_informado, latitude, longitude,
         tipo_problema, descricao, consentimento_lgpd
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
-        $10, $11, $12)
-      RETURNING *
-    `
-
-    const values = [
-      protocolo,
-      nome_solicitante,
-      telefone,
-      email || null,
-      poste_id,
-      codigo_poste || null,
-      endereco_informado || null,
-      latitude || null,
-      longitude || null,
-      tipo_problema,
-      descricao || null,
-      Boolean(consentimento_lgpd),
-    ]
-
-    const result = await db.query(query, values)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING *`,
+      [
+        protocolo,
+        nome_solicitante,
+        telefone,
+        email || null,
+        poste_id,
+        codigo_poste || null,
+        endereco_informado || null,
+        latitude != null ? Number(latitude) : null,
+        longitude != null ? Number(longitude) : null,
+        tipo_problema,
+        descricao || null,
+        Boolean(consentimento_lgpd),
+      ]
+    )
 
     await db.query(
       'INSERT INTO status_logs (solicitacao_id, status_novo, criado_por) VALUES ($1, $2, $3)',

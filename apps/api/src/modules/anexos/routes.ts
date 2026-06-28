@@ -3,6 +3,7 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
+import rateLimit from 'express-rate-limit'
 import { db } from '../../db.js'
 import { authMiddleware, requireRole } from '../auth/middleware.js'
 
@@ -47,6 +48,14 @@ const upload = multer({
 })
 
 const router = Router()
+
+const publicUploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitos uploads. Tente novamente em 15 minutos.' },
+})
 
 router.post(
   '/upload',
@@ -100,6 +109,51 @@ router.post(
       res.status(201).json(result.rows[0])
     } catch (error) {
       console.error('Erro ao salvar anexo:', error)
+      res.status(500).json({ error: 'Erro interno do servidor' })
+    }
+  }
+)
+
+router.post(
+  '/upload-public',
+  publicUploadLimiter,
+  upload.single('arquivo'),
+  async (req: Request, res: Response) => {
+    if (!req.file) {
+      res.status(400).json({ error: 'Nenhum arquivo enviado' })
+      return
+    }
+
+    const { solicitacao_id } = req.body
+
+    if (!solicitacao_id) {
+      res.status(400).json({ error: 'Informe solicitacao_id' })
+      return
+    }
+
+    try {
+      const sol = await db.query('SELECT id FROM solicitacoes WHERE id = $1', [Number(solicitacao_id)])
+      if (sol.rows.length === 0) {
+        res.status(404).json({ error: 'Solicitacao nao encontrada' })
+        return
+      }
+
+      const result = await db.query(
+        `INSERT INTO anexos (solicitacao_id, arquivo_nome, arquivo_path, arquivo_tipo, tamanho_bytes)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *`,
+        [
+          Number(solicitacao_id),
+          req.file.originalname,
+          req.file.filename,
+          req.file.mimetype,
+          req.file.size,
+        ]
+      )
+
+      res.status(201).json(result.rows[0])
+    } catch (error) {
+      console.error('Erro ao salvar anexo publico:', error)
       res.status(500).json({ error: 'Erro interno do servidor' })
     }
   }
