@@ -159,6 +159,32 @@ router.post(
   }
 )
 
+router.get('/:id/view', async (req: Request, res: Response) => {
+  const id = String(req.params.id)
+  try {
+    const result = await db.query('SELECT * FROM anexos WHERE id = $1', [id])
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Anexo nao encontrado' })
+      return
+    }
+
+    const anexo = result.rows[0]
+    const filePath = path.join(uploadsDir, anexo.arquivo_path)
+
+    if (!fs.existsSync(filePath)) {
+      res.status(404).json({ error: 'Arquivo nao encontrado no servidor' })
+      return
+    }
+
+    res.setHeader('Content-Type', anexo.arquivo_tipo || 'application/octet-stream')
+    res.setHeader('Cache-Control', 'public, max-age=3600')
+    fs.createReadStream(filePath).pipe(res)
+  } catch (error) {
+    console.error('Erro ao visualizar anexo:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
 router.get('/:id/download', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
   const id = String(req.params.id)
   try {

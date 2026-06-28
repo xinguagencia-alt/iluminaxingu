@@ -242,6 +242,18 @@
   flex-shrink: 0;
 }
 
+.attachmentPreview {
+  flex-shrink: 0;
+}
+
+.attachmentThumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
 .attachmentInfo {
   flex: 1;
   min-width: 0;

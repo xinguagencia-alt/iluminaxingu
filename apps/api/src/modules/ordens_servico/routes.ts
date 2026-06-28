@@ -30,8 +30,6 @@ router.get('/:id', async (req: Request, res: Response) => {
     const result = await db.query(
       `SELECT os.*, s.protocolo, s.tipo_problema, s.endereco_informado,
         s.nome_solicitante, s.telefone, s.email,
-        s.rua as solicitacao_rua, s.numero as solicitacao_numero,
-        s.bairro as solicitacao_bairro, s.complemento as solicitacao_complemento,
         s.latitude as solicitacao_latitude, s.longitude as solicitacao_longitude,
         s.codigo_poste_informado, s.poste_id,
         p.codigo as poste_codigo, p.endereco as poste_endereco,
@@ -64,8 +62,6 @@ router.get('/:id/detalhe', async (req: Request, res: Response) => {
       `SELECT os.*, s.protocolo, s.tipo_problema, s.endereco_informado,
         s.nome_solicitante, s.telefone, s.email, s.descricao as solicitacao_descricao,
         s.codigo_poste_informado, s.poste_id, s.prioridade,
-        s.rua as solicitacao_rua, s.numero as solicitacao_numero,
-        s.bairro as solicitacao_bairro, s.complemento as solicitacao_complemento,
         s.latitude as solicitacao_latitude, s.longitude as solicitacao_longitude,
         p.codigo as poste_codigo, p.endereco as poste_endereco,
         p.rua as poste_rua, p.numero as poste_numero, p.bairro as poste_bairro,

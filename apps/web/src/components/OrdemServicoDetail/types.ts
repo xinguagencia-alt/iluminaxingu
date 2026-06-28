@@ -22,10 +22,6 @@ export interface OrdemServicoDetalhe {
   solicitacao_descricao: string | null
   codigo_poste_informado: string | null
   poste_id: number | null
-  solicitacao_rua: string | null
-  solicitacao_numero: string | null
-  solicitacao_bairro: string | null
-  solicitacao_complemento: string | null
   solicitacao_latitude: number | null
   solicitacao_longitude: number | null
   poste_codigo: string | null

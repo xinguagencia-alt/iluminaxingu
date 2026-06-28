@@ -7,6 +7,7 @@ import {
 } from '../OrdemServicoList/types'
 import { STATUS_LABELS, STATUS_COLORS, TIPOS_PROBLEMA, type StatusSolicitacao } from '../SolicitacaoList/types'
 import { FileUpload } from '../FileUpload/FileUpload'
+import { API_URL } from '../../config/api'
 import styles from './OrdemServicoDetail.module.css'
 
 function formatDate(dateString: string | null): string {
@@ -93,9 +94,6 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
   if (!data) return null
 
   const { ordem, historico, anexos } = data
-  const enderecoSolicitacao = [ordem.solicitacao_rua, ordem.solicitacao_numero, ordem.solicitacao_bairro, ordem.solicitacao_complemento]
-    .filter(Boolean)
-    .join(', ')
   const enderecoPoste = [ordem.poste_rua, ordem.poste_numero, ordem.poste_bairro, ordem.poste_complemento]
     .filter(Boolean)
     .join(', ')
@@ -181,10 +179,6 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>Endereço informado</span>
             <span className={styles.infoValue}>{ordem.endereco_informado || '-'}</span>
-          </div>
-          <div className={styles.infoItem}>
-            <span className={styles.infoLabel}>Endereço estruturado</span>
-            <span className={styles.infoValue}>{enderecoSolicitacao || '-'}</span>
           </div>
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>Latitude</span>
@@ -311,34 +305,46 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
           <div className={styles.emptyAttachments}>Nenhum anexo encontrado.</div>
         ) : (
           <div className={styles.attachmentsList}>
-            {anexos.map((anexo) => (
-              <div key={anexo.id} className={styles.attachmentItem}>
-                <button
-                  type="button"
-                  className={styles.attachmentLink}
-                  onClick={() => handleDownload(anexo.id, anexo.arquivo_nome)}
-                  title="Baixar anexo"
-                >
-                  <div className={styles.attachmentIcon}>{anexo.arquivo_tipo?.startsWith('image/') ? '🖼️' : '📄'}</div>
-                  <div className={styles.attachmentInfo}>
-                    <div className={styles.attachmentName}>{anexo.arquivo_nome}</div>
-                    <div className={styles.attachmentMeta}>
-                      {anexo.arquivo_tipo || 'Arquivo'}{' '}
-                      {anexo.tamanho_bytes ? `· ${formatFileSize(anexo.tamanho_bytes)}` : ''}{' '}
-                      · {formatDate(anexo.criado_em)}
+            {anexos.map((anexo) => {
+              const isImage = anexo.arquivo_tipo?.startsWith('image/')
+              return (
+                <div key={anexo.id} className={styles.attachmentItem}>
+                  {isImage && (
+                    <div className={styles.attachmentPreview}>
+                      <img
+                        src={`${API_URL}/api/anexos/${anexo.id}/view`}
+                        alt={anexo.arquivo_nome}
+                        className={styles.attachmentThumb}
+                      />
                     </div>
-                  </div>
-                </button>
-                <button
-                  className={styles.removeButton}
-                  onClick={() => handleRemove(anexo.id)}
-                  disabled={removingId === anexo.id}
-                  title="Remover anexo"
-                >
-                  {removingId === anexo.id ? '...' : '×'}
-                </button>
-              </div>
-            ))}
+                  )}
+                  <button
+                    type="button"
+                    className={styles.attachmentLink}
+                    onClick={() => handleDownload(anexo.id, anexo.arquivo_nome)}
+                    title="Baixar anexo"
+                  >
+                    <div className={styles.attachmentIcon}>{isImage ? '🖼️' : '📄'}</div>
+                    <div className={styles.attachmentInfo}>
+                      <div className={styles.attachmentName}>{anexo.arquivo_nome}</div>
+                      <div className={styles.attachmentMeta}>
+                        {anexo.arquivo_tipo || 'Arquivo'}{' '}
+                        {anexo.tamanho_bytes ? `· ${formatFileSize(anexo.tamanho_bytes)}` : ''}{' '}
+                        · {formatDate(anexo.criado_em)}
+                      </div>
+                    </div>
+                  </button>
+                  <button
+                    className={styles.removeButton}
+                    onClick={() => handleRemove(anexo.id)}
+                    disabled={removingId === anexo.id}
+                    title="Remover anexo"
+                  >
+                    {removingId === anexo.id ? '...' : '×'}
+                  </button>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
