@@ -30,9 +30,17 @@ router.get('/:id', async (req: Request, res: Response) => {
     const result = await db.query(
       `SELECT os.*, s.protocolo, s.tipo_problema, s.endereco_informado,
         s.nome_solicitante, s.telefone, s.email,
+        s.rua as solicitacao_rua, s.numero as solicitacao_numero,
+        s.bairro as solicitacao_bairro, s.complemento as solicitacao_complemento,
+        s.latitude as solicitacao_latitude, s.longitude as solicitacao_longitude,
+        s.codigo_poste_informado, s.poste_id,
+        p.codigo as poste_codigo, p.endereco as poste_endereco,
+        p.rua as poste_rua, p.numero as poste_numero, p.bairro as poste_bairro,
+        p.complemento as poste_complemento,
         e.nome as equipe_nome
       FROM ordens_servico os
       JOIN solicitacoes s ON os.solicitacao_id = s.id
+      LEFT JOIN postes p ON s.poste_id = p.id
       LEFT JOIN equipes e ON os.equipe_id = e.id
       WHERE os.id = $1`,
       [id]
@@ -55,10 +63,17 @@ router.get('/:id/detalhe', async (req: Request, res: Response) => {
     const ordemResult = await db.query(
       `SELECT os.*, s.protocolo, s.tipo_problema, s.endereco_informado,
         s.nome_solicitante, s.telefone, s.email, s.descricao as solicitacao_descricao,
-        s.codigo_poste_informado, s.prioridade,
+        s.codigo_poste_informado, s.poste_id, s.prioridade,
+        s.rua as solicitacao_rua, s.numero as solicitacao_numero,
+        s.bairro as solicitacao_bairro, s.complemento as solicitacao_complemento,
+        s.latitude as solicitacao_latitude, s.longitude as solicitacao_longitude,
+        p.codigo as poste_codigo, p.endereco as poste_endereco,
+        p.rua as poste_rua, p.numero as poste_numero, p.bairro as poste_bairro,
+        p.complemento as poste_complemento, p.latitude as poste_latitude, p.longitude as poste_longitude,
         e.nome as equipe_nome
       FROM ordens_servico os
       JOIN solicitacoes s ON os.solicitacao_id = s.id
+      LEFT JOIN postes p ON s.poste_id = p.id
       LEFT JOIN equipes e ON os.equipe_id = e.id
       WHERE os.id = $1`,
       [id]

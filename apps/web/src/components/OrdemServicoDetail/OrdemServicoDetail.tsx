@@ -93,7 +93,12 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
   if (!data) return null
 
   const { ordem, historico, anexos } = data
-
+  const enderecoSolicitacao = [ordem.solicitacao_rua, ordem.solicitacao_numero, ordem.solicitacao_bairro, ordem.solicitacao_complemento]
+    .filter(Boolean)
+    .join(', ')
+  const enderecoPoste = [ordem.poste_rua, ordem.poste_numero, ordem.poste_bairro, ordem.poste_complemento]
+    .filter(Boolean)
+    .join(', ')
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -166,6 +171,43 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
           <div style={{ marginTop: 16 }}>
             <span className={styles.infoLabel}>Descrição</span>
             <div className={styles.description}>{ordem.solicitacao_descricao}</div>
+          </div>
+        )}
+      </div>
+
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>Localização e endereço</h3>
+        <div className={styles.infoGrid}>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>Endereço informado</span>
+            <span className={styles.infoValue}>{ordem.endereco_informado || '-'}</span>
+          </div>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>Endereço estruturado</span>
+            <span className={styles.infoValue}>{enderecoSolicitacao || '-'}</span>
+          </div>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>Latitude</span>
+            <span className={styles.infoValue}>{ordem.solicitacao_latitude ?? '-'}</span>
+          </div>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>Longitude</span>
+            <span className={styles.infoValue}>{ordem.solicitacao_longitude ?? '-'}</span>
+          </div>
+        </div>
+        {(ordem.poste_id || ordem.poste_codigo || ordem.poste_endereco) && (
+          <div style={{ marginTop: 16 }}>
+            <span className={styles.infoLabel}>Poste vinculado</span>
+            <div className={styles.description}>
+              {ordem.poste_codigo && <div><strong>Código:</strong> {ordem.poste_codigo}</div>}
+              {enderecoPoste && <div><strong>Endereço:</strong> {enderecoPoste}</div>}
+              {(ordem.poste_latitude !== null || ordem.poste_longitude !== null) && (
+                <div>
+                  <strong>Coordenadas:</strong>{' '}
+                  {ordem.poste_latitude ?? '-'}, {ordem.poste_longitude ?? '-'}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -277,7 +319,7 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
                   onClick={() => handleDownload(anexo.id, anexo.arquivo_nome)}
                   title="Baixar anexo"
                 >
-                  <div className={styles.attachmentIcon}>📄</div>
+                  <div className={styles.attachmentIcon}>{anexo.arquivo_tipo?.startsWith('image/') ? '🖼️' : '📄'}</div>
                   <div className={styles.attachmentInfo}>
                     <div className={styles.attachmentName}>{anexo.arquivo_nome}</div>
                     <div className={styles.attachmentMeta}>
