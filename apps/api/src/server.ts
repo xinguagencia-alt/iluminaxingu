@@ -19,6 +19,7 @@ import { db } from './db.js'
 const app = express()
 const port = process.env.PORT || 3333
 
+app.set('trust proxy', 1)
 app.use(helmet())
 
 const globalLimiter = rateLimit({
@@ -159,7 +160,7 @@ app.get('/health', async (_request, response) => {
   response.json({
     status: 'ok',
     service: 'iluminaxingu-api',
-    deploy: 'v3-fix-solicitacao',
+    deploy: 'v4-fix-os-detail',
     solicitacoes_columns: columns,
   })
 })
