@@ -2,8 +2,11 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import authRoutes from './modules/auth/routes.js'
-import { authMiddleware } from './modules/auth/middleware.js'
+import { authMiddleware, requireRole } from './modules/auth/middleware.js'
 import solicitacoesRoutes from './modules/solicitacoes/routes.js'
 import postesRoutes from './modules/postes/routes.js'
 import ordensServicoRoutes from './modules/ordens_servico/routes.js'
@@ -168,6 +171,55 @@ app.get('/health', async (_request, response) => {
     deploy: 'v5-fechamento-os',
     solicitacoes_columns: columns,
   })
+})
+
+// TEMPORARIO - Endpoint de limpeza de dados de teste
+app.get('/api/admin/clean-test-data', authMiddleware, requireRole(['admin']), async (_req, res) => {
+  try {
+    const solicitacoes = await db.query('SELECT id, protocolo FROM solicitacoes ORDER BY id')
+    const ordens = await db.query('SELECT id, solicitacao_id FROM ordens_servico ORDER BY id')
+    const anexos = await db.query('SELECT id, solicitacao_id, ordem_servico_id, arquivo_path FROM anexos ORDER BY id')
+    const logs = await db.query('SELECT id, solicitacao_id FROM status_logs ORDER BY id')
+    res.json({
+      message: 'Dados que serao excluidos:',
+      solicitacoes: solicitacoes.rows,
+      ordens_servico: ordens.rows,
+      anexos: anexos.rows,
+      status_logs: logs.rows,
+    })
+  } catch (error) {
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+app.post('/api/admin/clean-test-data', authMiddleware, requireRole(['admin']), async (_req, res) => {
+  const __filename = fileURLToPath(import.meta.url)
+  const uploadsDir = path.resolve(path.dirname(__filename), '../../../uploads')
+  try {
+    const anexos = await db.query('SELECT arquivo_path FROM anexos')
+    let filesDeleted = 0
+    for (const row of anexos.rows) {
+      const filePath = path.join(uploadsDir, (row as { arquivo_path: string }).arquivo_path)
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+        filesDeleted++
+      }
+    }
+    await db.query('DELETE FROM anexos')
+    await db.query('DELETE FROM status_logs')
+    await db.query('DELETE FROM ordens_servico')
+    await db.query('DELETE FROM solicitacoes')
+    await db.query("SELECT setval('solicitacoes_id_seq', 1, false)")
+    await db.query("SELECT setval('ordens_servico_id_seq', 1, false)")
+    await db.query("SELECT setval('anexos_id_seq', 1, false)")
+    await db.query("SELECT setval('status_logs_id_seq', 1, false)")
+    res.json({
+      message: 'Dados de teste excluidos com sucesso',
+      files_deleted: filesDeleted,
+    })
+  } catch (error) {
+    res.status(500).json({ error: String(error) })
+  }
 })
 
 app.get('/api/problem-types', (_request, response) => {
