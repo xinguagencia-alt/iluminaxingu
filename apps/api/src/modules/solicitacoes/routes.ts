@@ -223,7 +223,9 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     res.status(201).json(result.rows[0])
   } catch (error) {
     console.error('Erro ao criar solicitacao:', error)
-    res.status(500).json({ error: 'Erro interno do servidor' })
+    const detail = error instanceof Error ? error.message : String(error)
+    console.error('[SOLICITACAO] Detalhe:', detail)
+    res.status(500).json({ error: 'Erro interno do servidor', detail: process.env.NODE_ENV === 'production' ? undefined : detail })
   }
 })
 

@@ -52,6 +52,11 @@ async function ensureDatabaseSchema() {
   )
 
   await db.query(
+    `ALTER TABLE solicitacoes
+      ALTER COLUMN geom DROP NOT NULL`
+  ).catch(() => {})
+
+  await db.query(
     `CREATE TABLE IF NOT EXISTS bairros (
       id SERIAL PRIMARY KEY,
       nome VARCHAR(120) UNIQUE NOT NULL,
@@ -141,11 +146,21 @@ app.use(
 )
 app.use(express.json({ limit: '1mb' }))
 
-app.get('/health', (_request, response) => {
+app.get('/health', async (_request, response) => {
+  let columns: string[] = []
+  try {
+    const result = await db.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_name = 'solicitacoes' ORDER BY ordinal_position`
+    )
+    columns = result.rows.map((r: { column_name: string }) => r.column_name)
+  } catch { /* ignore */ }
+
   response.json({
     status: 'ok',
     service: 'iluminaxingu-api',
-    deploy: 'v2-helmet-ratelimit',
+    deploy: 'v3-fix-solicitacao',
+    solicitacoes_columns: columns,
   })
 })
 
