@@ -356,6 +356,102 @@
   background: #e2e8f0;
 }
 
+.closureForm {
+  display: grid;
+  gap: 16px;
+}
+
+.closureField {
+  display: grid;
+  gap: 6px;
+}
+
+.closureStatusGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.closureStatusBtn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid #dbe2ea;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.closureStatusBtn:hover {
+  background: #f1f5f9;
+}
+
+.closureStatusActive {
+  border-color: transparent;
+}
+
+.closureTextarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #1e293b;
+  background: #f8fafc;
+  resize: vertical;
+  min-height: 60px;
+  box-sizing: border-box;
+}
+
+.closureTextarea:focus {
+  outline: none;
+  border-color: #d97706;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15);
+}
+
+.closureSubmit {
+  background: #d97706;
+  color: white;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  justify-self: start;
+}
+
+.closureSubmit:hover {
+  background: #b45309;
+}
+
+.closureSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.closureSuccess {
+  background: #f0fdf4;
+  color: #16a34a;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.closureError {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

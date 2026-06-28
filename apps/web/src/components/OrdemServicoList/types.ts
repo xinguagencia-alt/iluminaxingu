@@ -1,4 +1,4 @@
-export type StatusOrdemServico = 'aberta' | 'em_execucao' | 'concluida' | 'cancelada'
+export type StatusOrdemServico = 'aberta' | 'em_execucao' | 'concluida' | 'em_manutencao' | 'cancelada'
 
 export interface OrdemServico {
   id: number
@@ -22,6 +22,7 @@ export const STATUS_ORDEM_LABELS: Record<StatusOrdemServico, string> = {
   aberta: 'Aberta',
   em_execucao: 'Em execução',
   concluida: 'Concluída',
+  em_manutencao: 'Em manutenção',
   cancelada: 'Cancelada',
 }
 
@@ -29,5 +30,6 @@ export const STATUS_ORDEM_COLORS: Record<StatusOrdemServico, string> = {
   aberta: '#2563eb',
   em_execucao: '#7c3aed',
   concluida: '#16a34a',
+  em_manutencao: '#d97706',
   cancelada: '#dc2626',
 }

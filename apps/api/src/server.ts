@@ -58,6 +58,11 @@ async function ensureDatabaseSchema() {
   ).catch(() => {})
 
   await db.query(
+    `ALTER TABLE ordens_servico
+      ADD COLUMN IF NOT EXISTS material_utilizado TEXT`
+  ).catch(() => {})
+
+  await db.query(
     `CREATE TABLE IF NOT EXISTS bairros (
       id SERIAL PRIMARY KEY,
       nome VARCHAR(120) UNIQUE NOT NULL,

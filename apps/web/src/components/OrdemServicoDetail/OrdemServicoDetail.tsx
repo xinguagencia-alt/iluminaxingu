@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 import { useOrdemServicoDetail } from './useOrdemServicoDetail'
 import { useAnexos } from '../../hooks/useAnexos'
 import {
@@ -43,8 +44,15 @@ interface OrdemServicoDetailProps {
 
 export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProps) {
   const { data, loading, error, refetch } = useOrdemServicoDetail(ordemId)
+  const { token } = useAuth()
   const { uploading, upload, remover, download } = useAnexos()
   const [removingId, setRemovingId] = useState<number | null>(null)
+  const [fechamentoStatus, setFechamentoStatus] = useState<'concluida' | 'em_manutencao' | 'cancelada'>('concluida')
+  const [fechamentoObs, setFechamentoObs] = useState('')
+  const [fechamentoResultado, setFechamentoResultado] = useState('')
+  const [fechamentoMaterial, setFechamentoMaterial] = useState('')
+  const [fechamentoSalvando, setFechamentoSalvando] = useState(false)
+  const [fechamentoMsg, setFechamentoMsg] = useState<string | null>(null)
 
   async function handleUpload(file: File): Promise<boolean> {
     const result = await upload(file, undefined, ordemId)
@@ -64,6 +72,40 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
 
   async function handleDownload(id: number, filename: string) {
     await download(id, filename)
+  }
+
+  async function handleFechamento() {
+    if (!token) return
+    setFechamentoSalvando(true)
+    setFechamentoMsg(null)
+    try {
+      const response = await fetch(`${API_URL}/api/ordens-servico/${ordemId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status: fechamentoStatus,
+          observacao_execucao: fechamentoObs || null,
+          resultado: fechamentoResultado || null,
+          material_utilizado: fechamentoMaterial || null,
+        }),
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Erro ao salvar')
+      }
+      setFechamentoMsg('Ordem atualizada com sucesso!')
+      setFechamentoObs('')
+      setFechamentoResultado('')
+      setFechamentoMaterial('')
+      refetch()
+    } catch (err) {
+      setFechamentoMsg(err instanceof Error ? err.message : 'Erro ao salvar')
+    } finally {
+      setFechamentoSalvando(false)
+    }
   }
 
   if (loading) {
@@ -257,7 +299,7 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
             <span className={styles.infoValue}>{formatDate(ordem.data_encerramento)}</span>
           </div>
         </div>
-        {(ordem.observacao_execucao || ordem.resultado) && (
+        {(ordem.observacao_execucao || ordem.resultado || ordem.material_utilizado) && (
           <div style={{ marginTop: 16 }}>
             {ordem.observacao_execucao && (
               <div style={{ marginBottom: 12 }}>
@@ -266,14 +308,103 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
               </div>
             )}
             {ordem.resultado && (
-              <div>
+              <div style={{ marginBottom: 12 }}>
                 <span className={styles.infoLabel}>Resultado</span>
                 <div className={styles.description}>{ordem.resultado}</div>
+              </div>
+            )}
+            {ordem.material_utilizado && (
+              <div>
+                <span className={styles.infoLabel}>Material Utilizado</span>
+                <div className={styles.description}>{ordem.material_utilizado}</div>
               </div>
             )}
           </div>
         )}
       </div>
+
+      {ordem.status !== 'concluida' && ordem.status !== 'cancelada' && (
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Fechamento Operacional</h3>
+          <div className={styles.closureForm}>
+            <div className={styles.closureField}>
+              <span className={styles.infoLabel}>Situação do atendimento</span>
+              <div className={styles.closureStatusGroup}>
+                <button
+                  type="button"
+                  className={`${styles.closureStatusBtn} ${fechamentoStatus === 'concluida' ? styles.closureStatusActive : ''}`}
+                  style={fechamentoStatus === 'concluida' ? { backgroundColor: '#16a34a', color: 'white' } : {}}
+                  onClick={() => setFechamentoStatus('concluida')}
+                >
+                  Concluída
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.closureStatusBtn} ${fechamentoStatus === 'em_manutencao' ? styles.closureStatusActive : ''}`}
+                  style={fechamentoStatus === 'em_manutencao' ? { backgroundColor: '#d97706', color: 'white' } : {}}
+                  onClick={() => setFechamentoStatus('em_manutencao')}
+                >
+                  Em manutenção
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.closureStatusBtn} ${fechamentoStatus === 'cancelada' ? styles.closureStatusActive : ''}`}
+                  style={fechamentoStatus === 'cancelada' ? { backgroundColor: '#dc2626', color: 'white' } : {}}
+                  onClick={() => setFechamentoStatus('cancelada')}
+                >
+                  Cancelada
+                </button>
+              </div>
+            </div>
+            <div className={styles.closureField}>
+              <label className={styles.infoLabel} htmlFor="obs">Observação do que foi feito</label>
+              <textarea
+                id="obs"
+                className={styles.closureTextarea}
+                rows={3}
+                placeholder="Descreva o que foi realizado no atendimento..."
+                value={fechamentoObs}
+                onChange={(e) => setFechamentoObs(e.target.value)}
+              />
+            </div>
+            <div className={styles.closureField}>
+              <label className={styles.infoLabel} htmlFor="resultado">Resultado final</label>
+              <textarea
+                id="resultado"
+                className={styles.closureTextarea}
+                rows={2}
+                placeholder="Ex: Poste reparado, lâmpada substituída..."
+                value={fechamentoResultado}
+                onChange={(e) => setFechamentoResultado(e.target.value)}
+              />
+            </div>
+            <div className={styles.closureField}>
+              <label className={styles.infoLabel} htmlFor="material">Material utilizado</label>
+              <textarea
+                id="material"
+                className={styles.closureTextarea}
+                rows={2}
+                placeholder="Ex: 1 lâmpada LED, 2 cabos, 1 disjuntor..."
+                value={fechamentoMaterial}
+                onChange={(e) => setFechamentoMaterial(e.target.value)}
+              />
+            </div>
+            {fechamentoMsg && (
+              <div className={fechamentoMsg.includes('sucesso') ? styles.closureSuccess : styles.closureError}>
+                {fechamentoMsg}
+              </div>
+            )}
+            <button
+              type="button"
+              className={styles.closureSubmit}
+              onClick={handleFechamento}
+              disabled={fechamentoSalvando}
+            >
+              {fechamentoSalvando ? 'Salvando...' : 'Salvar e encerrar OS'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Histórico de Status</h3>

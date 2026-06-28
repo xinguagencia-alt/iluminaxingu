@@ -11,6 +11,7 @@ export interface OrdemServicoDetalhe {
   data_encerramento: string | null
   observacao_execucao: string | null
   resultado: string | null
+  material_utilizado: string | null
   criado_em: string
   atualizado_em: string
   protocolo: string

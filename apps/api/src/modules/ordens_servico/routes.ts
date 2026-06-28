@@ -188,9 +188,9 @@ router.post('/', authMiddleware, requireRole(['admin', 'gestor', 'operador']), a
 // Atualizar status da ordem
 router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
   const id = String(req.params.id)
-  const { status, observacao_execucao, resultado } = req.body
+  const { status, observacao_execucao, resultado, material_utilizado } = req.body
 
-  const statusValidos = ['aberta', 'em_execucao', 'concluida', 'cancelada']
+  const statusValidos = ['aberta', 'em_execucao', 'concluida', 'em_manutencao', 'cancelada']
 
   if (!statusValidos.includes(status)) {
     res.status(400).json({ error: 'Status invalido' })
@@ -224,8 +224,14 @@ router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'ope
       )
     } else if (status === 'concluida') {
       await db.query(
-        'UPDATE ordens_servico SET status = $1, data_encerramento = NOW(), observacao_execucao = $2, resultado = $3 WHERE id = $4',
-        [status, observacao_execucao || null, resultado || null, id]
+        `UPDATE ordens_servico SET
+          status = $1,
+          data_encerramento = NOW(),
+          observacao_execucao = $2,
+          resultado = $3,
+          material_utilizado = $4
+        WHERE id = $5`,
+        [status, observacao_execucao || null, resultado || null, material_utilizado || null, id]
       )
       await db.query(
         'UPDATE solicitacoes SET status_atual = $1 WHERE id = $2',
@@ -242,10 +248,33 @@ router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'ope
         statusNovo: 'concluida',
         observacao: observacao_execucao,
       }).catch((err) => console.error('Falha ao enviar notificacao:', err))
+    } else if (status === 'em_manutencao') {
+      await db.query(
+        `UPDATE ordens_servico SET
+          status = $1,
+          observacao_execucao = $2,
+          resultado = $3,
+          material_utilizado = $4
+        WHERE id = $5`,
+        [status, observacao_execucao || null, resultado || null, material_utilizado || null, id]
+      )
+      await db.query(
+        'UPDATE solicitacoes SET status_atual = $1 WHERE id = $2',
+        ['em_manutencao', current.rows[0].solicitacao_id]
+      )
+      await db.query(
+        'INSERT INTO status_logs (solicitacao_id, status_anterior, status_novo, observacao, criado_por) VALUES ($1, $2, $3, $4, $5)',
+        [current.rows[0].solicitacao_id, statusAnterior, 'em_manutencao', observacao_execucao || 'Ordem em manutencao', 'equipe']
+      )
     } else if (status === 'cancelada') {
       await db.query(
-        'UPDATE ordens_servico SET status = $1, data_encerramento = NOW(), observacao_execucao = $2 WHERE id = $3',
-        [status, observacao_execucao || null, id]
+        `UPDATE ordens_servico SET
+          status = $1,
+          data_encerramento = NOW(),
+          observacao_execucao = $2,
+          material_utilizado = $3
+        WHERE id = $4`,
+        [status, observacao_execucao || null, material_utilizado || null, id]
       )
       await db.query(
         'UPDATE solicitacoes SET status_atual = $1 WHERE id = $2',

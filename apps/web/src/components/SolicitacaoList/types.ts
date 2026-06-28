@@ -3,6 +3,7 @@ export type StatusSolicitacao =
   | 'em_analise'
   | 'em_execucao'
   | 'concluida'
+  | 'em_manutencao'
   | 'nao_procedente'
   | 'cancelada'
   | 'duplicada'
@@ -33,6 +34,7 @@ export const STATUS_LABELS: Record<StatusSolicitacao, string> = {
   em_analise: 'Em análise',
   em_execucao: 'Em execução',
   concluida: 'Concluída',
+  em_manutencao: 'Em manutenção',
   nao_procedente: 'Não procedente',
   cancelada: 'Cancelada',
   duplicada: 'Duplicada',
@@ -43,6 +45,7 @@ export const STATUS_COLORS: Record<StatusSolicitacao, string> = {
   em_analise: '#d97706',
   em_execucao: '#7c3aed',
   concluida: '#16a34a',
+  em_manutencao: '#d97706',
   nao_procedente: '#6b7280',
   cancelada: '#dc2626',
   duplicada: '#9ca3af',
