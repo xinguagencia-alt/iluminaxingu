@@ -189,6 +189,37 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
             <span className={styles.infoValue}>{ordem.solicitacao_longitude ?? '-'}</span>
           </div>
         </div>
+        <div className={styles.mapActions}>
+          {ordem.solicitacao_latitude != null && ordem.solicitacao_longitude != null ? (
+            <a
+              className={styles.mapButton}
+              href={`https://www.google.com/maps/dir/?api=1&destination=${ordem.solicitacao_latitude},${ordem.solicitacao_longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Abrir rota no Google Maps
+            </a>
+          ) : ordem.endereco_informado ? (
+            <a
+              className={styles.mapButton}
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ordem.endereco_informado)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Abrir endereço no Google Maps
+            </a>
+          ) : null}
+          {ordem.poste_latitude != null && ordem.poste_longitude != null && (
+            <a
+              className={styles.mapButtonSecondary}
+              href={`https://www.google.com/maps/dir/?api=1&destination=${ordem.poste_latitude},${ordem.poste_longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Localização do poste
+            </a>
+          )}
+        </div>
         {(ordem.poste_id || ordem.poste_codigo || ordem.poste_endereco) && (
           <div style={{ marginTop: 16 }}>
             <span className={styles.infoLabel}>Poste vinculado</span>
