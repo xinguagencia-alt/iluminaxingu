@@ -142,6 +142,7 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     nome_solicitante,
     telefone,
     email,
+    poste_id: poste_id_body,
     codigo_poste,
     endereco_informado,
     latitude,
@@ -176,15 +177,72 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase()
     const protocolo = `ILX${datePart}-${randomPart}`
 
-    let poste_id = null
-    if (codigo_poste) {
-      const posteResult = await db.query('SELECT id FROM postes WHERE codigo = $1', [codigo_poste])
-      if (posteResult.rows.length > 0) {
-        poste_id = posteResult.rows[0].id
+    let poste_id: number | null = null
+    let codigo_poste_final: string | null = codigo_poste || null
+    let auto_identificado = false
+
+    if (poste_id_body != null) {
+      const posteIdNumerico = Number(poste_id_body)
+      if (!isNaN(posteIdNumerico)) {
+        const posteManual = await db.query(
+          'SELECT id, codigo FROM postes WHERE id = $1 AND status_ativo = TRUE',
+          [posteIdNumerico]
+        )
+        if (posteManual.rows.length > 0) {
+          poste_id = posteManual.rows[0].id
+          codigo_poste_final = posteManual.rows[0].codigo
+        }
       }
     }
 
-    const result = await db.query(
+    if (!poste_id && codigo_poste) {
+      const posteResult = await db.query(
+        'SELECT id, codigo FROM postes WHERE codigo = $1 AND status_ativo = TRUE',
+        [codigo_poste]
+      )
+      if (posteResult.rows.length > 0) {
+        poste_id = posteResult.rows[0].id
+        codigo_poste_final = posteResult.rows[0].codigo
+      }
+    }
+
+    if (!poste_id && latitude != null && longitude != null) {
+      const lat = Number(latitude)
+      const lng = Number(longitude)
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        const postesProximos = await db.query(
+          `WITH postes_com_distancia AS (
+            SELECT
+              id,
+              codigo,
+              (
+                6371000 * acos(
+                  cos(radians($1)) * cos(radians(latitude)) *
+                  cos(radians(longitude) - radians($2)) +
+                  sin(radians($1)) * sin(radians(latitude))
+                )
+              ) AS distancia_metros
+            FROM postes
+            WHERE status_ativo = TRUE
+              AND latitude IS NOT NULL
+              AND longitude IS NOT NULL
+          )
+          SELECT id, codigo, distancia_metros
+          FROM postes_com_distancia
+          WHERE distancia_metros <= 8
+          ORDER BY distancia_metros
+          LIMIT 2`,
+          [lat, lng]
+        )
+
+        if (postesProximos.rows.length === 1) {
+          poste_id = postesProximos.rows[0].id
+          codigo_poste_final = postesProximos.rows[0].codigo
+          auto_identificado = true
+        }
+      }
+    }    const result = await db.query(
       `INSERT INTO solicitacoes (
         protocolo, nome_solicitante, telefone, email,
         poste_id, codigo_poste_informado, endereco_informado, latitude, longitude,
@@ -197,7 +255,7 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
         telefone,
         email || null,
         poste_id,
-        codigo_poste || null,
+        codigo_poste_final,
         endereco_informado || null,
         latitude != null ? Number(latitude) : null,
         longitude != null ? Number(longitude) : null,
@@ -220,7 +278,10 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
       endereco: endereco_informado,
     }).catch((err) => console.error('Falha ao enviar notificacao para admin:', err))
 
-    res.status(201).json(result.rows[0])
+    res.status(201).json({
+      ...result.rows[0],
+      auto_identificado,
+    })
   } catch (error) {
     console.error('Erro ao criar solicitacao:', error)
     const detail = error instanceof Error ? error.message : String(error)
@@ -295,3 +356,6 @@ router.get('/:id/historico', authMiddleware, async (req: Request, res: Response)
 })
 
 export default router
+
+
+

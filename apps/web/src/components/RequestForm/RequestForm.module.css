@@ -263,6 +263,16 @@
   letter-spacing: 2px;
 }
 
+.autoIdentificado {
+  font-size: 0.9rem;
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 12px 0;
+}
+
 .info {
   font-size: 0.9rem;
   color: #666;

@@ -34,6 +34,7 @@ export function RequestForm() {
   const [uploadingFiles, setUploadingFiles] = useState(false)
   const [buscaProtocolo, setBuscaProtocolo] = useState('')
   const [protocoloBusca, setProtocoloBusca] = useState<string | null>(null)
+  const [posteIdentificado, setPosteIdentificado] = useState<string | null>(null)
   const { postes } = usePostes()
 
   useEffect(() => {
@@ -166,6 +167,10 @@ export function RequestForm() {
       const data = await response.json()
       setProtocolo(data.protocolo)
 
+      if (data.auto_identificado && data.codigo_poste_informado) {
+        setPosteIdentificado(data.codigo_poste_informado)
+      }
+
       if (filesToUpload.length > 0) {
         setUploadingFiles(true)
         for (const file of filesToUpload) {
@@ -255,6 +260,11 @@ export function RequestForm() {
         <h2>Solicitacao Enviada!</h2>
         <p>Seu numero de protocolo e:</p>
         <span className={styles.protocol}>{protocolo}</span>
+        {posteIdentificado && (
+          <p className={styles.autoIdentificado}>
+            Poste identificado automaticamente: <strong>{posteIdentificado}</strong>
+          </p>
+        )}
         <p className={styles.info}>
           Guarde este numero para acompanhar sua solicitacao.
         </p>
@@ -262,6 +272,7 @@ export function RequestForm() {
           className={styles.button}
           onClick={() => {
             setProtocolo(null)
+            setPosteIdentificado(null)
             setFormData(INITIAL_STATE)
           }}
         >
