@@ -242,7 +242,9 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
           auto_identificado = true
         }
       }
-    }    const result = await db.query(
+    }
+
+    const result = await db.query(
       `INSERT INTO solicitacoes (
         protocolo, nome_solicitante, telefone, email,
         poste_id, codigo_poste_informado, endereco_informado, latitude, longitude,
