@@ -11,42 +11,62 @@ const BAIRRO_NORMALIZADO = `COALESCE(NULLIF(TRIM(bairro), ''), 'Sem bairro infor
 
 router.get('/mapa', async (_req: Request, res: Response) => {
   try {
-    const postesResult = await db.query(
-      `SELECT id, codigo, endereco, rua, numero, bairro, complemento,
-        latitude, longitude, tipo_luminaria, potencia, status_ativo
-       FROM postes
-       WHERE status_ativo = TRUE
-       ORDER BY codigo`
-    )
-
-    let bairrosResult
+    let postes: Record<string, unknown>[] = []
     try {
-      bairrosResult = await db.query(
-        `SELECT id, nome, cor FROM bairros WHERE ativo = TRUE ORDER BY nome`
+      const postesResult = await db.query(
+        `SELECT id, codigo, endereco, rua, numero, bairro, complemento,
+          latitude, longitude, tipo_luminaria, potencia, status_ativo
+         FROM postes
+         WHERE status_ativo = TRUE
+         ORDER BY codigo`
       )
-    } catch {
-      bairrosResult = await db.query(
-        `SELECT id, nome FROM bairros WHERE ativo = TRUE ORDER BY nome`
+      postes = postesResult.rows.map((p: Record<string, unknown>) => ({
+        ...p,
+        bairro_normalizado: p.bairro
+          ? String(p.bairro).trim() || 'Sem bairro informado'
+          : 'Sem bairro informado',
+      }))
+    } catch (posteErr) {
+      console.error('Erro na query de postes do mapa:', posteErr)
+      const fallback = await db.query(
+        `SELECT id, codigo, endereco, latitude, longitude, status_ativo FROM postes WHERE status_ativo = TRUE ORDER BY codigo`
       )
-      bairrosResult.rows = bairrosResult.rows.map((b: Record<string, unknown>) => ({ ...b, cor: null }))
+      postes = fallback.rows.map((p: Record<string, unknown>) => ({
+        ...p,
+        bairro: null,
+        bairro_normalizado: 'Sem bairro informado',
+        rua: null, numero: null, complemento: null,
+        tipo_luminaria: null, potencia: null,
+      }))
     }
 
-    const postes = postesResult.rows.map((p: Record<string, unknown>) => ({
-      ...p,
-      bairro_normalizado: p.bairro
-        ? String(p.bairro).trim() || 'Sem bairro informado'
-        : 'Sem bairro informado',
-    }))
+    let bairrosRows: Record<string, unknown>[] = []
+    try {
+      const bairrosResult = await db.query(
+        `SELECT id, nome, cor FROM bairros WHERE ativo = TRUE ORDER BY nome`
+      )
+      bairrosRows = bairrosResult.rows
+    } catch {
+      try {
+        const bairrosResult = await db.query(
+          `SELECT id, nome FROM bairros WHERE ativo = TRUE ORDER BY nome`
+        )
+        bairrosRows = bairrosResult.rows.map((b: Record<string, unknown>) => ({ ...b, cor: null }))
+      } catch (bairroErr) {
+        console.error('Tabela bairros indisponivel:', bairroErr)
+        bairrosRows = []
+      }
+    }
 
     const totaisPorBairro: Record<string, number> = {}
     for (const p of postes) {
-      const b = p.bairro_normalizado as string
+      const b = (p.bairro_normalizado as string) || 'Sem bairro informado'
       totaisPorBairro[b] = (totaisPorBairro[b] || 0) + 1
     }
 
     res.json({
       postes,
-      bairros: bairrosResult.rows,
+      bairros: bairrosRows,
       totaisPorBairro,
       total: postes.length,
     })

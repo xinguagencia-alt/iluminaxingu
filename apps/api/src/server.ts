@@ -195,6 +195,8 @@ app.use(express.json({ limit: '1mb' }))
 
 app.get('/health', async (_request, response) => {
   let columns: string[] = []
+  let bairrosColumns: string[] = []
+  let postesColumns: string[] = []
   try {
     const result = await db.query(
       `SELECT column_name FROM information_schema.columns
@@ -202,12 +204,28 @@ app.get('/health', async (_request, response) => {
     )
     columns = result.rows.map((r: { column_name: string }) => r.column_name)
   } catch { /* ignore */ }
+  try {
+    const result = await db.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_name = 'bairros' ORDER BY ordinal_position`
+    )
+    bairrosColumns = result.rows.map((r: { column_name: string }) => r.column_name)
+  } catch { /* ignore */ }
+  try {
+    const result = await db.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_name = 'postes' ORDER BY ordinal_position`
+    )
+    postesColumns = result.rows.map((r: { column_name: string }) => r.column_name)
+  } catch { /* ignore */ }
 
   response.json({
     status: 'ok',
     service: 'iluminaxingu-api',
-    deploy: 'v5-fechamento-os',
+    deploy: 'v6-mapa-resiliente',
     solicitacoes_columns: columns,
+    bairros_columns: bairrosColumns,
+    postes_columns: postesColumns,
   })
 })
 
