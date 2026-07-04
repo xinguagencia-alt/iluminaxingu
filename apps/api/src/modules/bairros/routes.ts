@@ -7,9 +7,17 @@ const router = Router()
 
 router.get('/', async (_req: Request, res: Response) => {
   try {
-    const result = await db.query(
-      `SELECT id, nome, cor FROM bairros WHERE ativo = TRUE ORDER BY nome`
-    )
+    let result
+    try {
+      result = await db.query(
+        `SELECT id, nome, cor FROM bairros WHERE ativo = TRUE ORDER BY nome`
+      )
+    } catch {
+      result = await db.query(
+        `SELECT id, nome FROM bairros WHERE ativo = TRUE ORDER BY nome`
+      )
+      result.rows = result.rows.map((b: Record<string, unknown>) => ({ ...b, cor: null }))
+    }
     res.json(result.rows)
   } catch (error) {
     console.error('Erro ao listar bairros:', error)

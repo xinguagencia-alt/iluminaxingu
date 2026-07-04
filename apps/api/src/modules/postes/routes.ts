@@ -19,9 +19,17 @@ router.get('/mapa', async (_req: Request, res: Response) => {
        ORDER BY codigo`
     )
 
-    const bairrosResult = await db.query(
-      `SELECT id, nome, cor FROM bairros WHERE ativo = TRUE ORDER BY nome`
-    )
+    let bairrosResult
+    try {
+      bairrosResult = await db.query(
+        `SELECT id, nome, cor FROM bairros WHERE ativo = TRUE ORDER BY nome`
+      )
+    } catch {
+      bairrosResult = await db.query(
+        `SELECT id, nome FROM bairros WHERE ativo = TRUE ORDER BY nome`
+      )
+      bairrosResult.rows = bairrosResult.rows.map((b: Record<string, unknown>) => ({ ...b, cor: null }))
+    }
 
     const postes = postesResult.rows.map((p: Record<string, unknown>) => ({
       ...p,
