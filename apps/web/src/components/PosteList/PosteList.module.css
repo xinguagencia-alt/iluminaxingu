@@ -171,6 +171,16 @@
   border-color: #dc2626;
 }
 
+.editButton {
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+.editButton:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+}
+
 .loading {
   display: flex;
   flex-direction: column;

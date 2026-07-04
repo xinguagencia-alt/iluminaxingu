@@ -4,6 +4,7 @@ import { RequestForm } from './components/RequestForm/RequestForm'
 import { SolicitacaoList } from './components/SolicitacaoList/SolicitacaoList'
 import { PosteList } from './components/PosteList/PosteList'
 import { PosteForm } from './components/PosteForm/PosteForm'
+import { Poste } from './components/PosteForm/types'
 import { LoginForm } from './components/LoginForm/LoginForm'
 import { BootstrapForm } from './components/BootstrapForm/BootstrapForm'
 import { Dashboard } from './components/Dashboard/Dashboard'
@@ -15,7 +16,7 @@ import { UserManagement } from './components/UserManagement/UserManagement'
 import { LogradouroManager } from './components/LogradouroManager/LogradouroManager'
 import { AdminPanel } from './components/AdminPanel/AdminPanel'
 
-type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema'
+type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'postes-editar' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema'
 
 function usePathname() {
   const [path, setPath] = useState(window.location.pathname)
@@ -103,6 +104,7 @@ function AdminLayout() {
   const { user, logout, loading, needsBootstrap, token } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('dashboard')
   const [selectedOrdemId, setSelectedOrdemId] = useState<number | null>(null)
+  const [editingPoste, setEditingPoste] = useState<Poste | null>(null)
 
   function handleLogout() {
     logout()
@@ -173,7 +175,7 @@ function AdminLayout() {
             Solicitacoes
           </button>
           <button
-            className={`navButton ${currentPage === 'postes' || currentPage === 'postes-novo' ? 'navButtonActive' : ''}`}
+            className={`navButton ${currentPage === 'postes' || currentPage === 'postes-novo' || currentPage === 'postes-editar' ? 'navButtonActive' : ''}`}
             onClick={() => setCurrentPage('postes')}
           >
             Postes
@@ -246,13 +248,46 @@ function AdminLayout() {
           {currentPage === 'sistema' && user.perfil === 'admin' && <AdminPanel />}
           {currentPage === 'logradouros' && <LogradouroManager />}
           {currentPage === 'postes' && (
-            <PosteList onNovoPoste={() => setCurrentPage('postes-novo')} />
+            <PosteList
+              onNovoPoste={() => setCurrentPage('postes-novo')}
+              onEditar={(poste) => {
+                setEditingPoste(poste)
+                setCurrentPage('postes-editar')
+              }}
+            />
           )}
           {currentPage === 'postes-novo' && (
             <PosteForm
               token={token!}
               onSaved={() => setCurrentPage('postes')}
               onCancel={() => setCurrentPage('postes')}
+            />
+          )}
+          {currentPage === 'postes-editar' && editingPoste && (
+            <PosteForm
+              token={token!}
+              editId={editingPoste.id}
+              initialData={{
+                codigo: editingPoste.codigo,
+                rua: editingPoste.rua || '',
+                numero: editingPoste.numero || '',
+                bairro: editingPoste.bairro || '',
+                complemento: editingPoste.complemento || '',
+                latitude: editingPoste.latitude != null ? String(editingPoste.latitude) : '',
+                longitude: editingPoste.longitude != null ? String(editingPoste.longitude) : '',
+                tipo_luminaria: editingPoste.tipo_luminaria || '',
+                potencia: editingPoste.potencia != null ? String(editingPoste.potencia) : '',
+                data_instalacao: editingPoste.data_instalacao || '',
+              }}
+              submitLabel="Salvar Alteracoes"
+              onSaved={() => {
+                setEditingPoste(null)
+                setCurrentPage('postes')
+              }}
+              onCancel={() => {
+                setEditingPoste(null)
+                setCurrentPage('postes')
+              }}
             />
           )}
         </ErrorBoundary>

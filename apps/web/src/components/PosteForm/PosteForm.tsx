@@ -25,6 +25,7 @@ interface PosteFormProps {
   onCancel: () => void
   initialData?: Partial<PosteFormData>
   submitLabel?: string
+  editId?: number
 }
 
 function montarEndereco(formData: PosteFormData) {
@@ -32,7 +33,7 @@ function montarEndereco(formData: PosteFormData) {
   return [ruaNumero, formData.bairro.trim(), formData.complemento.trim()].filter(Boolean).join(' - ')
 }
 
-export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel }: PosteFormProps) {
+export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel, editId }: PosteFormProps) {
   const { bairros, loading: loadingBairros, criarBairro } = useBairros()
   const { avenidas, ruas: ruasOficiais, loading: loadingRuas, criarRua } = useRuas()
   const [formData, setFormData] = useState<PosteFormData>({ ...INITIAL_STATE, ...initialData })
@@ -206,8 +207,11 @@ export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel }
         body.longitude = parseFloat(formData.longitude)
       }
 
-      const response = await fetch(`${API_URL}/api/postes`, {
-        method: 'POST',
+      const url = editId ? `${API_URL}/api/postes/${editId}` : `${API_URL}/api/postes`
+      const method = editId ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -217,7 +221,7 @@ export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel }
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Erro ao cadastrar poste')
+        throw new Error(data.error || (editId ? 'Erro ao atualizar poste' : 'Erro ao cadastrar poste'))
       }
 
       setSaved(true)
@@ -253,18 +257,20 @@ export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel }
   if (saved) {
     return (
       <div className={styles.success}>
-        <h3>Poste cadastrado com sucesso!</h3>
+        <h3>{editId ? 'Poste atualizado com sucesso!' : 'Poste cadastrado com sucesso!'}</h3>
         <p>Codigo: {formData.codigo}</p>
         <button className={styles.button} onClick={onSaved}>
-          Cadastrar novo poste
+          {editId ? 'Voltar para listagem' : 'Cadastrar novo poste'}
         </button>
-        <button
-          className={`${styles.button} ${styles.buttonSecondary}`}
-          onClick={onCancel}
-          style={{ marginLeft: 8 }}
-        >
-          Voltar para listagem
-        </button>
+        {!editId && (
+          <button
+            className={`${styles.button} ${styles.buttonSecondary}`}
+            onClick={onCancel}
+            style={{ marginLeft: 8 }}
+          >
+            Voltar para listagem
+          </button>
+        )}
       </div>
     )
   }

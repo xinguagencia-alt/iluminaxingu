@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAdminPostes } from '../../hooks/useAdminPostes'
+import { Poste } from '../PosteForm/types'
 import styles from './PosteList.module.css'
 
 function formatDate(dateString: string | null): string {
@@ -19,9 +20,10 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
 
 interface PosteListProps {
   onNovoPoste: () => void
+  onEditar: (poste: Poste) => void
 }
 
-export function PosteList({ onNovoPoste }: PosteListProps) {
+export function PosteList({ onNovoPoste, onEditar }: PosteListProps) {
   const { postes, loading, error, busca, setBusca, bairroFiltro, setBairroFiltro, bairrosDisponiveis, ruaFiltro, setRuaFiltro, ruasDisponiveis, refetch, excluir } = useAdminPostes()
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
@@ -171,6 +173,12 @@ export function PosteList({ onNovoPoste }: PosteListProps) {
                   <td>{formatDate(poste.data_instalacao)}</td>
                   <td>
                     <div className={styles.actions}>
+                      <button
+                        className={`${styles.actionButton} ${styles.editButton}`}
+                        onClick={() => onEditar(poste)}
+                      >
+                        Editar
+                      </button>
                       <button
                         className={`${styles.actionButton} ${styles.deleteButton}`}
                         onClick={() => handleExcluir(poste.id, poste.codigo)}
