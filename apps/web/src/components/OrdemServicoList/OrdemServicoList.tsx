@@ -118,11 +118,12 @@ function StatusModal({
 }
 
 export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => void }) {
-  const { ordens, loading, error, refetch, atualizarStatus } = useOrdensServico()
+  const { ordens, loading, error, refetch, atualizarStatus, excluir } = useOrdensServico()
   const { equipes } = useEquipes()
   const [filtro, setFiltro] = useState<'' | StatusOrdemServico>('')
   const [filtroEquipe, setFiltroEquipe] = useState<'' | number>('')
   const [editingId, setEditingId] = useState<number | null>(null)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   const ordensFiltradas = useMemo(() => {
     let filtradas = ordens
@@ -136,6 +137,17 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
   }, [filtro, filtroEquipe, ordens])
 
   const editingOrdem = editingId ? ordens.find((ordem) => ordem.id === editingId) || null : null
+
+  const statusFechados: StatusOrdemServico[] = ['concluida', 'cancelada', 'em_manutencao']
+
+  async function handleExcluir(id: number) {
+    setDeletingId(id)
+    const result = await excluir(id)
+    setDeletingId(null)
+    if (!result.ok) {
+      alert(result.erro || 'Erro ao excluir')
+    }
+  }
 
   if (loading) {
     return (
@@ -251,6 +263,16 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
                       <button className={styles.editButton} onClick={() => setEditingId(ordem.id)}>
                         Atualizar
                       </button>
+                      {!statusFechados.includes(ordem.status) && (
+                        <button
+                          className={styles.deleteButton}
+                          onClick={() => handleExcluir(ordem.id)}
+                          disabled={deletingId === ordem.id}
+                          title="Excluir ordem de servico"
+                        >
+                          {deletingId === ordem.id ? '...' : 'Excluir'}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

@@ -185,6 +185,57 @@ router.post('/', authMiddleware, requireRole(['admin', 'gestor', 'operador']), a
   }
 })
 
+// Excluir ordem de servico
+router.delete('/:id', authMiddleware, requireRole(['admin', 'gestor']), async (req: Request, res: Response) => {
+  const id = String(req.params.id)
+  try {
+    const result = await db.query(
+      `SELECT os.*, s.protocolo FROM ordens_servico os
+       JOIN solicitacoes s ON os.solicitacao_id = s.id
+       WHERE os.id = $1`,
+      [id]
+    )
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Ordem de servico nao encontrada' })
+      return
+    }
+
+    const ordem = result.rows[0]
+    const statusFechados = ['concluida', 'cancelada', 'em_manutencao']
+
+    if (statusFechados.includes(ordem.status)) {
+      res.status(409).json({
+        error: 'Ordem de servico encerrada nao pode ser excluida',
+        status: ordem.status,
+      })
+      return
+    }
+
+    const temAnexos = await db.query(
+      'SELECT id FROM anexos WHERE ordem_servico_id = $1 LIMIT 1',
+      [id]
+    )
+    if (temAnexos.rows.length > 0) {
+      res.status(409).json({
+        error: 'Ordem de servico possui anexos e nao pode ser excluida',
+      })
+      return
+    }
+
+    await db.query(
+      'UPDATE solicitacoes SET status_atual = $1 WHERE id = $2',
+      ['aberta', ordem.solicitacao_id]
+    )
+
+    await db.query('DELETE FROM ordens_servico WHERE id = $1', [id])
+
+    res.json({ message: 'Ordem de servico excluida' })
+  } catch (error) {
+    console.error('Erro ao excluir ordem:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
 // Atualizar status da ordem
 router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
   const id = String(req.params.id)

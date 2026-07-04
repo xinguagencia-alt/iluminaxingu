@@ -14,6 +14,7 @@ interface UseOrdensServicoResult {
     observacao_execucao?: string,
     resultado?: string
   ) => Promise<boolean>
+  excluir: (id: number) => Promise<{ ok: boolean; erro?: string }>
 }
 
 export function useOrdensServico(): UseOrdensServicoResult {
@@ -84,11 +85,35 @@ export function useOrdensServico(): UseOrdensServicoResult {
     [token, fetchOrdens]
   )
 
+  const excluir = useCallback(
+    async (id: number): Promise<{ ok: boolean; erro?: string }> => {
+      try {
+        const response = await fetch(`${API_URL}/api/ordens-servico/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          return { ok: false, erro: data.error || 'Erro ao excluir ordem' }
+        }
+
+        await fetchOrdens()
+        return { ok: true }
+      } catch {
+        return { ok: false, erro: 'Erro ao conectar com o servidor' }
+      }
+    },
+    [token, fetchOrdens]
+  )
+
   return {
     ordens,
     loading,
     error,
     refetch: fetchOrdens,
     atualizarStatus,
+    excluir,
   }
 }
