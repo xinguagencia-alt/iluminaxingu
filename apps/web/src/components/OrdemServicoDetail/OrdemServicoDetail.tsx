@@ -402,6 +402,7 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
                     longitude: ordem.solicitacao_longitude != null ? String(ordem.solicitacao_longitude) : '',
                   }}
                   submitLabel="Cadastrar e vincular"
+                  solicitacaoId={ordem.solicitacao_id}
                   onSaved={() => {
                     setShowPosteForm(false)
                     refetch()

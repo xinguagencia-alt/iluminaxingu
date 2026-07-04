@@ -26,6 +26,7 @@ interface PosteFormProps {
   initialData?: Partial<PosteFormData>
   submitLabel?: string
   editId?: number
+  solicitacaoId?: number
 }
 
 function montarEndereco(formData: PosteFormData) {
@@ -33,7 +34,7 @@ function montarEndereco(formData: PosteFormData) {
   return [ruaNumero, formData.bairro.trim(), formData.complemento.trim()].filter(Boolean).join(' - ')
 }
 
-export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel, editId }: PosteFormProps) {
+export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel, editId, solicitacaoId }: PosteFormProps) {
   const { bairros, loading: loadingBairros, criarBairro } = useBairros()
   const { avenidas, ruas: ruasOficiais, loading: loadingRuas, criarRua } = useRuas()
   const [formData, setFormData] = useState<PosteFormData>({ ...INITIAL_STATE, ...initialData })
@@ -207,8 +208,16 @@ export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel, 
         body.longitude = parseFloat(formData.longitude)
       }
 
-      const url = editId ? `${API_URL}/api/postes/${editId}` : `${API_URL}/api/postes`
+      const url = editId
+        ? `${API_URL}/api/postes/${editId}`
+        : solicitacaoId
+          ? `${API_URL}/api/postes/criar-e-vincular`
+          : `${API_URL}/api/postes`
       const method = editId ? 'PUT' : 'POST'
+
+      if (!editId && solicitacaoId) {
+        body.solicitacao_id = solicitacaoId
+      }
 
       const response = await fetch(url, {
         method,
