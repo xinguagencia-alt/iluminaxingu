@@ -226,7 +226,7 @@ app.get('/health', async (_request, response) => {
   response.json({
     status: 'ok',
     service: 'iluminaxingu-api',
-    deploy: 'v7-anexos-bytea',
+    deploy: 'v8-delete-os-protegido',
     solicitacoes_columns: columns,
     bairros_columns: bairrosColumns,
     postes_columns: postesColumns,
