@@ -114,6 +114,116 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 })
 
+router.post('/criar-e-vincular', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
+  const {
+    codigo,
+    endereco,
+    rua,
+    numero,
+    bairro,
+    complemento,
+    latitude,
+    longitude,
+    tipo_luminaria,
+    potencia,
+    data_instalacao,
+    solicitacao_id,
+    ordem_servico_id,
+  } = req.body
+
+  if (!codigo) {
+    res.status(400).json({ error: 'Codigo do poste e obrigatorio' })
+    return
+  }
+
+  if (!solicitacao_id && !ordem_servico_id) {
+    res.status(400).json({ error: 'Informe solicitacao_id ou ordem_servico_id' })
+    return
+  }
+
+  try {
+    let resolvedSolicitacaoId = solicitacao_id ? Number(solicitacao_id) : null
+
+    if (!resolvedSolicitacaoId && ordem_servico_id) {
+      const osResult = await db.query(
+        'SELECT solicitacao_id FROM ordens_servico WHERE id = $1',
+        [Number(ordem_servico_id)]
+      )
+      if (osResult.rows.length === 0) {
+        res.status(404).json({ error: 'Ordem de servico nao encontrada' })
+        return
+      }
+      resolvedSolicitacaoId = osResult.rows[0].solicitacao_id
+    }
+
+    if (resolvedSolicitacaoId) {
+      const solResult = await db.query(
+        'SELECT id, poste_id FROM solicitacoes WHERE id = $1',
+        [resolvedSolicitacaoId]
+      )
+      if (solResult.rows.length === 0) {
+        res.status(404).json({ error: 'Solicitacao nao encontrada' })
+        return
+      }
+      if (solResult.rows[0].poste_id) {
+        res.status(409).json({ error: 'Solicitacao ja possui poste vinculado' })
+        return
+      }
+    }
+
+    const query = `
+      INSERT INTO postes (
+        codigo, endereco, rua, numero, bairro, complemento,
+        latitude, longitude, tipo_luminaria, potencia, data_instalacao
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING *
+    `
+
+    const values = [
+      codigo,
+      endereco || null,
+      rua || null,
+      numero || null,
+      bairro || null,
+      complemento || null,
+      latitude || null,
+      longitude || null,
+      tipo_luminaria || null,
+      potencia || null,
+      data_instalacao || null,
+    ]
+
+    const result = await db.query(query, values)
+    const novoPoste = result.rows[0]
+
+    if (resolvedSolicitacaoId) {
+      await db.query(
+        'UPDATE solicitacoes SET poste_id = $1, codigo_poste_informado = $2 WHERE id = $3',
+        [novoPoste.id, codigo, resolvedSolicitacaoId]
+      )
+    }
+
+    await registrarAuditoria({
+      tabela: 'postes',
+      registroId: novoPoste.id,
+      acao: 'criar',
+      dadosDepois: novoPoste,
+      usuarioId: req.user?.userId ?? null,
+      usuarioNome: req.user?.nomeCompleto ?? null,
+    })
+
+    res.status(201).json({ poste: novoPoste, solicitacao_id: resolvedSolicitacaoId })
+  } catch (error) {
+    if ((error as { code?: string }).code === '23505') {
+      res.status(409).json({ error: 'Codigo do poste ja existe' })
+      return
+    }
+    console.error('Erro ao criar e vincular poste:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
 router.post('/', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
   const {
     codigo,

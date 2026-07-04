@@ -8,6 +8,7 @@ import {
 } from '../OrdemServicoList/types'
 import { STATUS_LABELS, STATUS_COLORS, TIPOS_PROBLEMA, type StatusSolicitacao } from '../SolicitacaoList/types'
 import { FileUpload } from '../FileUpload/FileUpload'
+import { PosteForm } from '../PosteForm/PosteForm'
 import { API_URL } from '../../config/api'
 import styles from './OrdemServicoDetail.module.css'
 
@@ -155,6 +156,7 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
   const [fechamentoSalvando, setFechamentoSalvando] = useState(false)
   const [fechamentoMsg, setFechamentoMsg] = useState<string | null>(null)
   const [previewAnexo, setPreviewAnexo] = useState<{ id: number; name: string } | null>(null)
+  const [showPosteForm, setShowPosteForm] = useState(false)
 
   async function handleUpload(file: File): Promise<boolean> {
     const result = await upload(file, undefined, ordemId)
@@ -364,7 +366,7 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
             </a>
           )}
         </div>
-        {(ordem.poste_id || ordem.poste_codigo || ordem.poste_endereco) && (
+        {ordem.poste_id ? (
           <div style={{ marginTop: 16 }}>
             <span className={styles.infoLabel}>Poste vinculado</span>
             <div className={styles.description}>
@@ -377,6 +379,52 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
                 </div>
               )}
             </div>
+          </div>
+        ) : (
+          <div style={{ marginTop: 16 }}>
+            {showPosteForm ? (
+              <div className={styles.posteFormWrapper}>
+                <div className={styles.posteFormHeader}>
+                  <span className={styles.infoLabel}>Cadastrar novo poste</span>
+                  <button
+                    type="button"
+                    className={styles.posteFormCancelBtn}
+                    onClick={() => setShowPosteForm(false)}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+                <PosteForm
+                  token={token!}
+                  initialData={{
+                    codigo: ordem.codigo_poste_informado || '',
+                    latitude: ordem.solicitacao_latitude != null ? String(ordem.solicitacao_latitude) : '',
+                    longitude: ordem.solicitacao_longitude != null ? String(ordem.solicitacao_longitude) : '',
+                  }}
+                  submitLabel="Cadastrar e vincular"
+                  onSaved={() => {
+                    setShowPosteForm(false)
+                    refetch()
+                  }}
+                  onCancel={() => setShowPosteForm(false)}
+                />
+              </div>
+            ) : (
+              <div className={styles.posteActionBox}>
+                <div className={styles.posteActionIcon}>📌</div>
+                <div className={styles.posteActionInfo}>
+                  <strong>Poste não cadastrado</strong>
+                  <span>Cadastre o poste para vincular à solicitação.</span>
+                </div>
+                <button
+                  type="button"
+                  className={styles.posteActionButton}
+                  onClick={() => setShowPosteForm(true)}
+                >
+                  Cadastrar Poste
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

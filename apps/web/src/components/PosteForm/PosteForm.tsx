@@ -23,6 +23,8 @@ interface PosteFormProps {
   token: string
   onSaved: () => void
   onCancel: () => void
+  initialData?: Partial<PosteFormData>
+  submitLabel?: string
 }
 
 function montarEndereco(formData: PosteFormData) {
@@ -30,10 +32,10 @@ function montarEndereco(formData: PosteFormData) {
   return [ruaNumero, formData.bairro.trim(), formData.complemento.trim()].filter(Boolean).join(' - ')
 }
 
-export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
+export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel }: PosteFormProps) {
   const { bairros, loading: loadingBairros, criarBairro } = useBairros()
   const { avenidas, ruas: ruasOficiais, loading: loadingRuas, criarRua } = useRuas()
-  const [formData, setFormData] = useState<PosteFormData>(INITIAL_STATE)
+  const [formData, setFormData] = useState<PosteFormData>({ ...INITIAL_STATE, ...initialData })
   const [errors, setErrors] = useState<PosteFormErrors>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -622,7 +624,7 @@ export function PosteForm({ token, onSaved, onCancel }: PosteFormProps) {
           className={`${styles.button} ${styles.buttonPrimary}`}
           disabled={submitting}
         >
-          {submitting ? 'Salvando...' : 'Cadastrar Poste'}
+          {submitting ? 'Salvando...' : submitLabel || 'Cadastrar Poste'}
         </button>
       </div>
     </form>
