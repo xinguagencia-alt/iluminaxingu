@@ -264,6 +264,15 @@ router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'ope
 
     const statusAnterior = current.rows[0].status
 
+    const statusFechados = ['concluida', 'cancelada', 'em_manutencao']
+    if (statusFechados.includes(statusAnterior)) {
+      res.status(409).json({
+        error: 'Ordem de servico encerrada nao pode ser alterada',
+        status: statusAnterior,
+      })
+      return
+    }
+
     if (status === 'em_execucao') {
       await db.query(
         'UPDATE ordens_servico SET status = $1, data_execucao = NOW() WHERE id = $2',

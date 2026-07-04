@@ -260,9 +260,11 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
                           Detalhes
                         </button>
                       )}
-                      <button className={styles.editButton} onClick={() => setEditingId(ordem.id)}>
-                        Atualizar
-                      </button>
+                      {!statusFechados.includes(ordem.status) && (
+                        <button className={styles.editButton} onClick={() => setEditingId(ordem.id)}>
+                          Atualizar
+                        </button>
+                      )}
                       {!statusFechados.includes(ordem.status) && (
                         <button
                           className={styles.deleteButton}
