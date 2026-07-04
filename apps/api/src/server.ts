@@ -226,7 +226,7 @@ app.get('/health', async (_request, response) => {
   response.json({
     status: 'ok',
     service: 'iluminaxingu-api',
-    deploy: 'v6-mapa-resiliente',
+    deploy: 'v7-anexos-bytea',
     solicitacoes_columns: columns,
     bairros_columns: bairrosColumns,
     postes_columns: postesColumns,
