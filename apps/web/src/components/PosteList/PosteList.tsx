@@ -162,8 +162,8 @@ export function PosteList({ onNovoPoste }: PosteListProps) {
                   <td>{poste.numero || '-'}</td>
                   <td>{poste.bairro || 'Sem bairro informado'}</td>
                   <td className={styles.location}>
-                    {poste.latitude !== null && poste.longitude !== null
-                      ? `${poste.latitude.toFixed(6)}, ${poste.longitude.toFixed(6)}`
+                    {poste.latitude != null && poste.longitude != null
+                      ? `${Number(poste.latitude).toFixed(6)}, ${Number(poste.longitude).toFixed(6)}`
                       : '-'}
                   </td>
                   <td>{poste.tipo_luminaria || '-'}</td>

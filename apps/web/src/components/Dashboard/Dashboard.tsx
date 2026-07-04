@@ -384,9 +384,9 @@ export function Dashboard() {
                       {p.bairro || 'Sem bairro informado'}
                     </span>
                   </div>
-                  {p.latitude !== null && p.longitude !== null && (
+                  {p.latitude != null && p.longitude != null && (
                     <span className={styles.listItemDate}>
-                      {p.latitude.toFixed(4)}, {p.longitude.toFixed(4)}
+                      {Number(p.latitude).toFixed(4)}, {Number(p.longitude).toFixed(4)}
                     </span>
                   )}
                 </div>
