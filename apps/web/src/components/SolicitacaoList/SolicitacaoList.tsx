@@ -411,6 +411,23 @@ export function SolicitacaoList() {
                 <tr key={solicitacao.id}>
                   <td className={styles.protocol}>
                     {solicitacao.protocolo}
+                    {solicitacao.auto_identificado && (
+                      <span
+                        title="Poste identificado automaticamente por GPS"
+                        style={{
+                          display: 'inline-block',
+                          marginLeft: 4,
+                          padding: '1px 5px',
+                          fontSize: '0.7rem',
+                          backgroundColor: '#7c3aed',
+                          color: 'white',
+                          borderRadius: 4,
+                          verticalAlign: 'middle',
+                        }}
+                      >
+                        GPS
+                      </span>
+                    )}
                   </td>
                   <td>{solicitacao.nome_solicitante}</td>
                   <td>

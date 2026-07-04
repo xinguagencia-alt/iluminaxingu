@@ -25,6 +25,7 @@ export interface Solicitacao {
   status_atual: StatusSolicitacao
   prioridade: PrioridadeSolicitacao
   ordem_servico_id: number | null
+  auto_identificado: boolean | null
   criado_em: string
   atualizado_em: string
 }

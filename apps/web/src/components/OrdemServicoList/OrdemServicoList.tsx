@@ -35,7 +35,7 @@ function StatusBadge({ status }: { status: StatusOrdemServico }) {
 }
 
 function statusOptions(current: StatusOrdemServico) {
-  const options: StatusOrdemServico[] = ['aberta', 'em_execucao', 'concluida', 'cancelada']
+  const options: StatusOrdemServico[] = ['aberta', 'em_execucao', 'em_manutencao', 'concluida', 'cancelada']
   return options.filter((status) => status !== current)
 }
 

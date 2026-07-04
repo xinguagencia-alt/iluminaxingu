@@ -58,8 +58,26 @@ async function ensureDatabaseSchema() {
   ).catch(() => {})
 
   await db.query(
+    `ALTER TABLE solicitacoes
+      ADD COLUMN IF NOT EXISTS auto_identificado BOOLEAN DEFAULT FALSE`
+  ).catch(() => {})
+
+  await db.query(
     `ALTER TABLE ordens_servico
       ADD COLUMN IF NOT EXISTS material_utilizado TEXT`
+  ).catch(() => {})
+
+  await db.query(
+    `DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'ordens_servico_equipe_id_fk'
+      ) THEN
+        ALTER TABLE ordens_servico
+          ADD CONSTRAINT ordens_servico_equipe_id_fk
+          FOREIGN KEY (equipe_id) REFERENCES equipes(id);
+      END IF;
+    END$$`
   ).catch(() => {})
 
   await db.query(

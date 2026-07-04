@@ -248,8 +248,8 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
       `INSERT INTO solicitacoes (
         protocolo, nome_solicitante, telefone, email,
         poste_id, codigo_poste_informado, endereco_informado, latitude, longitude,
-        tipo_problema, descricao, consentimento_lgpd
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        tipo_problema, descricao, consentimento_lgpd, auto_identificado
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *`,
       [
         protocolo,
@@ -264,6 +264,7 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
         tipo_problema,
         descricao || null,
         Boolean(consentimento_lgpd),
+        auto_identificado,
       ]
     )
 
@@ -301,6 +302,7 @@ router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'ope
     'enviada',
     'em_analise',
     'em_execucao',
+    'em_manutencao',
     'concluida',
     'nao_procedente',
     'cancelada',
