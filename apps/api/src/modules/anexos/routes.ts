@@ -11,17 +11,9 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const uploadsDir = path.resolve(__dirname, '../../../uploads')
+fs.mkdirSync(uploadsDir, { recursive: true })
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadsDir)
-  },
-  filename: (_req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`
-    const ext = path.extname(file.originalname)
-    cb(null, `${uniqueSuffix}${ext}`)
-  },
-})
+const storage = multer.memoryStorage()
 
 const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedTypes = [
@@ -93,16 +85,17 @@ router.post(
       }
 
       const result = await db.query(
-        `INSERT INTO anexos (solicitacao_id, ordem_servico_id, arquivo_nome, arquivo_path, arquivo_tipo, tamanho_bytes)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING *`,
+        `INSERT INTO anexos (solicitacao_id, ordem_servico_id, arquivo_nome, arquivo_path, arquivo_tipo, tamanho_bytes, arquivo_dados)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING id, solicitacao_id, ordem_servico_id, arquivo_nome, arquivo_path, arquivo_tipo, tamanho_bytes, criado_em`,
         [
           solicitacao_id ? Number(solicitacao_id) : null,
           ordem_servico_id ? Number(ordem_servico_id) : null,
           req.file.originalname,
-          req.file.filename,
+          req.file.originalname,
           req.file.mimetype,
           req.file.size,
+          req.file.buffer,
         ]
       )
 
@@ -139,15 +132,16 @@ router.post(
       }
 
       const result = await db.query(
-        `INSERT INTO anexos (solicitacao_id, arquivo_nome, arquivo_path, arquivo_tipo, tamanho_bytes)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *`,
+        `INSERT INTO anexos (solicitacao_id, arquivo_nome, arquivo_path, arquivo_tipo, tamanho_bytes, arquivo_dados)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id, solicitacao_id, arquivo_nome, arquivo_path, arquivo_tipo, tamanho_bytes, criado_em`,
         [
           Number(solicitacao_id),
           req.file.originalname,
-          req.file.filename,
+          req.file.originalname,
           req.file.mimetype,
           req.file.size,
+          req.file.buffer,
         ]
       )
 
@@ -169,16 +163,23 @@ router.get('/:id/view', async (req: Request, res: Response) => {
     }
 
     const anexo = result.rows[0]
-    const filePath = path.join(uploadsDir, anexo.arquivo_path)
 
-    if (!fs.existsSync(filePath)) {
-      res.status(404).json({ error: 'Arquivo nao encontrado no servidor' })
+    if (anexo.arquivo_dados) {
+      res.setHeader('Content-Type', anexo.arquivo_tipo || 'application/octet-stream')
+      res.setHeader('Cache-Control', 'public, max-age=3600')
+      res.send(Buffer.from(anexo.arquivo_dados))
       return
     }
 
-    res.setHeader('Content-Type', anexo.arquivo_tipo || 'application/octet-stream')
-    res.setHeader('Cache-Control', 'public, max-age=3600')
-    fs.createReadStream(filePath).pipe(res)
+    const filePath = path.join(uploadsDir, anexo.arquivo_path)
+    if (fs.existsSync(filePath)) {
+      res.setHeader('Content-Type', anexo.arquivo_tipo || 'application/octet-stream')
+      res.setHeader('Cache-Control', 'public, max-age=3600')
+      fs.createReadStream(filePath).pipe(res)
+      return
+    }
+
+    res.status(404).json({ error: 'Arquivo nao encontrado' })
   } catch (error) {
     console.error('Erro ao visualizar anexo:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
@@ -195,14 +196,21 @@ router.get('/:id/download', authMiddleware, requireRole(['admin', 'gestor', 'ope
     }
 
     const anexo = result.rows[0]
-    const filePath = path.join(uploadsDir, anexo.arquivo_path)
 
-    if (!fs.existsSync(filePath)) {
-      res.status(404).json({ error: 'Arquivo nao encontrado no servidor' })
+    if (anexo.arquivo_dados) {
+      res.setHeader('Content-Disposition', `attachment; filename="${anexo.arquivo_nome}"`)
+      res.setHeader('Content-Type', anexo.arquivo_tipo || 'application/octet-stream')
+      res.send(Buffer.from(anexo.arquivo_dados))
       return
     }
 
-    res.download(filePath, anexo.arquivo_nome)
+    const filePath = path.join(uploadsDir, anexo.arquivo_path)
+    if (fs.existsSync(filePath)) {
+      res.download(filePath, anexo.arquivo_nome)
+      return
+    }
+
+    res.status(404).json({ error: 'Arquivo nao encontrado' })
   } catch (error) {
     console.error('Erro ao baixar anexo:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
@@ -219,10 +227,12 @@ router.delete('/:id', authMiddleware, requireRole(['admin', 'gestor']), async (r
     }
 
     const anexo = result.rows[0]
-    const filePath = path.join(uploadsDir, anexo.arquivo_path)
 
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath)
+    if (!anexo.arquivo_dados) {
+      const filePath = path.join(uploadsDir, anexo.arquivo_path)
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+      }
     }
 
     await db.query('DELETE FROM anexos WHERE id = $1', [id])

@@ -68,6 +68,10 @@ async function ensureDatabaseSchema() {
   ).catch(() => {})
 
   await db.query(
+    `ALTER TABLE anexos ADD COLUMN IF NOT EXISTS arquivo_dados BYTEA`
+  ).catch(() => {})
+
+  await db.query(
     `DO $$
     BEGIN
       IF NOT EXISTS (
