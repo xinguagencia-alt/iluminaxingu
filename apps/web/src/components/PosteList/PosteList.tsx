@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAdminPostes } from '../../hooks/useAdminPostes'
 import { Poste } from '../PosteForm/types'
+import { ConfirmModal } from '../ConfirmModal/ConfirmModal'
 import styles from './PosteList.module.css'
 
 function formatDate(dateString: string | null): string {
@@ -26,21 +27,23 @@ interface PosteListProps {
 export function PosteList({ onNovoPoste, onEditar }: PosteListProps) {
   const { postes, loading, error, busca, setBusca, bairroFiltro, setBairroFiltro, bairrosDisponiveis, ruaFiltro, setRuaFiltro, ruasDisponiveis, refetch, excluir } = useAdminPostes()
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<{ id: number; codigo: string } | null>(null)
 
   function showToast(message: string, type: 'success' | 'error') {
     setToast({ message, type })
     setTimeout(() => setToast(null), 3000)
   }
 
-  async function handleExcluir(id: number, codigo: string) {
-    if (!window.confirm(`Tem certeza que deseja excluir o poste ${codigo}?`)) return
+  async function handleExcluir() {
+    if (!confirmDelete) return
 
-    const success = await excluir(id)
+    const success = await excluir(confirmDelete.id)
     if (success) {
       showToast('Poste excluido com sucesso!', 'success')
     } else {
       showToast('Erro ao excluir poste.', 'error')
     }
+    setConfirmDelete(null)
   }
 
   if (loading) {
@@ -181,7 +184,7 @@ export function PosteList({ onNovoPoste, onEditar }: PosteListProps) {
                       </button>
                       <button
                         className={`${styles.actionButton} ${styles.deleteButton}`}
-                        onClick={() => handleExcluir(poste.id, poste.codigo)}
+                        onClick={() => setConfirmDelete({ id: poste.id, codigo: poste.codigo })}
                       >
                         Excluir
                       </button>
@@ -192,6 +195,16 @@ export function PosteList({ onNovoPoste, onEditar }: PosteListProps) {
             </tbody>
           </table>
         </div>
+      )}
+
+      {confirmDelete && (
+        <ConfirmModal
+          title="Excluir poste"
+          message={`Tem certeza que deseja excluir o poste ${confirmDelete.codigo}? Esta acao nao pode ser desfeita.`}
+          confirmLabel="Excluir"
+          onConfirm={handleExcluir}
+          onCancel={() => setConfirmDelete(null)}
+        />
       )}
     </div>
   )
