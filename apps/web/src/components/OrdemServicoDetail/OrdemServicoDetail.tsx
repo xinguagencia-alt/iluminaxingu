@@ -37,6 +37,30 @@ function StatusBadge({ status, color }: { status: string; color: string }) {
   )
 }
 
+function AuthImage({ anexoId, alt, className }: { anexoId: number; alt: string; className?: string }) {
+  const { token } = useAuth()
+  const [src, setSrc] = useState<string | null>(null)
+
+  useEffect(() => {
+    let revoked = false
+    fetch(`${API_URL}/api/anexos/${anexoId}/view`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((res) => (res.ok ? res.blob() : Promise.reject()))
+      .then((blob) => {
+        if (!revoked) setSrc(URL.createObjectURL(blob))
+      })
+      .catch(() => {})
+    return () => {
+      revoked = true
+      if (src) URL.revokeObjectURL(src)
+    }
+  }, [anexoId, token])
+
+  if (!src) return <div className={className} style={{ background: '#e2e8f0', borderRadius: 8 }} />
+  return <img src={src} alt={alt} className={className} />
+}
+
 interface ImagePreviewModalProps {
   anexoId: number
   fileName: string
@@ -44,6 +68,11 @@ interface ImagePreviewModalProps {
 }
 
 function ImagePreviewModal({ anexoId, fileName, onClose }: ImagePreviewModalProps) {
+  const { token } = useAuth()
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -52,13 +81,35 @@ function ImagePreviewModal({ anexoId, fileName, onClose }: ImagePreviewModalProp
   )
 
   useEffect(() => {
+    let revoked = false
+    async function fetchImage() {
+      try {
+        const res = await fetch(`${API_URL}/api/anexos/${anexoId}/view`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+        if (!res.ok) throw new Error('Falha ao carregar imagem')
+        const blob = await res.blob()
+        if (!revoked) {
+          setImageUrl(URL.createObjectURL(blob))
+          setLoading(false)
+        }
+      } catch {
+        if (!revoked) {
+          setLoadError(true)
+          setLoading(false)
+        }
+      }
+    }
+    fetchImage()
     document.addEventListener('keydown', handleKeyDown)
     document.body.style.overflow = 'hidden'
     return () => {
+      revoked = true
+      if (imageUrl) URL.revokeObjectURL(imageUrl)
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
     }
-  }, [handleKeyDown])
+  }, [anexoId, token, handleKeyDown])
 
   return (
     <div className={styles.previewOverlay} onClick={onClose}>
@@ -66,11 +117,21 @@ function ImagePreviewModal({ anexoId, fileName, onClose }: ImagePreviewModalProp
         <button className={styles.previewClose} onClick={onClose} title="Fechar">
           &times;
         </button>
-        <img
-          src={`${API_URL}/api/anexos/${anexoId}/view`}
-          alt={fileName}
-          className={styles.previewImage}
-        />
+        {loading && <div className={styles.previewSpinner} />}
+        {loadError && (
+          <div className={styles.previewError}>
+            Não foi possível carregar a imagem.
+            <br />
+            <button onClick={onClose} className={styles.previewErrorBtn}>Fechar</button>
+          </div>
+        )}
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt={fileName}
+            className={styles.previewImage}
+          />
+        )}
         <div className={styles.previewFileName}>{fileName}</div>
       </div>
     </div>
@@ -519,8 +580,8 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
                     title={isImage ? 'Visualizar imagem' : anexo.arquivo_nome}
                   >
                     {isImage ? (
-                      <img
-                        src={`${API_URL}/api/anexos/${anexo.id}/view`}
+                      <AuthImage
+                        anexoId={anexo.id}
                         alt={anexo.arquivo_nome}
                         className={styles.attachmentThumb}
                       />
