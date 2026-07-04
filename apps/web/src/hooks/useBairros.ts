@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 export interface Bairro {
   id: number
   nome: string
+  cor: string | null
 }
 
 interface UseBairrosResult {
@@ -12,7 +13,7 @@ interface UseBairrosResult {
   loading: boolean
   error: string | null
   refetch: () => void
-  criarBairro: (nome: string) => Promise<{ ok: boolean; erro?: string }>
+  criarBairro: (nome: string, cor?: string) => Promise<{ ok: boolean; erro?: string }>
   excluirBairro: (id: number) => Promise<{ ok: boolean; erro?: string }>
 }
 
@@ -45,7 +46,7 @@ export function useBairros(): UseBairrosResult {
   }, [fetchBairros])
 
   const criarBairro = useCallback(
-    async (nome: string): Promise<{ ok: boolean; erro?: string }> => {
+    async (nome: string, cor?: string): Promise<{ ok: boolean; erro?: string }> => {
       try {
         const response = await fetch(`${API_URL}/api/bairros`, {
           method: 'POST',
@@ -53,7 +54,7 @@ export function useBairros(): UseBairrosResult {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ nome }),
+          body: JSON.stringify({ nome, cor: cor || null }),
         })
 
         const data = await response.json()

@@ -84,10 +84,14 @@ async function ensureDatabaseSchema() {
     `CREATE TABLE IF NOT EXISTS bairros (
       id SERIAL PRIMARY KEY,
       nome VARCHAR(120) UNIQUE NOT NULL,
+      cor VARCHAR(7),
       ativo BOOLEAN DEFAULT TRUE,
       criado_em TIMESTAMP DEFAULT NOW()
     )`
   )
+  await db.query(
+    `ALTER TABLE bairros ADD COLUMN IF NOT EXISTS cor VARCHAR(7)`
+  ).catch(() => {})
   await db.query(
     `CREATE INDEX IF NOT EXISTS idx_bairros_nome ON bairros (nome)`
   )
@@ -110,6 +114,25 @@ async function ensureDatabaseSchema() {
       ('Triângulo'),
       ('Vale da Serra (Cai N''Água)')
     ON CONFLICT (nome) DO NOTHING`
+  )
+
+  await db.query(
+    `UPDATE bairros SET cor = CASE nome
+      WHEN 'Aeroporto' THEN '#e74c3c'
+      WHEN 'Atalaia' THEN '#e67e22'
+      WHEN 'Bela Vista' THEN '#f1c40f'
+      WHEN 'Centro' THEN '#2ecc71'
+      WHEN 'Jardim Novo Planalto' THEN '#1abc9c'
+      WHEN 'Liberdade' THEN '#3498db'
+      WHEN 'Minerador' THEN '#9b59b6'
+      WHEN 'Montenegro' THEN '#e91e63'
+      WHEN 'Primavera' THEN '#00bcd4'
+      WHEN 'Rodoviário' THEN '#ff9800'
+      WHEN 'São José' THEN '#8bc34a'
+      WHEN 'Triângulo' THEN '#673ab7'
+      WHEN 'Vale da Serra (Cai N''Água)' THEN '#795548'
+    END
+    WHERE cor IS NULL AND ativo = TRUE`
   )
 
   await db.query(

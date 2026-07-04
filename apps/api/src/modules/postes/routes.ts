@@ -9,6 +9,45 @@ const POSTE_SELECT = `id, codigo, endereco, rua, numero, bairro, complemento, la
   tipo_luminaria, potencia, data_instalacao, data_ultima_manutencao, status_ativo`
 const BAIRRO_NORMALIZADO = `COALESCE(NULLIF(TRIM(bairro), ''), 'Sem bairro informado')`
 
+router.get('/mapa', async (_req: Request, res: Response) => {
+  try {
+    const postesResult = await db.query(
+      `SELECT id, codigo, endereco, rua, numero, bairro, complemento,
+        latitude, longitude, tipo_luminaria, potencia, status_ativo
+       FROM postes
+       WHERE status_ativo = TRUE
+       ORDER BY codigo`
+    )
+
+    const bairrosResult = await db.query(
+      `SELECT id, nome, cor FROM bairros WHERE ativo = TRUE ORDER BY nome`
+    )
+
+    const postes = postesResult.rows.map((p: Record<string, unknown>) => ({
+      ...p,
+      bairro_normalizado: p.bairro
+        ? String(p.bairro).trim() || 'Sem bairro informado'
+        : 'Sem bairro informado',
+    }))
+
+    const totaisPorBairro: Record<string, number> = {}
+    for (const p of postes) {
+      const b = p.bairro_normalizado as string
+      totaisPorBairro[b] = (totaisPorBairro[b] || 0) + 1
+    }
+
+    res.json({
+      postes,
+      bairros: bairrosResult.rows,
+      totaisPorBairro,
+      total: postes.length,
+    })
+  } catch (error) {
+    console.error('Erro ao buscar dados do mapa:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
 router.get('/relatorio-bairros', async (_req: Request, res: Response) => {
   try {
     const result = await db.query(

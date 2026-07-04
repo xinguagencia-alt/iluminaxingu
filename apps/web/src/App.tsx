@@ -15,8 +15,9 @@ import { SolicitacaoPublica } from './components/SolicitacaoPublica/SolicitacaoP
 import { UserManagement } from './components/UserManagement/UserManagement'
 import { LogradouroManager } from './components/LogradouroManager/LogradouroManager'
 import { AdminPanel } from './components/AdminPanel/AdminPanel'
+import { MapaPostes } from './components/MapaPostes/MapaPostes'
 
-type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'postes-editar' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema'
+type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'postes-editar' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema' | 'mapa'
 
 function usePathname() {
   const [path, setPath] = useState(window.location.pathname)
@@ -198,6 +199,12 @@ function AdminLayout() {
           >
             Logradouros
           </button>
+          <button
+            className={`navButton ${currentPage === 'mapa' ? 'navButtonActive' : ''}`}
+            onClick={() => setCurrentPage('mapa')}
+          >
+            Mapa
+          </button>
           {user.perfil === 'admin' && (
             <button
               className={`navButton ${currentPage === 'usuarios' ? 'navButtonActive' : ''}`}
@@ -247,6 +254,7 @@ function AdminLayout() {
           {currentPage === 'usuarios' && user.perfil === 'admin' && <UserManagement />}
           {currentPage === 'sistema' && user.perfil === 'admin' && <AdminPanel />}
           {currentPage === 'logradouros' && <LogradouroManager />}
+          {currentPage === 'mapa' && <MapaPostes />}
           {currentPage === 'postes' && (
             <PosteList
               onNovoPoste={() => setCurrentPage('postes-novo')}

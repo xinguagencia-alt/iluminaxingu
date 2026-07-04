@@ -190,6 +190,19 @@
   transition: opacity 0.15s;
 }
 
+.editButton {
+  padding: 4px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.listItem:hover .editButton,
 .listItem:hover .deleteButton {
   opacity: 1;
 }
