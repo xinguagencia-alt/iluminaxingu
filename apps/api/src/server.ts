@@ -205,14 +205,8 @@ const loginLimiter = rateLimit({
   message: { error: 'Muitas tentativas de login. Aguarde 15 minutos.' },
 })
 
-const bootstrapLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 3,
-  message: { error: 'Muitas tentativas de bootstrap. Aguarde 1 hora.' },
-})
-
 app.use('/api/auth/login', loginLimiter)
-app.use('/api/auth/bootstrap', bootstrapLimiter)
+app.use('/api/auth', authRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/solicitacoes', solicitacoesRoutes)
 app.use('/api/postes', postesRoutes)

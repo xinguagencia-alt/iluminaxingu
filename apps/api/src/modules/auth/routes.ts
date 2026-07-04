@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express'
 import bcrypt from 'bcrypt'
+import rateLimit from 'express-rate-limit'
 import { db } from '../../db.js'
 import { getJwtSecret } from '../../config/env.js'
 import { authMiddleware, requireRole, signToken } from './middleware.js'
@@ -7,6 +8,20 @@ import jwt from 'jsonwebtoken'
 
 const router = Router()
 const PERFIS_VALIDOS = ['admin', 'gestor', 'operador', 'consulta']
+
+const bootstrapPostLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  message: { error: 'Muitas tentativas de bootstrap. Aguarde 1 hora.' },
+})
+
+const bootstrapGetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas requisicoes. Tente novamente em 15 minutos.' },
+})
 
 function normalizePerfil(perfil?: string) {
   return PERFIS_VALIDOS.includes(perfil || '') ? perfil! : 'operador'
@@ -24,7 +39,7 @@ function mapUser(row: Record<string, unknown>) {
 }
 
 // Bootstrap: criar primeiro admin (so funciona se nao houver nenhum)
-router.post('/bootstrap', async (req: Request, res: Response) => {
+router.post('/bootstrap', bootstrapPostLimiter, async (req: Request, res: Response) => {
   const { username, password, nomeCompleto } = req.body
 
   if (!username || !password || !nomeCompleto) {
@@ -76,7 +91,7 @@ router.post('/bootstrap', async (req: Request, res: Response) => {
 })
 
 // Verificar se bootstrap ja foi feito
-router.get('/bootstrap', async (_req: Request, res: Response) => {
+router.get('/bootstrap', bootstrapGetLimiter, async (_req: Request, res: Response) => {
   try {
     const result = await db.query('SELECT COUNT(*) as count FROM admin_users')
     res.json({ hasAdmins: Number(result.rows[0].count) > 0 })

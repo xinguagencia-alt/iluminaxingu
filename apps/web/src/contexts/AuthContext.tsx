@@ -32,8 +32,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function checkBootstrap() {
     try {
       const response = await fetch(`${API_URL}/api/auth/bootstrap`)
+      if (!response.ok) {
+        setNeedsBootstrap(false)
+        return
+      }
       const data = await response.json()
-      setNeedsBootstrap(!data.hasAdmins)
+      setNeedsBootstrap(data.hasAdmins === false)
     } catch {
       setNeedsBootstrap(false)
     } finally {
