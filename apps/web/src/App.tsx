@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Component, type ReactNode } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { RequestForm } from './components/RequestForm/RequestForm'
 import { SolicitacaoList } from './components/SolicitacaoList/SolicitacaoList'
@@ -29,6 +29,38 @@ function usePathname() {
   }, [])
 
   return path
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode; onReset?: () => void }, { error: Error | null }> {
+  state = { error: null as Error | null }
+
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 40, textAlign: 'center' }}>
+          <h2 style={{ color: '#dc2626' }}>Algo deu errado</h2>
+          <p style={{ color: '#6b7280' }}>{this.state.error.message}</p>
+          <button
+            onClick={() => {
+              this.setState({ error: null })
+              this.props.onReset?.()
+            }}
+            style={{
+              marginTop: 16, padding: '10px 20px', background: '#f59e0b',
+              color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer',
+            }}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
 }
 
 function PublicLayout() {
@@ -189,39 +221,41 @@ function AdminLayout() {
         </nav>
       </header>
       <main className="main">
-        {currentPage === 'dashboard' && <Dashboard />}
-        {currentPage === 'admin' && <SolicitacaoList />}
-        {currentPage === 'ordens' && (
-          <OrdemServicoList
-            onDetalhes={(id) => {
-              setSelectedOrdemId(id)
-              setCurrentPage('ordem-detail')
-            }}
-          />
-        )}
-        {currentPage === 'ordem-detail' && selectedOrdemId && (
-          <OrdemServicoDetail
-            ordemId={selectedOrdemId}
-            onVoltar={() => {
-              setSelectedOrdemId(null)
-              setCurrentPage('ordens')
-            }}
-          />
-        )}
-        {currentPage === 'equipes' && <EquipeList />}
-        {currentPage === 'usuarios' && user.perfil === 'admin' && <UserManagement />}
-        {currentPage === 'sistema' && user.perfil === 'admin' && <AdminPanel />}
-        {currentPage === 'logradouros' && <LogradouroManager />}
-        {currentPage === 'postes' && (
-          <PosteList onNovoPoste={() => setCurrentPage('postes-novo')} />
-        )}
-        {currentPage === 'postes-novo' && (
-          <PosteForm
-            token={token!}
-            onSaved={() => setCurrentPage('postes')}
-            onCancel={() => setCurrentPage('postes')}
-          />
-        )}
+        <ErrorBoundary key={currentPage} onReset={() => setCurrentPage('dashboard')}>
+          {currentPage === 'dashboard' && <Dashboard />}
+          {currentPage === 'admin' && <SolicitacaoList />}
+          {currentPage === 'ordens' && (
+            <OrdemServicoList
+              onDetalhes={(id) => {
+                setSelectedOrdemId(id)
+                setCurrentPage('ordem-detail')
+              }}
+            />
+          )}
+          {currentPage === 'ordem-detail' && selectedOrdemId && (
+            <OrdemServicoDetail
+              ordemId={selectedOrdemId}
+              onVoltar={() => {
+                setSelectedOrdemId(null)
+                setCurrentPage('ordens')
+              }}
+            />
+          )}
+          {currentPage === 'equipes' && <EquipeList />}
+          {currentPage === 'usuarios' && user.perfil === 'admin' && <UserManagement />}
+          {currentPage === 'sistema' && user.perfil === 'admin' && <AdminPanel />}
+          {currentPage === 'logradouros' && <LogradouroManager />}
+          {currentPage === 'postes' && (
+            <PosteList onNovoPoste={() => setCurrentPage('postes-novo')} />
+          )}
+          {currentPage === 'postes-novo' && (
+            <PosteForm
+              token={token!}
+              onSaved={() => setCurrentPage('postes')}
+              onCancel={() => setCurrentPage('postes')}
+            />
+          )}
+        </ErrorBoundary>
       </main>
       <footer className="footer">
         <img src="/logo.png" alt="Xingu Marketing & Publicidade" className="footerLogo" />
