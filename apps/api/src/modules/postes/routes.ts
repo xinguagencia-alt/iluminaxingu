@@ -10,8 +10,10 @@ const POSTE_SELECT = `id, codigo, endereco, rua, numero, bairro, complemento, la
 const BAIRRO_NORMALIZADO = `COALESCE(NULLIF(TRIM(bairro), ''), 'Sem bairro informado')`
 
 router.get('/mapa', async (_req: Request, res: Response) => {
+  let postes: Record<string, unknown>[] = []
+  let bairrosRows: Record<string, unknown>[] = []
+
   try {
-    let postes: Record<string, unknown>[] = []
     try {
       const postesResult = await db.query(
         `SELECT id, codigo, endereco, rua, numero, bairro, complemento,
@@ -28,19 +30,23 @@ router.get('/mapa', async (_req: Request, res: Response) => {
       }))
     } catch (posteErr) {
       console.error('Erro na query de postes do mapa:', posteErr)
-      const fallback = await db.query(
-        `SELECT id, codigo, endereco, latitude, longitude, status_ativo FROM postes WHERE status_ativo = TRUE ORDER BY codigo`
-      )
-      postes = fallback.rows.map((p: Record<string, unknown>) => ({
-        ...p,
-        bairro: null,
-        bairro_normalizado: 'Sem bairro informado',
-        rua: null, numero: null, complemento: null,
-        tipo_luminaria: null, potencia: null,
-      }))
+      try {
+        const fallback = await db.query(
+          `SELECT id, codigo, endereco, latitude, longitude, status_ativo FROM postes WHERE status_ativo = TRUE ORDER BY codigo`
+        )
+        postes = fallback.rows.map((p: Record<string, unknown>) => ({
+          ...p,
+          bairro: null,
+          bairro_normalizado: 'Sem bairro informado',
+          rua: null, numero: null, complemento: null,
+          tipo_luminaria: null, potencia: null,
+        }))
+      } catch (fallbackErr) {
+        console.error('Fallback de postes tambem falhou:', fallbackErr)
+        postes = []
+      }
     }
 
-    let bairrosRows: Record<string, unknown>[] = []
     try {
       const bairrosResult = await db.query(
         `SELECT id, nome, cor FROM bairros WHERE ativo = TRUE ORDER BY nome`
@@ -52,8 +58,7 @@ router.get('/mapa', async (_req: Request, res: Response) => {
           `SELECT id, nome FROM bairros WHERE ativo = TRUE ORDER BY nome`
         )
         bairrosRows = bairrosResult.rows.map((b: Record<string, unknown>) => ({ ...b, cor: null }))
-      } catch (bairroErr) {
-        console.error('Tabela bairros indisponivel:', bairroErr)
+      } catch {
         bairrosRows = []
       }
     }
@@ -72,7 +77,12 @@ router.get('/mapa', async (_req: Request, res: Response) => {
     })
   } catch (error) {
     console.error('Erro ao buscar dados do mapa:', error)
-    res.status(500).json({ error: 'Erro interno do servidor' })
+    res.json({
+      postes: [],
+      bairros: [],
+      totaisPorBairro: {},
+      total: 0,
+    })
   }
 })
 

@@ -133,7 +133,7 @@ async function ensureDatabaseSchema() {
       WHEN 'Vale da Serra (Cai N''Água)' THEN '#795548'
     END
     WHERE cor IS NULL AND ativo = TRUE`
-  )
+  ).catch(() => {})
 
   await db.query(
     `CREATE TABLE IF NOT EXISTS ruas (

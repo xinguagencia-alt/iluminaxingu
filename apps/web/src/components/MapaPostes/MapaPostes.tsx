@@ -74,10 +74,16 @@ export function MapaPostes() {
       })
       if (!response.ok) throw new Error('Erro ao carregar dados do mapa')
       const result = await response.json()
-      setData(result)
+      setData({
+        postes: Array.isArray(result.postes) ? result.postes : [],
+        bairros: Array.isArray(result.bairros) ? result.bairros : [],
+        totaisPorBairro: result.totaisPorBairro || {},
+        total: typeof result.total === 'number' ? result.total : 0,
+      })
 
       corMap.current.clear()
-      for (const b of result.bairros) {
+      const bairros = Array.isArray(result.bairros) ? result.bairros : []
+      for (const b of bairros) {
         if (b.cor) corMap.current.set(b.nome, b.cor)
       }
     } catch (err) {
