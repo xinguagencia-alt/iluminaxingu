@@ -244,6 +244,10 @@ export function SolicitacaoList() {
     return true
   }
 
+  function statusFechado(status: string): boolean {
+    return ['concluida', 'cancelada', 'nao_procedente', 'duplicada'].includes(status)
+  }
+
   async function handleStatusUpdate(
     id: number,
     status: StatusSolicitacao,
@@ -454,12 +458,14 @@ export function SolicitacaoList() {
                   </td>
                   <td>
                     <div className={styles.actionsCell}>
-                      <button
-                        className={styles.editButton}
-                        onClick={() => setEditingId(solicitacao.id)}
-                      >
-                        Alterar
-                      </button>
+                      {!statusFechado(solicitacao.status_atual) && (
+                        <button
+                          className={styles.editButton}
+                          onClick={() => setEditingId(solicitacao.id)}
+                        >
+                          Alterar
+                        </button>
+                      )}
                       {podeGerarOrdem(solicitacao) && (
                         <button
                           className={styles.gerarOrdemButton}

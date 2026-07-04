@@ -327,6 +327,15 @@ router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'ope
 
     const { status_atual: statusAnterior, email, protocolo } = current.rows[0]
 
+    const statusFechados = ['concluida', 'cancelada', 'nao_procedente', 'duplicada']
+    if (statusFechados.includes(statusAnterior)) {
+      res.status(409).json({
+        error: 'Solicitacao encerrada nao pode ser alterada',
+        status: statusAnterior,
+      })
+      return
+    }
+
     await db.query('UPDATE solicitacoes SET status_atual = $1 WHERE id = $2', [status, id])
 
     await db.query(
