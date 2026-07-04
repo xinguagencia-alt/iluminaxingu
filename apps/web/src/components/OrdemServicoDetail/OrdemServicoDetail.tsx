@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useOrdemServicoDetail } from './useOrdemServicoDetail'
 import { useAnexos } from '../../hooks/useAnexos'
@@ -37,6 +37,46 @@ function StatusBadge({ status, color }: { status: string; color: string }) {
   )
 }
 
+interface ImagePreviewModalProps {
+  anexoId: number
+  fileName: string
+  onClose: () => void
+}
+
+function ImagePreviewModal({ anexoId, fileName, onClose }: ImagePreviewModalProps) {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    },
+    [onClose]
+  )
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [handleKeyDown])
+
+  return (
+    <div className={styles.previewOverlay} onClick={onClose}>
+      <div className={styles.previewContainer} onClick={(e) => e.stopPropagation()}>
+        <button className={styles.previewClose} onClick={onClose} title="Fechar">
+          &times;
+        </button>
+        <img
+          src={`${API_URL}/api/anexos/${anexoId}/view`}
+          alt={fileName}
+          className={styles.previewImage}
+        />
+        <div className={styles.previewFileName}>{fileName}</div>
+      </div>
+    </div>
+  )
+}
+
 interface OrdemServicoDetailProps {
   ordemId: number
   onVoltar: () => void
@@ -53,6 +93,7 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
   const [fechamentoMaterial, setFechamentoMaterial] = useState('')
   const [fechamentoSalvando, setFechamentoSalvando] = useState(false)
   const [fechamentoMsg, setFechamentoMsg] = useState<string | null>(null)
+  const [previewAnexo, setPreviewAnexo] = useState<{ id: number; name: string } | null>(null)
 
   async function handleUpload(file: File): Promise<boolean> {
     const result = await upload(file, undefined, ordemId)
@@ -471,30 +512,47 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
               const isImage = anexo.arquivo_tipo?.startsWith('image/')
               return (
                 <div key={anexo.id} className={styles.attachmentItem}>
-                  {isImage && (
-                    <div className={styles.attachmentPreview}>
+                  <button
+                    type="button"
+                    className={styles.attachmentPreviewBtn}
+                    onClick={() => isImage && setPreviewAnexo({ id: anexo.id, name: anexo.arquivo_nome })}
+                    title={isImage ? 'Visualizar imagem' : anexo.arquivo_nome}
+                  >
+                    {isImage ? (
                       <img
                         src={`${API_URL}/api/anexos/${anexo.id}/view`}
                         alt={anexo.arquivo_nome}
                         className={styles.attachmentThumb}
                       />
+                    ) : (
+                      <div className={styles.attachmentIcon}>📄</div>
+                    )}
+                  </button>
+                  <div
+                    className={styles.attachmentInfo}
+                    role={isImage ? 'button' : undefined}
+                    tabIndex={isImage ? 0 : undefined}
+                    onClick={() => isImage && setPreviewAnexo({ id: anexo.id, name: anexo.arquivo_nome })}
+                    onKeyDown={(e) => {
+                      if (isImage && (e.key === 'Enter' || e.key === ' ')) {
+                        setPreviewAnexo({ id: anexo.id, name: anexo.arquivo_nome })
+                      }
+                    }}
+                    style={isImage ? { cursor: 'pointer' } : undefined}
+                  >
+                    <div className={styles.attachmentName}>{anexo.arquivo_nome}</div>
+                    <div className={styles.attachmentMeta}>
+                      {anexo.arquivo_tipo || 'Arquivo'}{' '}
+                      {anexo.tamanho_bytes ? `· ${formatFileSize(anexo.tamanho_bytes)}` : ''}{' '}
+                      · {formatDate(anexo.criado_em)}
                     </div>
-                  )}
+                  </div>
                   <button
-                    type="button"
-                    className={styles.attachmentLink}
+                    className={styles.downloadButton}
                     onClick={() => handleDownload(anexo.id, anexo.arquivo_nome)}
                     title="Baixar anexo"
                   >
-                    <div className={styles.attachmentIcon}>{isImage ? '🖼️' : '📄'}</div>
-                    <div className={styles.attachmentInfo}>
-                      <div className={styles.attachmentName}>{anexo.arquivo_nome}</div>
-                      <div className={styles.attachmentMeta}>
-                        {anexo.arquivo_tipo || 'Arquivo'}{' '}
-                        {anexo.tamanho_bytes ? `· ${formatFileSize(anexo.tamanho_bytes)}` : ''}{' '}
-                        · {formatDate(anexo.criado_em)}
-                      </div>
-                    </div>
+                    ⬇
                   </button>
                   <button
                     className={styles.removeButton}
@@ -510,6 +568,14 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
           </div>
         )}
       </div>
+
+      {previewAnexo && (
+        <ImagePreviewModal
+          anexoId={previewAnexo.id}
+          fileName={previewAnexo.name}
+          onClose={() => setPreviewAnexo(null)}
+        />
+      )}
     </div>
   )
 }

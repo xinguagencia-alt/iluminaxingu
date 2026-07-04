@@ -209,6 +209,40 @@
   text-align: left;
 }
 
+.attachmentPreviewBtn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attachmentPreviewBtn:hover .attachmentThumb {
+  opacity: 0.85;
+}
+
+.downloadButton {
+  background: none;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+  color: #475569;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.downloadButton:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #1e293b;
+}
+
 .removeButton {
   background: none;
   border: none;
@@ -242,16 +276,13 @@
   flex-shrink: 0;
 }
 
-.attachmentPreview {
-  flex-shrink: 0;
-}
-
 .attachmentThumb {
   width: 64px;
   height: 64px;
   object-fit: cover;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
+  transition: opacity 0.15s;
 }
 
 .attachmentInfo {
@@ -456,6 +487,69 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.previewOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  animation: fadeIn 0.15s ease;
+}
+
+.previewContainer {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.previewClose {
+  position: absolute;
+  top: -40px;
+  right: -8px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+
+.previewClose:hover {
+  opacity: 1;
+}
+
+.previewImage {
+  max-width: 90vw;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.previewFileName {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+  text-align: center;
+  max-width: 90vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @media (max-width: 768px) {
