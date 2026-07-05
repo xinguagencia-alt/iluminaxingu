@@ -2,25 +2,120 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-width: 1040px;
+  margin: 0 auto;
 }
 
-.section {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.hero,
+.section,
+.success {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(146, 64, 14, 0.1);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
 }
 
-.section h3 {
-  margin: 0 0 16px 0;
-  font-size: 1.1rem;
+.hero {
+  display: grid;
+  grid-template-columns: 1.25fr 0.85fr;
+  gap: 18px;
+  padding: 26px 28px;
+  border-radius: 28px;
+}
+
+.heroCopy {
+  display: grid;
+  gap: 8px;
+}
+
+.heroEyebrow {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: #b45309;
 }
 
-.hint {
-  margin: 0 0 16px;
+.heroCopy h2 {
+  margin: 0;
+  font-size: clamp(1.7rem, 2.8vw, 2.5rem);
+  color: #1f2937;
+}
+
+.heroCopy p {
+  margin: 0;
+  color: #6b7280;
+  max-width: 620px;
+  line-height: 1.65;
+}
+
+.heroTips {
+  display: grid;
+  gap: 12px;
+}
+
+.heroTip {
+  display: grid;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #fffaf0;
+  border: 1px solid #fed7aa;
+}
+
+.heroTip strong {
+  color: #b45309;
+}
+
+.heroTip span {
   color: #6b7280;
   font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.section {
+  border-radius: 24px;
+  padding: 22px;
+}
+
+.sectionHeader {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.sectionStep {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #fff7ed, #ffedd5);
+  border: 1px solid #fed7aa;
+  color: #b45309;
+  font-size: 0.88rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.section h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.08rem;
+  color: #b45309;
+}
+
+.hint,
+.sectionHeader p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .fields {
@@ -41,28 +136,37 @@
 
 .field label {
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 700;
   color: #374151;
 }
 
 .field input,
-.field select {
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+.field select,
+.buscaInput,
+.bairroNovo input,
+.ruaNova input,
+.ruaNova select {
+  padding: 11px 12px;
+  border: 1px solid rgba(107, 114, 128, 0.24);
+  border-radius: 14px;
   font-size: 0.95rem;
   background: white;
 }
 
 .field input:focus,
-.field select:focus {
+.field select:focus,
+.buscaInput:focus,
+.bairroNovo input:focus,
+.ruaNova input:focus,
+.ruaNova select:focus {
   outline: none;
   border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
 }
 
 .field input:disabled,
-.field select:disabled {
+.field select:disabled,
+.buscaInput:disabled {
   background: #f3f4f6;
   cursor: not-allowed;
 }
@@ -78,22 +182,27 @@
   justify-content: flex-end;
 }
 
+.button,
+.bairroCancelarBtn,
+.geoButton {
+  border-radius: 14px;
+  font-weight: 700;
+}
+
 .button {
-  padding: 10px 20px;
+  padding: 11px 20px;
   border: none;
-  border-radius: 8px;
   font-size: 0.95rem;
-  font-weight: 500;
   cursor: pointer;
 }
 
 .buttonPrimary {
-  background: #f59e0b;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
 }
 
 .buttonPrimary:hover {
-  background: #d97706;
+  background: linear-gradient(135deg, #ea580c, #b45309);
 }
 
 .buttonPrimary:disabled {
@@ -114,9 +223,8 @@
 .success {
   text-align: center;
   padding: 40px 20px;
-  background: #dcfce7;
-  border-radius: 12px;
-  border: 1px solid #bbf7d0;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #ecfdf5, #ffffff);
 }
 
 .success h3 {
@@ -150,9 +258,7 @@
   background: linear-gradient(135deg, #059669, #10b981);
   color: white;
   border: none;
-  border-radius: 8px;
   font-size: 1rem;
-  font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -171,42 +277,37 @@
   padding: 10px 14px;
   background: #dcfce7;
   border: 1px solid #bbf7d0;
-  border-radius: 8px;
+  border-radius: 12px;
   color: #166534;
   font-size: 0.9rem;
 }
 
-.bairroSelectWrapper select {
+.bairroSelectWrapper select,
+.ruaSelectWrapper select {
   width: 100%;
 }
 
-.bairroNovo {
+.bairroNovo,
+.ruaNova {
   display: flex;
   gap: 8px;
 }
 
-.bairroNovo input {
+.bairroNovo input,
+.ruaNova input {
   flex: 1;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.95rem;
 }
 
-.bairroNovo input:focus {
-  outline: none;
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
+.ruaNova select {
+  min-width: 120px;
 }
 
 .bairroCancelarBtn {
   padding: 10px 14px;
   border: 1px solid #fecaca;
-  border-radius: 8px;
   background: #fef2f2;
   color: #dc2626;
   font-size: 0.85rem;
-  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -215,43 +316,11 @@
   background: #fee2e2;
 }
 
-.ruaSelectWrapper select {
-  width: 100%;
-}
-
-.ruaNova {
-  display: flex;
-  gap: 8px;
-}
-
-.ruaNova select {
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  background: white;
-  min-width: 120px;
-}
-
-.ruaNova input {
-  flex: 1;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.95rem;
-}
-
-.ruaNova input:focus {
-  outline: none;
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
-}
-
 .bairroSelectWrapper,
 .ruaSelectWrapper {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .buscaWrapper {
@@ -262,20 +331,8 @@
 
 .buscaInput {
   width: 100%;
-  padding: 8px 28px 8px 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.85em;
+  padding-right: 30px;
   box-sizing: border-box;
-}
-
-.buscaInput:focus {
-  outline: none;
-  border-color: #3b82f6;
-}
-
-.buscaInput:disabled {
-  background: #f3f4f6;
 }
 
 .buscaLimpar {
@@ -307,23 +364,37 @@
   font-style: italic;
 }
 
-@media (max-width: 640px) {
-  .hint {
-  margin: 0 0 16px;
-  color: #6b7280;
-  font-size: 0.9rem;
+@media (max-width: 760px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 22px 20px;
+  }
 }
 
-.fields {
+@media (max-width: 640px) {
+  .hero {
+    padding: 20px 18px;
+    border-radius: 22px;
+  }
+
+  .fields {
     grid-template-columns: 1fr;
   }
 
-  .actions {
+  .bairroNovo,
+  .ruaNova,
+  .actions,
+  .sectionHeader {
     flex-direction: column;
   }
 
-  .button {
+  .button,
+  .bairroCancelarBtn,
+  .ruaNova select {
     width: 100%;
   }
-}
 
+  .section {
+    padding: 18px 16px;
+  }
+}

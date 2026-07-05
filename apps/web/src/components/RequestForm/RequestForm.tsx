@@ -266,7 +266,7 @@ export function RequestForm() {
           </p>
         )}
         <p className={styles.info}>
-          Guarde este numero para acompanhar sua solicitacao.
+Guarde esse numero. Com ele, voce pode consultar o andamento sempre que precisar.
         </p>
         <button
           className={styles.button}
@@ -284,6 +284,30 @@ export function RequestForm() {
 
   return (
     <div className={styles.pageContainer}>
+      <section className={styles.heroPanel}>
+        <div className={styles.heroCopy}>
+          <span className={styles.heroEyebrow}>Atendimento digital</span>
+          <h2 className={styles.heroTitle}>Abra sua solicitacao em poucos minutos</h2>
+          <p className={styles.heroText}>
+            Informe o problema, compartilhe a localizacao e envie fotos para ajudar a equipe da prefeitura a chegar mais rapido ao ponto correto.
+          </p>
+        </div>
+        <div className={styles.heroStats}>
+          <div className={styles.heroStat}>
+            <strong>GPS</strong>
+            <span>Captura de localizacao pelo celular</span>
+          </div>
+          <div className={styles.heroStat}>
+            <strong>Fotos</strong>
+            <span>Anexos para identificar o problema</span>
+          </div>
+          <div className={styles.heroStat}>
+            <strong>Protocolo</strong>
+            <span>Consulta simples do andamento</span>
+          </div>
+        </div>
+      </section>
+
       <div className={styles.searchBar}>
         <span className={styles.searchBarLabel}>Ja possui um protocolo?</span>
         <form
@@ -308,8 +332,13 @@ export function RequestForm() {
 
       <form className={styles.form} onSubmit={handleSubmit}>
       <section className={styles.section}>
-        <h2>Dados Pessoais</h2>
-
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionStep}>01</span>
+          <div>
+            <h2>Dados Pessoais</h2>
+            <p>Informe seus dados para receber o protocolo e o retorno da equipe.</p>
+          </div>
+        </div>
         <div className={styles.field}>
           <label htmlFor="nome">Nome *</label>
           <input
@@ -326,6 +355,7 @@ export function RequestForm() {
           <label htmlFor="telefone">Telefone *</label>
           <input
             id="telefone"
+            inputMode="tel"
             type="tel"
             value={formData.telefone}
             onChange={(e) => handleChange('telefone', e.target.value)}
@@ -344,13 +374,21 @@ export function RequestForm() {
           />
         </div>
 
+        <p className={styles.helperText}>Use um telefone que esteja com WhatsApp ou receba ligacoes para facilitar o retorno.</p>
+
         {errors.contato && (
           <span className={styles.error}>{errors.contato}</span>
         )}
       </section>
 
       <section className={styles.section}>
-        <h2>Localizacao</h2>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionStep}>02</span>
+          <div>
+            <h2>Localizacao</h2>
+            <p>Se estiver em frente ao poste, toque no botao de GPS. Depois, ajuste no mapa apenas se precisar.</p>
+          </div>
+        </div>
 
         {loadingGeo && (
           <p className={styles.geoLoading}>Obtendo localizacao GPS...</p>
@@ -372,7 +410,7 @@ export function RequestForm() {
             className={styles.geoButton}
             onClick={captureLocation}
           >
-            Detectar minha localizacao
+Usar minha localizacao
           </button>
         )}
 
@@ -382,9 +420,11 @@ export function RequestForm() {
             className={styles.geoButtonSecondary}
             onClick={captureLocation}
           >
-            Atualizar localizacao
+Atualizar GPS
           </button>
         )}
+
+        <p className={styles.helperText}>Se o mapa abrir em outro ponto, toque exatamente onde esta o poste para corrigir.</p>
 
         <MapPicker
           latitude={formData.latitude}
@@ -420,7 +460,13 @@ export function RequestForm() {
       </section>
 
       <section className={styles.section}>
-        <h2>Problema</h2>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionStep}>03</span>
+          <div>
+            <h2>Problema</h2>
+            <p>Selecione o defeito principal e conte algo importante que ajude a equipe no atendimento.</p>
+          </div>
+        </div>
 
         <div className={styles.field}>
           <label htmlFor="tipoProblema">Tipo de problema *</label>
@@ -454,7 +500,13 @@ export function RequestForm() {
       </section>
 
       <section className={styles.section}>
-        <h2>Anexos (opcional)</h2>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionStep}>04</span>
+          <div>
+            <h2>Anexos (opcional)</h2>
+            <p>Fotos ajudam a equipe a entender a situacao antes de sair para o atendimento.</p>
+          </div>
+        </div>
         <p className={styles.info}>
           Envie fotos ou documentos que ajudem a identificar o problema.
         </p>
@@ -486,6 +538,13 @@ export function RequestForm() {
       </section>
 
       <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionStep}>05</span>
+          <div>
+            <h2>Confirmacao dos dados</h2>
+            <p>Confira os dados e autorize o uso das informacoes somente para tratar este pedido.</p>
+          </div>
+        </div>
         <div className={styles.lgpdConsent}>
           <label className={styles.lgpdLabel}>
             <input

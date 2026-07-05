@@ -1,42 +1,104 @@
 .container {
   display: grid;
-  gap: 24px;
-  max-width: 1000px;
+  gap: 22px;
+  max-width: 1040px;
   margin: 0 auto;
 }
 
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  gap: 12px;
 }
 
 .backButton {
-  background: none;
-  border: 1px solid #dbe2ea;
-  border-radius: 10px;
-  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(107, 114, 128, 0.2);
+  border-radius: 14px;
+  padding: 10px 16px;
   cursor: pointer;
   color: #475569;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
+  font-weight: 700;
 }
 
 .backButton:hover {
-  background: #f1f5f9;
+  background: #fff7ed;
 }
 
-.section {
-  background: white;
-  border-radius: 18px;
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: stretch;
+  padding: 26px 28px;
+  border-radius: 28px;
+  color: white;
+  background: linear-gradient(135deg, #1f2937 0%, #b45309 100%);
+  box-shadow: 0 22px 44px rgba(15, 23, 42, 0.16);
+}
+
+.heroCopy {
+  display: grid;
+  gap: 8px;
+  max-width: 680px;
+}
+
+.heroEyebrow {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.heroCopy h2 {
+  margin: 0;
+  font-size: clamp(1.7rem, 2.8vw, 2.5rem);
+  font-family: monospace;
+}
+
+.heroCopy p {
+  margin: 0;
+  color: rgba(255, 247, 237, 0.88);
+  max-width: 620px;
+}
+
+.heroMeta {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  justify-items: end;
+}
+
+.heroTeam {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.section,
+.loading,
+.errorState {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(146, 64, 14, 0.1);
+  border-radius: 24px;
   padding: 24px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
 }
 
 .sectionTitle {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #0f172a;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #1f2937;
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid #eef2f7;
@@ -54,26 +116,28 @@
 }
 
 .infoLabel {
-  font-size: 0.8rem;
-  color: #64748b;
+  font-size: 0.78rem;
+  color: #6b7280;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
+  font-weight: 800;
 }
 
 .infoValue {
   color: #1e293b;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
 }
 
 .protocolValue {
   font-family: monospace;
   color: #d97706;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .description {
-  background: #f8fafc;
-  border-radius: 10px;
+  background: #fffaf5;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
   padding: 16px;
   color: #334155;
   line-height: 1.6;
@@ -84,10 +148,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 12px;
+  padding: 5px 12px;
   border-radius: 999px;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   color: white;
 }
 
@@ -160,7 +224,7 @@
 
 .timelineObservation {
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px 12px;
   margin-top: 8px;
   color: #475569;
@@ -168,15 +232,16 @@
   line-height: 1.5;
 }
 
-.emptyTimeline {
+.emptyTimeline,
+.emptyAttachments {
   text-align: center;
-  padding: 32px;
+  padding: 26px;
   color: #94a3b8;
 }
 
 .attachmentsList {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   margin-top: 12px;
 }
 
@@ -185,28 +250,14 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: #f8fafc;
-  border-radius: 10px;
+  background: #fffaf5;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
   transition: background 0.15s;
 }
 
 .attachmentItem:hover {
-  background: #f1f5f9;
-}
-
-.attachmentLink {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
-  text-decoration: none;
-  color: inherit;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
+  background: #fff7ed;
 }
 
 .attachmentPreviewBtn {
@@ -227,11 +278,11 @@
 .downloadButton {
   background: none;
   border: 1px solid #dbe2ea;
-  border-radius: 8px;
+  border-radius: 10px;
   color: #475569;
   font-size: 1rem;
   cursor: pointer;
-  padding: 6px 10px;
+  padding: 7px 10px;
   flex-shrink: 0;
   transition: all 0.15s;
   line-height: 1;
@@ -280,7 +331,7 @@
   width: 64px;
   height: 64px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid #e2e8f0;
   transition: opacity 0.15s;
 }
@@ -303,23 +354,12 @@
   font-size: 0.75rem;
 }
 
-.emptyAttachments {
-  text-align: center;
-  padding: 24px;
-  color: #94a3b8;
-  margin-top: 12px;
-}
-
 .loading,
 .errorState {
   min-height: 240px;
   display: grid;
   place-items: center;
   text-align: center;
-  background: white;
-  border-radius: 18px;
-  padding: 28px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
 }
 
 .spinner {
@@ -332,12 +372,13 @@
 }
 
 .retryButton {
-  background: #d97706;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
   border: 0;
-  border-radius: 10px;
+  border-radius: 14px;
   padding: 10px 14px;
   cursor: pointer;
+  font-weight: 700;
 }
 
 .mapActions {
@@ -347,6 +388,16 @@
   margin-top: 16px;
 }
 
+.mapButton,
+.mapButtonSecondary,
+.posteActionButton,
+.posteFormCancelBtn,
+.closureStatusBtn,
+.closureSubmit {
+  border-radius: 14px;
+  font-weight: 700;
+}
+
 .mapButton {
   display: inline-flex;
   align-items: center;
@@ -354,10 +405,8 @@
   background: #16a34a;
   color: white;
   border: 0;
-  border-radius: 10px;
   padding: 10px 18px;
   font-size: 0.9rem;
-  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   transition: background 0.15s;
@@ -374,10 +423,8 @@
   background: #f1f5f9;
   color: #334155;
   border: 1px solid #dbe2ea;
-  border-radius: 10px;
   padding: 10px 18px;
   font-size: 0.9rem;
-  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   transition: background 0.15s;
@@ -394,7 +441,7 @@
   padding: 16px 20px;
   background: #fffbeb;
   border: 1px solid #fde68a;
-  border-radius: 12px;
+  border-radius: 16px;
 }
 
 .posteActionIcon {
@@ -420,25 +467,18 @@
 }
 
 .posteActionButton {
-  background: #d97706;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
+  padding: 9px 18px;
   font-size: 0.85rem;
-  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s;
-}
-
-.posteActionButton:hover {
-  background: #b45309;
 }
 
 .posteFormWrapper {
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 20px;
   background: #f8fafc;
 }
@@ -453,8 +493,7 @@
 .posteFormCancelBtn {
   background: none;
   border: 1px solid #dbe2ea;
-  border-radius: 8px;
-  padding: 6px 14px;
+  padding: 8px 14px;
   font-size: 0.85rem;
   color: #475569;
   cursor: pointer;
@@ -481,13 +520,11 @@
 }
 
 .closureStatusBtn {
-  padding: 8px 16px;
-  border-radius: 10px;
+  padding: 9px 16px;
   border: 1px solid #dbe2ea;
   background: #f8fafc;
   color: #475569;
   font-size: 0.9rem;
-  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -504,7 +541,7 @@
   width: 100%;
   padding: 10px 14px;
   border: 1px solid #dbe2ea;
-  border-radius: 10px;
+  border-radius: 14px;
   font-size: 0.9rem;
   font-family: inherit;
   color: #1e293b;
@@ -517,24 +554,17 @@
 .closureTextarea:focus {
   outline: none;
   border-color: #d97706;
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15);
+  box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.12);
 }
 
 .closureSubmit {
-  background: #d97706;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
   border: 0;
-  border-radius: 10px;
   padding: 12px 24px;
   font-size: 1rem;
-  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
   justify-self: start;
-}
-
-.closureSubmit:hover {
-  background: #b45309;
 }
 
 .closureSubmit:disabled {
@@ -546,18 +576,18 @@
   background: #f0fdf4;
   color: #16a34a;
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .closureError {
   background: #fef2f2;
   color: #dc2626;
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 @keyframes spin {
@@ -662,9 +692,13 @@
 }
 
 @media (max-width: 768px) {
-  .header {
+  .hero {
     flex-direction: column;
-    align-items: stretch;
+    padding: 22px 20px;
+  }
+
+  .heroMeta {
+    justify-items: start;
   }
 
   .infoGrid {
@@ -675,7 +709,75 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .posteActionBox,
+  .posteFormHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mapActions,
+  .closureStatusGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mapButton,
+  .mapButtonSecondary,
+  .posteActionButton,
+  .posteFormCancelBtn,
+  .closureSubmit,
+  .closureStatusBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .attachmentItem {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .attachmentInfo {
+    width: 100%;
+  }
 }
 
+@media (max-width: 640px) {
+  .container {
+    gap: 16px;
+  }
 
+  .section,
+  .loading,
+  .errorState {
+    padding: 18px 16px;
+    border-radius: 20px;
+  }
 
+  .hero {
+    padding: 20px 18px;
+    border-radius: 22px;
+  }
+
+  .timeline {
+    padding-left: 22px;
+  }
+
+  .timelineDot {
+    left: -18px;
+  }
+
+  .previewContainer {
+    max-width: 96vw;
+  }
+
+  .previewClose {
+    top: -34px;
+    right: 0;
+  }
+
+  .previewFileName {
+    white-space: normal;
+    word-break: break-word;
+  }
+}

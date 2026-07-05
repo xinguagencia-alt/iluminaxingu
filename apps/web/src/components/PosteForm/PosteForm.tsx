@@ -124,22 +124,18 @@ export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel, 
       newErrors.codigo = 'Codigo e obrigatorio'
     }
 
-    if (formData.latitude !== '' && formData.longitude === '') {
-      newErrors.longitude = 'Longitude e obrigatoria quando informa latitude'
-    }
-
-    if (formData.longitude !== '' && formData.latitude === '') {
-      newErrors.latitude = 'Latitude e obrigatoria quando informa longitude'
-    }
-
-    if (formData.latitude !== '') {
+    if (!formData.latitude.trim()) {
+      newErrors.latitude = 'Latitude e obrigatoria'
+    } else {
       const lat = parseFloat(formData.latitude)
       if (isNaN(lat) || lat < -90 || lat > 90) {
         newErrors.latitude = 'Latitude invalida (use -90 a 90)'
       }
     }
 
-    if (formData.longitude !== '') {
+    if (!formData.longitude.trim()) {
+      newErrors.longitude = 'Longitude e obrigatoria'
+    } else {
       const lng = parseFloat(formData.longitude)
       if (isNaN(lng) || lng < -180 || lng > 180) {
         newErrors.longitude = 'Longitude invalida (use -180 a 180)'
@@ -198,14 +194,11 @@ export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel, 
         bairro: bairroFinal,
         complemento: formData.complemento.trim() || null,
         endereco: endereco || null,
+        latitude: parseFloat(formData.latitude),
+        longitude: parseFloat(formData.longitude),
         tipo_luminaria: formData.tipo_luminaria || null,
         potencia: formData.potencia ? parseInt(formData.potencia) : null,
         data_instalacao: formData.data_instalacao || null,
-      }
-
-      if (formData.latitude !== '' && formData.longitude !== '') {
-        body.latitude = parseFloat(formData.latitude)
-        body.longitude = parseFloat(formData.longitude)
       }
 
       const url = editId
@@ -286,8 +279,32 @@ export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel, 
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <span className={styles.heroEyebrow}>{editId ? 'Atualizacao de ativo' : 'Cadastro de ativo'}</span>
+          <h2>{editId ? 'Editar poste' : 'Novo poste'}</h2>
+          <p>Estruture o cadastro com codigo, endereco, bairro e coordenadas para fortalecer o mapa e a rastreabilidade operacional.</p>
+        </div>
+        <div className={styles.heroTips}>
+          <div className={styles.heroTip}>
+            <strong>GPS obrigatorio</strong>
+            <span>Essencial para o mapa e para localizar o poste com precisao.</span>
+          </div>
+          <div className={styles.heroTip}>
+            <strong>Bairro e rua</strong>
+            <span>Melhora relatorios por regiao e organizacao da base.</span>
+          </div>
+        </div>
+      </section>
+
       <div className={styles.section}>
-        <h3>Dados do Poste</h3>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionStep}>01</span>
+          <div>
+            <h3>Dados do Poste</h3>
+            <p>Informacoes tecnicas e identificacao principal do ativo.</p>
+          </div>
+        </div>
         <div className={styles.fields}>
           <div className={styles.field}>
             <label htmlFor="codigo">Codigo *</label>
@@ -347,8 +364,13 @@ export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel, 
       </div>
 
       <div className={styles.section}>
-        <h3>Endereco estruturado</h3>
-        <p className={styles.hint}>Separar o bairro agora ajuda depois nos relatorios de maior incidencia por regiao.</p>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionStep}>02</span>
+          <div>
+            <h3>Endereco estruturado</h3>
+            <p className={styles.hint}>Separar o bairro agora ajuda depois nos relatorios de maior incidencia por regiao.</p>
+          </div>
+        </div>
         <div className={styles.fields}>
           <div className={styles.field}>
             <label htmlFor="rua">Rua / Avenida</label>
@@ -570,8 +592,13 @@ export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel, 
       </div>
 
       <div className={styles.section}>
-        <h3>Localizacao</h3>
-        <p className={styles.hint}>Use o botao abaixo para capturar a localizacao atual do celular. Fique proximo ao poste antes de capturar.</p>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionStep}>03</span>
+          <div>
+            <h3>Localizacao</h3>
+            <p className={styles.hint}>Capture a localizacao GPS do poste. Fique proximo ao poste antes de capturar. Obrigatorio para exibir no mapa.</p>
+          </div>
+        </div>
         <button
           type="button"
           className={styles.geoButton}
@@ -588,7 +615,7 @@ export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel, 
         )}
         <div className={styles.fields}>
           <div className={styles.field}>
-            <label htmlFor="latitude">Latitude</label>
+            <label htmlFor="latitude">Latitude *</label>
             <input
               id="latitude"
               type="text"
@@ -601,7 +628,7 @@ export function PosteForm({ token, onSaved, onCancel, initialData, submitLabel, 
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="longitude">Longitude</label>
+            <label htmlFor="longitude">Longitude *</label>
             <input
               id="longitude"
               type="text"

@@ -1,113 +1,218 @@
-.form {
-  max-width: 600px;
+.pageContainer {
+  max-width: 880px;
   margin: 0 auto;
-  padding: 20px 20px 8px;
+  display: grid;
+  gap: 22px;
 }
 
-.pageContainer {
-  max-width: 600px;
-  margin: 0 auto;
+.heroPanel {
+  display: grid;
+  grid-template-columns: 1.3fr 0.9fr;
+  gap: 18px;
+  padding: 28px;
+  border: 1px solid rgba(146, 64, 14, 0.12);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 247, 237, 0.88));
+  box-shadow: 0 22px 40px rgba(120, 53, 15, 0.1);
+}
+
+.heroCopy {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.heroEyebrow {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #b45309;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heroTitle {
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  line-height: 0.98;
+  color: #1f2937;
+}
+
+.heroText {
+  max-width: 560px;
+  color: #4b5563;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.heroStats {
+  display: grid;
+  gap: 12px;
+}
+
+.heroStat {
+  display: grid;
+  gap: 4px;
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(251, 146, 60, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.heroStat strong {
+  color: #b45309;
+  font-size: 1rem;
+}
+
+.heroStat span {
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .searchBar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  background: #fff7ed;
+  gap: 16px;
+  padding: 16px 18px;
+  background: rgba(255, 247, 237, 0.92);
   border: 1px solid #fed7aa;
-  border-radius: 10px;
-  margin-bottom: 24px;
+  border-radius: 20px;
+  box-shadow: 0 14px 28px rgba(120, 53, 15, 0.08);
 }
 
 .searchBarLabel {
-  font-size: 0.9rem;
-  color: #b45309;
-  font-weight: 500;
+  font-size: 0.92rem;
+  color: #9a3412;
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .searchBarForm {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex: 1;
 }
 
 .searchBarInput {
   flex: 1;
-  border: 1px solid #fdba74;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.9rem;
-  font-family: monospace;
-  letter-spacing: 0.5px;
   min-width: 0;
+  border: 1px solid #fdba74;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  font-family: "Cascadia Code", Consolas, monospace;
+  letter-spacing: 0.2px;
+  background: rgba(255, 255, 255, 0.96);
 }
 
 .searchBarInput:focus {
   outline: none;
   border-color: #f59e0b;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18);
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
 }
 
 .searchBarButton {
-  background: #f59e0b;
-  color: white;
+  min-width: 124px;
   border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  border-radius: 14px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
-  white-space: nowrap;
+  box-shadow: 0 12px 20px rgba(217, 119, 6, 0.18);
 }
 
 .searchBarButton:hover {
-  background: #d97706;
+  background: linear-gradient(135deg, #ea580c, #b45309);
 }
 
 .searchBarButton:disabled {
   background: #fdba74;
+  box-shadow: none;
   cursor: not-allowed;
 }
 
-.section {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
+.form {
+  display: grid;
+  gap: 18px;
 }
 
-.section h2 {
-  margin: 0 0 16px 0;
-  font-size: 1.1rem;
-  color: #333;
-  border-bottom: 2px solid #e0e0e0;
-  padding-bottom: 8px;
+.section {
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(146, 64, 14, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.06);
+}
+
+.sectionHeader {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.sectionHeader h2 {
+  margin: 0 0 4px;
+  font-size: 1.08rem;
+  color: #1f2937;
+}
+
+.sectionHeader p {
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.sectionStep {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #fff7ed, #ffedd5);
+  border: 1px solid #fed7aa;
+  color: #b45309;
+  font-size: 0.88rem;
+  font-weight: 800;
+  flex-shrink: 0;
 }
 
 .field {
   margin-bottom: 16px;
 }
 
+.field:last-child {
+  margin-bottom: 0;
+}
+
 .field label {
   display: block;
-  margin-bottom: 6px;
-  font-weight: 500;
-  color: #444;
-  font-size: 0.9rem;
+  margin-bottom: 7px;
+  font-weight: 700;
+  color: #374151;
+  font-size: 0.92rem;
 }
 
 .field input,
 .field select,
 .field textarea {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  box-sizing: border-box;
-  transition: border-color 0.2s;
+  padding: 12px 14px;
+  border: 1px solid rgba(107, 114, 128, 0.26);
+  border-radius: 14px;
+  font-size: 0.98rem;
+  background: rgba(255, 255, 255, 0.98);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .field input:focus,
@@ -115,188 +220,170 @@
 .field textarea:focus {
   outline: none;
   border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
+  background: white;
 }
 
 .field textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 96px;
 }
 
 .error {
   display: block;
   color: #dc2626;
-  font-size: 0.85rem;
-  margin-top: 4px;
-}
-
-.geoLoading {
-  color: #f59e0b;
-  font-size: 0.9rem;
-  margin-bottom: 12px;
-}
-
-
-.geoButton {
-  width: 100%;
-  padding: 14px 16px;
-  border: none;
-  border-radius: 8px;
-  background: #f59e0b;
-  color: white;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.08s ease;
-  margin-bottom: 12px;
-}
-
-.geoButton:hover {
-  background: #d97706;
-}
-
-.geoButton:active {
-  transform: translateY(1px);
-}
-
-.geoButton:disabled {
-  background: #fdba74;
-  cursor: not-allowed;
-}
-
-.geoButtonSecondary {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #f59e0b;
-  border-radius: 8px;
-  background: transparent;
-  color: #f59e0b;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  margin-bottom: 12px;
-}
-
-.geoButtonSecondary:hover {
-  background: #fffbeb;
-}
-
-.geoError {
-  color: #dc2626;
-  font-size: 0.9rem;
-  margin: -4px 0 12px;
-}
-
-.geoLoading {
-  color: #2563eb;
-  font-size: 0.92rem;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.geoInfo {
-  color: #16a34a;
-  font-size: 0.85rem;
-  margin-bottom: 12px;
-  word-break: break-all;
-}
-
-.fileInfo {
-  color: #666;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   margin-top: 6px;
 }
 
+.helperText {
+  margin: -4px 0 14px;
+  color: #6b7280;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.geoButton,
+.geoButtonSecondary,
 .button {
   width: 100%;
-  padding: 14px;
-  background: #f59e0b;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 16px;
+  font-weight: 800;
   cursor: pointer;
-  transition: background 0.2s;
-  margin-top: -8px;
 }
 
-.button:hover {
-  background: #d97706;
+.geoButton {
+  padding: 14px 18px;
+  border: none;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  font-size: 1rem;
+  margin-bottom: 14px;
+  box-shadow: 0 14px 26px rgba(217, 119, 6, 0.18);
 }
 
-.button:active {
-  background: #b45309;
+.geoButton:hover {
+  background: linear-gradient(135deg, #ea580c, #b45309);
+}
+
+.geoButtonSecondary {
+  padding: 12px 16px;
+  border: 1px solid #f59e0b;
+  background: #fffaf0;
+  color: #b45309;
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+}
+
+.geoButtonSecondary:hover {
+  background: #fff7ed;
+}
+
+.geoButton:disabled,
+.geoButtonSecondary:disabled,
+.button:disabled {
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.geoError,
+.geoLoading,
+.geoInfo {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.geoError {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.geoLoading {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.geoInfo {
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
 }
 
 .success {
-  max-width: 500px;
-  margin: 40px auto;
-  padding: 32px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 34px 30px;
   text-align: center;
-  background: #f0fdf4;
-  border: 2px solid #16a34a;
-  border-radius: 12px;
+  background: linear-gradient(180deg, #f0fdf4, #ffffff);
+  border: 1px solid #86efac;
+  border-radius: 28px;
+  box-shadow: 0 22px 44px rgba(22, 101, 52, 0.08);
 }
 
 .success h2 {
-  color: #16a34a;
-  margin: 0 0 12px 0;
+  color: #166534;
+  margin: 0 0 10px;
+  font-size: 1.8rem;
 }
 
 .success p {
-  color: #555;
+  color: #4b5563;
   margin: 8px 0;
 }
 
 .protocol {
   display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #16a34a;
-  margin: 16px 0;
-  padding: 12px;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #166534;
+  margin: 18px 0;
+  padding: 15px;
   background: white;
-  border: 2px dashed #16a34a;
-  border-radius: 8px;
-  letter-spacing: 2px;
+  border: 2px dashed #22c55e;
+  border-radius: 18px;
+  letter-spacing: 1.5px;
 }
 
 .autoIdentificado {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: #166534;
   background: #dcfce7;
   border: 1px solid #86efac;
-  border-radius: 8px;
-  padding: 10px 14px;
+  border-radius: 14px;
+  padding: 12px 15px;
   margin: 12px 0;
 }
 
 .info {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 12px;
+  font-size: 0.92rem;
+  color: #6b7280;
+  margin-bottom: 14px;
 }
 
 .fileList {
   list-style: none;
-  margin: 12px 0 0;
+  margin: 14px 0 0;
   padding: 0;
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .fileItem {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  color: #166534;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #fffaf0;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  color: #9a3412;
 }
 
 .removeFileButton {
@@ -316,14 +403,18 @@
 .lgpdConsent {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .lgpdLabel {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
+  padding: 16px;
+  border-radius: 18px;
+  background: #fffaf0;
+  border: 1px solid #fed7aa;
 }
 
 .lgpdCheckbox {
@@ -335,18 +426,28 @@
 }
 
 .lgpdText {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: #374151;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-@media (max-width: 640px) {
-  .form {
-    padding: 12px 12px 4px;
-  }
+.button {
+  padding: 16px 22px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  font-size: 1rem;
+  box-shadow: 0 16px 26px rgba(217, 119, 6, 0.18);
+}
 
-  .section {
-    padding: 12px;
+.button:hover {
+  background: linear-gradient(135deg, #ea580c, #b45309);
+}
+
+@media (max-width: 760px) {
+  .heroPanel {
+    grid-template-columns: 1fr;
+    padding: 22px;
   }
 
   .searchBar {
@@ -357,5 +458,57 @@
   .searchBarForm {
     flex-direction: column;
   }
+
+  .searchBarButton {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
+@media (max-width: 640px) {
+  .pageContainer {
+    gap: 16px;
+  }
+
+  .heroPanel {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .heroTitle {
+    font-size: 1.8rem;
+  }
+
+  .section {
+    padding: 18px 16px;
+    border-radius: 20px;
+  }
+
+  .sectionHeader {
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-direction: column;
+  }
+
+  .helperText {
+    font-size: 0.84rem;
+  }
+
+  .sectionStep {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+    border-radius: 10px;
+  }
+
+  .success {
+    padding: 24px 18px;
+    border-radius: 24px;
+  }
+
+  .protocol {
+    font-size: 1.15rem;
+    letter-spacing: 0.8px;
+    word-break: break-word;
+  }
+}

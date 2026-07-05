@@ -339,16 +339,37 @@ export function SolicitacaoList() {
         />
       )}
 
-      <div className={styles.header}>
-        <h2>Solicitações</h2>
-        <span className={styles.count}>{solicitacoes.length} registro(s)</span>
-      </div>
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <span className={styles.heroEyebrow}>Central de atendimento</span>
+          <h2>Solicitações registradas</h2>
+          <p>Filtre, acompanhe prioridades, atualize status e gere ordens de serviço a partir do painel operacional.</p>
+        </div>
+        <div className={styles.heroStats}>
+          <div className={styles.heroStat}>
+            <strong>{solicitacoes.length}</strong>
+            <span>registro(s)</span>
+          </div>
+          <div className={styles.heroStat}>
+            <strong>{solicitacoes.filter((s) => !statusFechado(s.status_atual)).length}</strong>
+            <span>em acompanhamento</span>
+          </div>
+        </div>
+      </section>
 
-      <div className={styles.filters}>
+      <div className={styles.filtersCard}>
+        <div className={styles.filtersHeader}>
+          <div>
+            <h3>Filtros da operação</h3>
+            <span className={styles.count}>{solicitacoes.length} registro(s) visiveis</span>
+          </div>
+        </div>
+
+        <div className={styles.filters}>
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="Buscar por protocolo ou nome..."
+          placeholder="Buscar por protocolo, nome ou telefone..."
           value={filtros.busca}
           onChange={(e) => setFiltro('busca', e.target.value)}
         />
@@ -384,6 +405,7 @@ export function SolicitacaoList() {
             Limpar filtros
           </button>
         )}
+        </div>
       </div>
 
       {solicitacoes.length === 0 ? (
@@ -397,6 +419,7 @@ export function SolicitacaoList() {
         </div>
       ) : (
         <div className={styles.tableWrapper}>
+          <div className={styles.tableHint}>No celular, deslize a tabela para o lado para ver todas as colunas.</div>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -463,7 +486,7 @@ export function SolicitacaoList() {
                           className={styles.editButton}
                           onClick={() => setEditingId(solicitacao.id)}
                         >
-                          Alterar
+Atualizar status
                         </button>
                       )}
                       {podeGerarOrdem(solicitacao) && (
@@ -471,7 +494,7 @@ export function SolicitacaoList() {
                           className={styles.gerarOrdemButton}
                           onClick={() => setGerandoOrdemPara(solicitacao.id)}
                         >
-                          Gerar Ordem
+Gerar OS
                         </button>
                       )}
                     </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useOrdemServicoDetail } from './useOrdemServicoDetail'
 import { useAnexos } from '../../hooks/useAnexos'
@@ -73,6 +73,7 @@ function ImagePreviewModal({ anexoId, fileName, onClose }: ImagePreviewModalProp
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
+  const objectUrlRef = useRef<string | null>(null)
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -84,14 +85,24 @@ function ImagePreviewModal({ anexoId, fileName, onClose }: ImagePreviewModalProp
   useEffect(() => {
     let revoked = false
     async function fetchImage() {
+      setLoading(true)
+      setLoadError(false)
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current)
+        objectUrlRef.current = null
+      }
       try {
         const res = await fetch(`${API_URL}/api/anexos/${anexoId}/view`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         })
         if (!res.ok) throw new Error('Falha ao carregar imagem')
+        const contentType = res.headers.get('content-type') || ''
+        if (!contentType.startsWith('image/')) throw new Error('Arquivo nao e uma imagem')
         const blob = await res.blob()
+        const objectUrl = URL.createObjectURL(blob)
+        objectUrlRef.current = objectUrl
         if (!revoked) {
-          setImageUrl(URL.createObjectURL(blob))
+          setImageUrl(objectUrl)
           setLoading(false)
         }
       } catch {
@@ -106,7 +117,10 @@ function ImagePreviewModal({ anexoId, fileName, onClose }: ImagePreviewModalProp
     document.body.style.overflow = 'hidden'
     return () => {
       revoked = true
-      if (imageUrl) URL.revokeObjectURL(imageUrl)
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current)
+        objectUrlRef.current = null
+      }
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
     }
@@ -123,7 +137,10 @@ function ImagePreviewModal({ anexoId, fileName, onClose }: ImagePreviewModalProp
           <div className={styles.previewError}>
             Não foi possível carregar a imagem.
             <br />
-            <button onClick={onClose} className={styles.previewErrorBtn}>Fechar</button>
+            Verifique se você tem permissão ou tente novamente.
+            <div style={{ marginTop: 12 }}>
+              <button onClick={onClose} className={styles.previewErrorBtn}>Fechar</button>
+            </div>
           </div>
         )}
         {imageUrl && (
@@ -249,8 +266,22 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
         <button className={styles.backButton} onClick={onVoltar}>
           ← Voltar
         </button>
-        <h2>Detalhe da OS</h2>
       </div>
+
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <span className={styles.heroEyebrow}>Ordem em campo</span>
+          <h2>{ordem.protocolo}</h2>
+          <p>Atendimento de {TIPOS_PROBLEMA[ordem.tipo_problema] || ordem.tipo_problema} com contexto completo para equipe e gestão.</p>
+        </div>
+        <div className={styles.heroMeta}>
+          <StatusBadge
+            status={STATUS_ORDEM_LABELS[ordem.status]}
+            color={STATUS_ORDEM_COLORS[ordem.status]}
+          />
+          <span className={styles.heroTeam}>{ordem.equipe_nome || 'Sem equipe'}</span>
+        </div>
+      </section>
 
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Dados da Ordem de Serviço</h3>

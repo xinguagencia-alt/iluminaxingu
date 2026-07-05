@@ -82,7 +82,7 @@ export function PosteList({ onNovoPoste, onEditar }: PosteListProps) {
       )}
 
       <div className={styles.header}>
-        <h2>Postes</h2>
+        <h2>Cadastro de postes</h2>
         <span className={styles.count}>
           {bairroFiltro || ruaFiltro
             ? `${postes.length} registro(s)${bairroFiltro ? ` em "${bairroFiltro}"` : ''}${ruaFiltro ? ` na "${ruaFiltro}"` : ''}`
@@ -126,11 +126,11 @@ export function PosteList({ onNovoPoste, onEditar }: PosteListProps) {
               setRuaFiltro('')
             }}
           >
-            Limpar filtro
+            Limpar filtros
           </button>
         )}
         <button className={styles.addButton} onClick={onNovoPoste}>
-          Novo Poste
+          Novo poste
         </button>
       </div>
 
@@ -145,6 +145,7 @@ export function PosteList({ onNovoPoste, onEditar }: PosteListProps) {
         </div>
       ) : (
         <div className={styles.tableWrapper}>
+          <div className={styles.tableHint}>No celular, deslize a tabela para o lado para ver codigo, bairro e acoes.</div>
           <table className={styles.table}>
             <thead>
               <tr>

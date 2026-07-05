@@ -19,6 +19,23 @@ import { MapaPostes } from './components/MapaPostes/MapaPostes'
 
 type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'postes-editar' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema' | 'mapa'
 
+const ADMIN_PAGE_HINTS: Record<Page, string> = {
+  home: '',
+  consultar: '',
+  dashboard: 'Resumo geral com indicadores e atalhos de operacao.',
+  admin: 'Acompanhe chamados, filtre prioridades e gere ordens de servico.',
+  postes: 'Consulte e mantenha o cadastro dos postes atualizado.',
+  'postes-novo': 'Preencha os dados do novo poste antes de salvar.',
+  'postes-editar': 'Revise as informacoes do poste e confirme as alteracoes.',
+  ordens: 'Gerencie as ordens abertas e acompanhe a execucao em campo.',
+  'ordem-detail': 'Veja os detalhes da ordem e finalize o atendimento com seguranca.',
+  equipes: 'Organize as equipes responsaveis pelos atendimentos.',
+  usuarios: 'Controle quem acessa o painel e qual perfil cada colaborador possui.',
+  logradouros: 'Padronize bairros, ruas e avenidas para relatorios mais confiaveis.',
+  sistema: 'Auditoria e exportacao de dados para administracao interna.',
+  mapa: 'Visualize os postes no mapa e acompanhe a cobertura por bairro.',
+}
+
 function usePathname() {
   const [path, setPath] = useState(window.location.pathname)
 
@@ -65,29 +82,66 @@ class ErrorBoundary extends Component<{ children: ReactNode; onReset?: () => voi
   }
 }
 
+function AppBrand({
+  title,
+  subtitle,
+  eyebrow,
+}: {
+  title: string
+  subtitle: string
+  eyebrow: string
+}) {
+  return (
+    <div className="headerBranding">
+      <div className="headerBrandMark">
+        <div className="headerBrandIcon" aria-hidden="true">
+          IX
+        </div>
+        <div className="headerTitles">
+          <span className="headerEyebrow">{eyebrow}</span>
+          <h1>{title}</h1>
+          <p>{subtitle}</p>
+        </div>
+      </div>
+      <div className="headerAgency">
+        <span className="headerAgencyLabel">Identidade visual</span>
+        <img src="/logo.png" alt="Xingu Marketing & Publicidade" className="headerLogo" />
+      </div>
+    </div>
+  )
+}
+
 function PublicLayout() {
   const [currentPage, setCurrentPage] = useState<'home' | 'consultar'>('home')
 
   return (
     <div className="app">
       <header className="header">
-        <h1>IluminaXingu</h1>
-        <p>Registro de Solicitação de Iluminação Pública</p>
-        <nav className="nav">
+        <div className="headerInner">
+          <AppBrand
+            title="IluminaXingu"
+            subtitle="Registro digital de iluminação pública para atendimento rápido e rastreável."
+            eyebrow="Portal do Munícipe"
+          />
+        </div>
+        <nav className="nav" aria-label="Navegacao principal do municipe">
           <button
             className={`navButton ${currentPage === 'home' ? 'navButtonActive' : ''}`}
             onClick={() => setCurrentPage('home')}
+            aria-current={currentPage === 'home' ? 'page' : undefined}
           >
-            Nova Solicitacao
+            Nova solicitação
           </button>
           <button
             className={`navButton ${currentPage === 'consultar' ? 'navButtonActive' : ''}`}
             onClick={() => setCurrentPage('consultar')}
+            aria-current={currentPage === 'consultar' ? 'page' : undefined}
           >
-            Consultar Protocolo
+            Consultar protocolo
           </button>
         </nav>
       </header>
+      <div className="navHint">Escolha entre abrir um novo pedido ou consultar um protocolo já existente.</div>
       <main className="main">
         {currentPage === 'home' && <RequestForm />}
         {currentPage === 'consultar' && (
@@ -116,11 +170,16 @@ function AdminLayout() {
     return (
       <div className="app">
         <header className="header">
-          <h1>IluminaXingu</h1>
-          <p>Painel Administrativo</p>
+          <div className="headerInner">
+            <AppBrand
+              title="IluminaXingu"
+              subtitle="Centro administrativo para operação, controle e indicadores da iluminação pública."
+              eyebrow="Painel Administrativo"
+            />
+          </div>
         </header>
         <main className="main">
-          <p style={{ textAlign: 'center', color: '#6b7280' }}>Carregando...</p>
+          <div className="emptyStateMessage">Carregando...</div>
         </main>
       </div>
     )
@@ -130,8 +189,13 @@ function AdminLayout() {
     return (
       <div className="app">
         <header className="header">
-          <h1>IluminaXingu</h1>
-          <p>Painel Administrativo</p>
+          <div className="headerInner">
+            <AppBrand
+              title="IluminaXingu"
+              subtitle="Configuração inicial segura do ambiente administrativo."
+              eyebrow="Painel Administrativo"
+            />
+          </div>
         </header>
         <main className="main">
           <BootstrapForm />
@@ -144,8 +208,13 @@ function AdminLayout() {
     return (
       <div className="app">
         <header className="header">
-          <h1>IluminaXingu</h1>
-          <p>Painel Administrativo</p>
+          <div className="headerInner">
+            <AppBrand
+              title="IluminaXingu"
+              subtitle="Acesso protegido para gestão, atendimento e acompanhamento operacional."
+              eyebrow="Painel Administrativo"
+            />
+          </div>
         </header>
         <main className="main">
           <LoginForm />
@@ -160,48 +229,60 @@ function AdminLayout() {
   return (
     <div className="app">
       <header className="header">
-        <h1>IluminaXingu</h1>
-        <p>Painel Administrativo</p>
-        <nav className="nav">
+        <div className="headerInner">
+          <AppBrand
+            title="IluminaXingu"
+            subtitle="Painel operacional com solicitações, equipes, ordens, mapa e controle de ativos."
+            eyebrow="Painel Administrativo"
+          />
+        </div>
+        <nav className="nav" aria-label="Navegacao principal da prefeitura">
           <button
             className={`navButton ${currentPage === 'dashboard' ? 'navButtonActive' : ''}`}
             onClick={() => setCurrentPage('dashboard')}
+            aria-current={currentPage === 'dashboard' ? 'page' : undefined}
           >
             Painel
           </button>
           <button
             className={`navButton ${currentPage === 'admin' ? 'navButtonActive' : ''}`}
             onClick={() => setCurrentPage('admin')}
+            aria-current={currentPage === 'admin' ? 'page' : undefined}
           >
-            Solicitacoes
+            Solicitações
           </button>
           <button
             className={`navButton ${currentPage === 'postes' || currentPage === 'postes-novo' || currentPage === 'postes-editar' ? 'navButtonActive' : ''}`}
             onClick={() => setCurrentPage('postes')}
+            aria-current={currentPage === 'postes' || currentPage === 'postes-novo' || currentPage === 'postes-editar' ? 'page' : undefined}
           >
             Postes
           </button>
           <button
             className={`navButton ${currentPage === 'ordens' ? 'navButtonActive' : ''}`}
             onClick={() => setCurrentPage('ordens')}
+            aria-current={currentPage === 'ordens' ? 'page' : undefined}
           >
             Ordens
           </button>
           <button
             className={`navButton ${currentPage === 'equipes' ? 'navButtonActive' : ''}`}
             onClick={() => setCurrentPage('equipes')}
+            aria-current={currentPage === 'equipes' ? 'page' : undefined}
           >
             Equipes
           </button>
           <button
             className={`navButton ${currentPage === 'logradouros' ? 'navButtonActive' : ''}`}
             onClick={() => setCurrentPage('logradouros')}
+            aria-current={currentPage === 'logradouros' ? 'page' : undefined}
           >
             Logradouros
           </button>
           <button
             className={`navButton ${currentPage === 'mapa' ? 'navButtonActive' : ''}`}
             onClick={() => setCurrentPage('mapa')}
+            aria-current={currentPage === 'mapa' ? 'page' : undefined}
           >
             Mapa
           </button>
@@ -209,14 +290,16 @@ function AdminLayout() {
             <button
               className={`navButton ${currentPage === 'usuarios' ? 'navButtonActive' : ''}`}
               onClick={() => setCurrentPage('usuarios')}
+              aria-current={currentPage === 'usuarios' ? 'page' : undefined}
             >
-              Usuarios
+              Usuários
             </button>
           )}
           {user.perfil === 'admin' && (
             <button
               className={`navButton ${currentPage === 'sistema' ? 'navButtonActive' : ''}`}
               onClick={() => setCurrentPage('sistema')}
+              aria-current={currentPage === 'sistema' ? 'page' : undefined}
             >
               Sistema
             </button>
@@ -229,6 +312,7 @@ function AdminLayout() {
           </div>
         </nav>
       </header>
+      <div className="navHint">{ADMIN_PAGE_HINTS[currentPage]}</div>
       <main className="main">
         <ErrorBoundary key={currentPage} onReset={() => setCurrentPage('dashboard')}>
           {currentPage === 'dashboard' && <Dashboard />}

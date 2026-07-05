@@ -40,7 +40,11 @@ function EquipeModal({
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h3>{equipe ? 'Editar Equipe' : 'Nova Equipe'}</h3>
+        <div className={styles.modalHeader}>
+          <span className={styles.modalEyebrow}>Cadastro interno</span>
+          <h3>{equipe ? 'Editar equipe' : 'Nova equipe'}</h3>
+          <p>Organize quem atende os chamados e mantenha o time pronto para execucao.</p>
+        </div>
 
         <label className={styles.modalLabel}>Nome *</label>
         <input
@@ -66,7 +70,7 @@ function EquipeModal({
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
           rows={3}
-          placeholder="Descricao da equipe"
+          placeholder="Ex: equipe de manutencao da area central"
           disabled={saving}
         />
 
@@ -79,7 +83,7 @@ function EquipeModal({
             onClick={handleSave}
             disabled={saving || !nome.trim()}
           >
-            {saving ? 'Salvando...' : 'Salvar'}
+            {saving ? 'Salvando...' : 'Salvar equipe'}
           </button>
         </div>
       </div>
@@ -181,59 +185,82 @@ export function EquipeList() {
         />
       )}
 
-      <div className={styles.header}>
-        <h2>Equipes</h2>
-        <span className={styles.count}>{equipes.length} registro(s)</span>
-      </div>
+      <section className={styles.hero}>
+        <div>
+          <span className={styles.eyebrow}>Operacao de campo</span>
+          <h2>Equipes da prefeitura</h2>
+          <p>Cadastre os grupos responsaveis pelos atendimentos e organize a distribuicao dos servicos.</p>
+        </div>
+        <div className={styles.heroMeta}>
+          <span className={styles.count}>{equipes.length} registro(s)</span>
+          <button className={styles.addButton} onClick={() => setShowModal(true)}>
+            Nova equipe
+          </button>
+        </div>
+      </section>
 
-      <div className={styles.toolbar}>
-        <button className={styles.addButton} onClick={() => setShowModal(true)}>
-          Nova Equipe
-        </button>
-      </div>
+      <section className={styles.summaryGrid}>
+        <article className={styles.summaryCard}>
+          <strong>{equipes.length}</strong>
+          <span>Equipes cadastradas</span>
+        </article>
+        <article className={styles.summaryCard}>
+          <strong>{equipes.filter((equipe) => equipe.responsavel).length}</strong>
+          <span>Com responsavel definido</span>
+        </article>
+      </section>
 
       {equipes.length === 0 ? (
         <div className={styles.emptyState}>
           <h3>Nenhuma equipe encontrada</h3>
-          <p>Clique em "Nova Equipe" para cadastrar a primeira equipe.</p>
+          <p>Clique em "Nova equipe" para cadastrar a primeira equipe operacional.</p>
         </div>
       ) : (
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Responsavel</th>
-                <th>Descricao</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {equipes.map((equipe) => (
-                <tr key={equipe.id}>
-                  <td className={styles.nome}>{equipe.nome}</td>
-                  <td>{equipe.responsavel || '-'}</td>
-                  <td>{equipe.descricao || '-'}</td>
-                  <td>
-                    <div className={styles.actions}>
-                      <button
-                        className={styles.actionButton}
-                        onClick={() => setEditingEquipe(equipe)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className={`${styles.actionButton} ${styles.deleteButton}`}
-                        onClick={() => handleDelete(equipe.id, equipe.nome)}
-                      >
-                        Excluir
-                      </button>
-                    </div>
-                  </td>
+        <div className={styles.tableCard}>
+          <div className={styles.tableHeader}>
+            <div>
+              <h3>Estrutura de atendimento</h3>
+              <p>Use essa lista para manter o painel administrativo atualizado.</p>
+            </div>
+          </div>
+
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Responsavel</th>
+                  <th>Descricao</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {equipes.map((equipe) => (
+                  <tr key={equipe.id}>
+                    <td className={styles.nome}>{equipe.nome}</td>
+                    <td>{equipe.responsavel || '-'}</td>
+                    <td>{equipe.descricao || '-'}</td>
+                    <td>
+                      <div className={styles.actions}>
+                        <button
+                          className={styles.actionButton}
+                          onClick={() => setEditingEquipe(equipe)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className={`${styles.actionButton} ${styles.deleteButton}`}
+                          onClick={() => handleDelete(equipe.id, equipe.nome)}
+                        >
+                          Excluir
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

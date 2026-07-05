@@ -23,15 +23,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
   )
 }
 
-function UserModal({
-  user,
-  onClose,
-  onSave,
-}: {
-  user: AdminUser | null
-  onClose: () => void
-  onSave: (payload: UserPayload) => Promise<boolean>
-}) {
+function UserModal({ user, onClose, onSave }: { user: AdminUser | null; onClose: () => void; onSave: (payload: UserPayload) => Promise<boolean> }) {
   const [username, setUsername] = useState(user?.username || '')
   const [nomeCompleto, setNomeCompleto] = useState(user?.nomeCompleto || '')
   const [perfil, setPerfil] = useState(user?.perfil || 'operador')
@@ -45,12 +37,7 @@ function UserModal({
   async function handleSave() {
     if (!canSave) return
     setSaving(true)
-    const payload: UserPayload = {
-      username: username.trim(),
-      nomeCompleto: nomeCompleto.trim(),
-      perfil,
-      ativo,
-    }
+    const payload: UserPayload = { username: username.trim(), nomeCompleto: nomeCompleto.trim(), perfil, ativo }
     if (password) payload.password = password
     const success = await onSave(payload)
     setSaving(false)
@@ -60,57 +47,23 @@ function UserModal({
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h3>{user ? 'Editar Colaborador' : 'Novo Colaborador'}</h3>
+        <h3>{user ? 'Editar colaborador' : 'Novo colaborador'}</h3>
         <p className={styles.modalHint}>Somente administradores podem cadastrar ou alterar colaboradores.</p>
-
         <label className={styles.modalLabel}>Nome completo *</label>
-        <input
-          className={styles.modalInput}
-          value={nomeCompleto}
-          onChange={(e) => setNomeCompleto(e.target.value)}
-          placeholder="Ex: Maria Silva"
-          disabled={saving}
-        />
-
+        <input className={styles.modalInput} value={nomeCompleto} onChange={(e) => setNomeCompleto(e.target.value)} placeholder="Ex: Maria Silva" disabled={saving} />
         <label className={styles.modalLabel}>Usuario *</label>
-        <input
-          className={styles.modalInput}
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Ex: maria.silva"
-          disabled={saving}
-        />
-
+        <input className={styles.modalInput} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Ex: maria.silva" disabled={saving} />
         <label className={styles.modalLabel}>{user ? 'Nova senha' : 'Senha *'}</label>
-        <input
-          className={styles.modalInput}
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={user ? 'Deixe em branco para manter' : 'Minimo 6 caracteres'}
-          disabled={saving}
-        />
-
+        <input className={styles.modalInput} type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={user ? 'Deixe em branco para manter' : 'Minimo 6 caracteres'} disabled={saving} />
         <label className={styles.modalLabel}>Perfil de acesso</label>
         <select className={styles.modalInput} value={perfil} onChange={(e) => setPerfil(e.target.value)} disabled={saving}>
-          {PERFIS.map((item) => (
-            <option key={item.value} value={item.value}>{item.label}</option>
-          ))}
+          {PERFIS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
         </select>
         <p className={styles.perfilHelp}>{PERFIS.find((item) => item.value === perfil)?.description}</p>
-
-        {user && (
-          <label className={styles.checkboxLine}>
-            <input type="checkbox" checked={ativo} onChange={(e) => setAtivo(e.target.checked)} disabled={saving} />
-            Usuario ativo
-          </label>
-        )}
-
+        {user && <label className={styles.checkboxLine}><input type="checkbox" checked={ativo} onChange={(e) => setAtivo(e.target.checked)} disabled={saving} />Usuario ativo</label>}
         <div className={styles.modalActions}>
           <button className={styles.cancelButton} onClick={onClose} disabled={saving}>Cancelar</button>
-          <button className={styles.saveButton} onClick={handleSave} disabled={saving || !canSave}>
-            {saving ? 'Salvando...' : 'Salvar'}
-          </button>
+          <button className={styles.saveButton} onClick={handleSave} disabled={saving || !canSave}>{saving ? 'Salvando...' : 'Salvar'}</button>
         </div>
       </div>
     </div>
@@ -143,34 +96,13 @@ export function UserManagement() {
   }
 
   if (currentUser?.perfil !== 'admin') {
-    return (
-      <div className={styles.container}>
-        <div className={styles.errorState}>
-          <h3>Acesso restrito</h3>
-          <p>Somente administradores podem gerenciar usuarios do sistema.</p>
-        </div>
-      </div>
-    )
+    return <div className={styles.container}><div className={styles.errorState}><h3>Acesso restrito</h3><p>Somente administradores podem gerenciar usuarios do sistema.</p></div></div>
   }
-
   if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Carregando usuarios...</div>
-      </div>
-    )
+    return <div className={styles.container}><div className={styles.loading}>Carregando usuarios...</div></div>
   }
-
   if (error) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.errorState}>
-          <h3>Erro ao carregar usuarios</h3>
-          <p>{error}</p>
-          <button className={styles.saveButton} onClick={refetch}>Tentar novamente</button>
-        </div>
-      </div>
-    )
+    return <div className={styles.container}><div className={styles.errorState}><h3>Erro ao carregar usuarios</h3><p>{error}</p><button className={styles.saveButton} onClick={refetch}>Tentar novamente</button></div></div>
   }
 
   return (
@@ -178,53 +110,18 @@ export function UserManagement() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {showModal && <UserModal user={null} onClose={() => setShowModal(false)} onSave={handleCreate} />}
       {editingUser && <UserModal user={editingUser} onClose={() => setEditingUser(null)} onSave={handleUpdate} />}
-
-      <div className={styles.header}>
+      <section className={styles.hero}>
         <div>
-          <h2>Usuarios da Prefeitura</h2>
-          <p>Cadastre colaboradores e defina quem pode administrar o sistema.</p>
+          <span className={styles.eyebrow}>Controle de acesso</span>
+          <h2>Usuarios da prefeitura</h2>
+          <p>Cadastre colaboradores, defina perfis e mantenha o acesso do painel sob controle.</p>
         </div>
-        <button className={styles.addButton} onClick={() => setShowModal(true)}>Novo Colaborador</button>
-      </div>
-
-      <div className={styles.cards}>
-        {PERFIS.map((perfil) => (
-          <div key={perfil.value} className={styles.perfilCard}>
-            <strong>{perfil.label}</strong>
-            <span>{perfil.description}</span>
-          </div>
-        ))}
-      </div>
-
+        <button className={styles.addButton} onClick={() => setShowModal(true)}>Novo colaborador</button>
+      </section>
+      <div className={styles.cards}>{PERFIS.map((perfil) => <div key={perfil.value} className={styles.perfilCard}><strong>{perfil.label}</strong><span>{perfil.description}</span></div>)}</div>
       <div className={styles.tableWrapper}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Usuario</th>
-              <th>Perfil</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((adminUser) => (
-              <tr key={adminUser.id}>
-                <td className={styles.name}>{adminUser.nomeCompleto}</td>
-                <td>{adminUser.username}</td>
-                <td><span className={styles.badge}>{getPerfilLabel(adminUser.perfil)}</span></td>
-                <td>
-                  <span className={`${styles.status} ${adminUser.ativo ? styles.statusActive : styles.statusInactive}`}>
-                    {adminUser.ativo ? 'Ativo' : 'Inativo'}
-                  </span>
-                </td>
-                <td>
-                  <button className={styles.actionButton} onClick={() => setEditingUser(adminUser)}>Editar</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className={styles.tableHeader}><div><h3>Colaboradores cadastrados</h3><p>{users.length} usuario(s) com acesso ao sistema.</p></div></div>
+        <table className={styles.table}><thead><tr><th>Nome</th><th>Usuario</th><th>Perfil</th><th>Status</th><th></th></tr></thead><tbody>{users.map((adminUser) => <tr key={adminUser.id}><td className={styles.name}>{adminUser.nomeCompleto}</td><td>{adminUser.username}</td><td><span className={styles.badge}>{getPerfilLabel(adminUser.perfil)}</span></td><td><span className={`${styles.status} ${adminUser.ativo ? styles.statusActive : styles.statusInactive}`}>{adminUser.ativo ? 'Ativo' : 'Inativo'}</span></td><td><button className={styles.actionButton} onClick={() => setEditingUser(adminUser)}>Editar</button></td></tr>)}</tbody></table>
       </div>
     </div>
   )
