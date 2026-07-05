@@ -94,9 +94,7 @@ function AppBrand({
   return (
     <div className="headerBranding">
       <div className="headerBrandMark">
-        <div className="headerBrandIcon" aria-hidden="true">
-          IX
-        </div>
+        <img src="/logo-iluminaxingu.png" alt="IluminaXingu" className="headerBrandIcon" />
         <div className="headerTitles">
           <span className="headerEyebrow">{eyebrow}</span>
           <h1>{title}</h1>
