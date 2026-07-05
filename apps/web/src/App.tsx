@@ -103,10 +103,6 @@ function AppBrand({
           <p>{subtitle}</p>
         </div>
       </div>
-      <div className="headerAgency">
-        <span className="headerAgencyLabel">Identidade visual</span>
-        <img src="/logo.png" alt="Xingu Marketing & Publicidade" className="headerLogo" />
-      </div>
     </div>
   )
 }

@@ -199,31 +199,6 @@ textarea {
   color: rgba(255, 247, 237, 0.92);
 }
 
-.headerAgency {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-  min-width: 180px;
-}
-
-.headerAgencyLabel {
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 247, 237, 0.72);
-}
-
-.headerLogo {
-  width: 140px;
-  height: auto;
-  object-fit: contain;
-  padding: 10px 12px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 14px 24px rgba(120, 53, 15, 0.16);
-}
-
 .nav {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
@@ -340,14 +315,6 @@ textarea {
   .headerBranding {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .headerAgency {
-    align-items: flex-start;
-  }
-
-  .headerLogo {
-    width: 128px;
   }
 
   .userInfo {
