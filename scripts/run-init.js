@@ -2,9 +2,13 @@ const { Pool } = require('pg')
 const fs = require('fs')
 const path = require('path')
 
-const pool = new Pool({
-  connectionString: 'postgresql://postgres:iSgzxoyBwDkfPqBecGynOIsbYhdlPEaP@reseau.proxy.rlwy.net:29088/railway'
-})
+const connectionString = process.env.DATABASE_URL
+if (!connectionString) {
+  console.error('DATABASE_URL environment variable is required')
+  process.exit(1)
+}
+
+const pool = new Pool({ connectionString })
 
 async function main() {
   const seedSql = fs.readFileSync(path.join(__dirname, 'seed-admin.sql'), 'utf8')

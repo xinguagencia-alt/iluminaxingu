@@ -124,6 +124,12 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
   const [filtroEquipe, setFiltroEquipe] = useState<'' | number>('')
   const [editingId, setEditingId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  function showToast(message: string, type: 'success' | 'error') {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3000)
+  }
 
   const ordensFiltradas = useMemo(() => {
     let filtradas = ordens
@@ -145,7 +151,7 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
     const result = await excluir(id)
     setDeletingId(null)
     if (!result.ok) {
-      alert(result.erro || 'Erro ao excluir')
+      showToast(result.erro || 'Erro ao excluir', 'error')
     }
   }
 
@@ -176,6 +182,26 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
 
   return (
     <div className={styles.container}>
+      {toast && (
+        <div
+          style={{
+            position: 'fixed', top: 20, right: 20, zIndex: 1000,
+            padding: '12px 20px', borderRadius: 8, color: 'white',
+            background: toast.type === 'error' ? '#dc2626' : '#16a34a',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}
+        >
+          <span>{toast.message}</span>
+          <button
+            onClick={() => setToast(null)}
+            style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: 18 }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {editingOrdem && (
         <StatusModal
           ordem={editingOrdem}
@@ -186,12 +212,33 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
         />
       )}
 
-      <div className={styles.header}>
-        <h2>Ordens de Serviço</h2>
-        <span className={styles.count}>{ordensFiltradas.length} registro(s)</span>
-      </div>
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <span className={styles.heroEyebrow}>Operação de campo</span>
+          <h2>Ordens de serviço</h2>
+          <p>Gerencie equipes, acompanhe execução, atualize o andamento e mantenha o histórico operacional organizado.</p>
+        </div>
+        <div className={styles.heroStats}>
+          <div className={styles.heroStat}>
+            <strong>{ordensFiltradas.length}</strong>
+            <span>ordens visíveis</span>
+          </div>
+          <div className={styles.heroStat}>
+            <strong>{ordens.filter((ordem) => ordem.status === 'em_execucao').length}</strong>
+            <span>em execução</span>
+          </div>
+        </div>
+      </section>
 
-      <div className={styles.filters}>
+      <div className={styles.filtersCard}>
+        <div className={styles.filtersHeader}>
+          <div>
+            <h3>Filtros operacionais</h3>
+            <span className={styles.count}>{ordensFiltradas.length} ordem(ns) visíveis</span>
+          </div>
+        </div>
+
+        <div className={styles.filters}>
         <select
           className={styles.select}
           value={filtro}
@@ -216,6 +263,7 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
             </option>
           ))}
         </select>
+        </div>
       </div>
 
       {ordensFiltradas.length === 0 ? (
@@ -225,6 +273,7 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
         </div>
       ) : (
         <div className={styles.tableWrapper}>
+          <div className={styles.tableHint}>No celular, deslize a tabela para o lado para acompanhar protocolo, equipe e status.</div>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -251,7 +300,7 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
                   <td>{formatDate(ordem.data_execucao)}</td>
                   <td>{formatDate(ordem.data_encerramento)}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div className={styles.actionsCell}>
                       {onDetalhes && (
                         <button
                           className={styles.editButton}
@@ -262,7 +311,7 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
                       )}
                       {!statusFechados.includes(ordem.status) && (
                         <button className={styles.editButton} onClick={() => setEditingId(ordem.id)}>
-                          Atualizar
+                          Atualizar status
                         </button>
                       )}
                       {!statusFechados.includes(ordem.status) && (

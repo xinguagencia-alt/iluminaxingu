@@ -24,7 +24,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
 
 export function LogradouroManager() {
   const { token } = useAuth()
-  const { bairros, loading: loadingBairros, criarBairro, excluirBairro } = useBairros()
+  const { bairros, loading: loadingBairros, criarBairro, excluirBairro, refetch: refetchBairros } = useBairros()
   const { avenidas, ruas, loading: loadingRuas, criarRua, excluirRua } = useRuas()
 
   const [tab, setTab] = useState<Tab>('bairros')
@@ -131,7 +131,7 @@ export function LogradouroManager() {
       if (!response.ok) throw new Error('Erro ao atualizar cor')
       setEditingCor(null)
       showToast('Cor do bairro atualizada!', 'success')
-      window.location.reload()
+      refetchBairros()
     } catch {
       showToast('Erro ao atualizar cor do bairro', 'error')
     }

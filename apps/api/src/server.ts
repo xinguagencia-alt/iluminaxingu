@@ -231,7 +231,7 @@ app.get('/health', async (_request, response) => {
   response.json({
     status: 'ok',
     service: 'iluminaxingu-api',
-    deploy: 'v11-coords-obrigatorias',
+    deploy: 'v13-limpo',
     solicitacoes_columns: columns,
     bairros_columns: bairrosColumns,
     postes_columns: postesColumns,
@@ -256,7 +256,6 @@ const loginLimiter = rateLimit({
 })
 
 app.use('/api/auth/login', loginLimiter)
-app.use('/api/auth', authRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/solicitacoes', solicitacoesRoutes)
 app.use('/api/postes', postesRoutes)

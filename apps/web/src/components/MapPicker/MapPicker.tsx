@@ -5,7 +5,7 @@ import styles from './MapPicker.module.css'
 
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
 
-const XINGU_CENTER: [number, number] = [-3.4653, -62.2159]
+const XINGU_CENTER: [number, number] = [-6.6153, -51.9640]
 const DEFAULT_ZOOM = 12
 
 export interface MapMarker {
