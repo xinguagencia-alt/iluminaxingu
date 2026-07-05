@@ -187,6 +187,11 @@ async function ensureDatabaseSchema() {
     ON CONFLICT (nome, tipo) DO NOTHING`
   )
 
+  await db.query(
+    `UPDATE postes SET latitude = '-6.6410607', longitude = '-51.9858841'
+     WHERE codigo = 'POSTE-J8EL6T' AND latitude IS NULL`
+  ).catch(() => {})
+
   await criarTabelaAuditoria()
 }
 
@@ -226,7 +231,7 @@ app.get('/health', async (_request, response) => {
   response.json({
     status: 'ok',
     service: 'iluminaxingu-api',
-    deploy: 'v9-status-fechado-bloqueado',
+    deploy: 'v11-coords-obrigatorias',
     solicitacoes_columns: columns,
     bairros_columns: bairrosColumns,
     postes_columns: postesColumns,
@@ -273,4 +278,5 @@ ensureDatabaseSchema()
     console.error('Erro ao preparar banco de dados:', error)
     process.exit(1)
   })
+
 

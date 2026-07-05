@@ -213,6 +213,11 @@ router.post('/criar-e-vincular', authMiddleware, requireRole(['admin', 'gestor',
     return
   }
 
+  if (latitude == null || longitude == null || latitude === '' || longitude === '') {
+    res.status(400).json({ error: 'Latitude e longitude sao obrigatorias' })
+    return
+  }
+
   if (!solicitacao_id && !ordem_servico_id) {
     res.status(400).json({ error: 'Informe solicitacao_id ou ordem_servico_id' })
     return
@@ -318,6 +323,11 @@ router.post('/', authMiddleware, requireRole(['admin', 'gestor', 'operador']), a
 
   if (!codigo) {
     res.status(400).json({ error: 'Codigo do poste e obrigatorio' })
+    return
+  }
+
+  if (latitude == null || longitude == null || latitude === '' || longitude === '') {
+    res.status(400).json({ error: 'Latitude e longitude sao obrigatorias' })
     return
   }
 
@@ -454,3 +464,4 @@ router.put('/:id', authMiddleware, requireRole(['admin', 'gestor', 'operador']),
 })
 
 export default router
+

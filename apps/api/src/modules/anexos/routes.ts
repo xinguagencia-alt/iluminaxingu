@@ -153,7 +153,7 @@ router.post(
   }
 )
 
-router.get('/:id/view', async (req: Request, res: Response) => {
+router.get('/:id/view', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (req: Request, res: Response) => {
   const id = String(req.params.id)
   try {
     const result = await db.query('SELECT * FROM anexos WHERE id = $1', [id])
@@ -244,3 +244,4 @@ router.delete('/:id', authMiddleware, requireRole(['admin', 'gestor']), async (r
 })
 
 export default router
+
