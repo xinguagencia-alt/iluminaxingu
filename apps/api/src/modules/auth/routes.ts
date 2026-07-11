@@ -47,8 +47,8 @@ router.post('/bootstrap', bootstrapPostLimiter, async (req: Request, res: Respon
     return
   }
 
-  if (password.length < 6) {
-    res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres' })
+  if (password.length < 8) {
+    res.status(400).json({ error: 'A senha deve ter pelo menos 8 caracteres' })
     return
   }
 
@@ -259,8 +259,8 @@ router.post('/users', authMiddleware, requireRole(['admin']), async (req: Reques
     return
   }
 
-  if (password.length < 6) {
-    res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres' })
+  if (password.length < 8) {
+    res.status(400).json({ error: 'A senha deve ter pelo menos 8 caracteres' })
     return
   }
 
@@ -294,8 +294,8 @@ router.put('/users/:id', authMiddleware, requireRole(['admin']), async (req: Req
     return
   }
 
-  if (password && password.length < 6) {
-    res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres' })
+  if (password && password.length < 8) {
+    res.status(400).json({ error: 'A senha deve ter pelo menos 8 caracteres' })
     return
   }
 

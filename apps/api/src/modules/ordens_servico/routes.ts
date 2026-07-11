@@ -5,6 +5,64 @@ import { notificarStatusSolicitacao } from '../notificacoes/notificacoes.js'
 
 const router = Router()
 
+// Listar postes reparados por equipe
+router.get('/postes-reparados', async (req: Request, res: Response) => {
+  const { equipe_id, data_inicio, data_fim } = req.query
+
+  const conditions: string[] = ["os.status = 'concluida'", "os.equipe_id IS NOT NULL"]
+  const values: unknown[] = []
+  let paramIndex = 1
+
+  if (equipe_id && typeof equipe_id === 'string') {
+    conditions.push(`os.equipe_id = $${paramIndex}`)
+    values.push(Number(equipe_id))
+    paramIndex++
+  }
+
+  if (data_inicio && typeof data_inicio === 'string') {
+    conditions.push(`os.data_abertura >= $${paramIndex}`)
+    values.push(data_inicio)
+    paramIndex++
+  }
+
+  if (data_fim && typeof data_fim === 'string') {
+    conditions.push(`os.data_abertura <= $${paramIndex}`)
+    values.push(data_fim)
+    paramIndex++
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+  try {
+    const result = await db.query(
+      `SELECT
+        e.nome as equipe_nome,
+        p.codigo as poste_codigo,
+        p.endereco as poste_endereco,
+        p.rua as poste_rua,
+        p.numero as poste_numero,
+        p.bairro as poste_bairro,
+        os.id as ordem_servico_id,
+        os.data_abertura,
+        os.data_execucao,
+        os.data_encerramento,
+        os.status as os_status,
+        os.resultado as os_resultado
+      FROM ordens_servico os
+      JOIN equipes e ON os.equipe_id = e.id
+      LEFT JOIN solicitacoes s ON os.solicitacao_id = s.id
+      LEFT JOIN postes p ON s.poste_id = p.id
+      ${whereClause}
+      ORDER BY os.data_encerramento DESC NULLS LAST, os.data_abertura DESC`,
+      values
+    )
+    res.json(result.rows)
+  } catch (error) {
+    console.error('Erro ao listar postes reparados:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
 // Listar todas as ordens de servico
 router.get('/', async (_req: Request, res: Response) => {
   try {

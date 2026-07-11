@@ -1,9 +1,10 @@
 import pg from 'pg'
 
+const databaseUrl = process.env.DATABASE_URL
 const dbUser = process.env.DB_USER
 const dbPassword = process.env.DB_PASSWORD
 
-if (!dbUser || !dbPassword) {
+if (!databaseUrl && (!dbUser || !dbPassword)) {
   console.error('[FATAL] Variaveis de ambiente obrigatorias nao definidas:')
   if (!dbUser) console.error('  - DB_USER: ausente')
   if (!dbPassword) console.error('  - DB_PASSWORD: ausente')
@@ -12,11 +13,22 @@ if (!dbUser || !dbPassword) {
 }
 
 const pool = new pg.Pool({
-  user: dbUser,
-  password: dbPassword,
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME || 'iluminaxingu',
+  ...(databaseUrl
+    ? {
+        connectionString: databaseUrl,
+        ssl: process.env.DB_SSL === 'false'
+          ? false
+          : process.env.NODE_ENV === 'production'
+            ? { rejectUnauthorized: false }
+            : undefined,
+      }
+    : {
+        user: dbUser,
+        password: dbPassword,
+        host: process.env.DB_HOST || 'localhost',
+        port: Number(process.env.DB_PORT) || 5432,
+        database: process.env.DB_NAME || 'iluminaxingu',
+      }),
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,

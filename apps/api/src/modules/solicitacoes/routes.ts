@@ -72,18 +72,25 @@ router.get('/protocolo/:protocolo', authMiddleware, async (req: Request, res: Re
   }
 })
 
-router.get('/publica/:protocolo', async (req: Request, res: Response) => {
+const publicGetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas consultas. Tente novamente em 15 minutos.' },
+})
+
+router.get('/publica/:protocolo', publicGetLimiter, async (req: Request, res: Response) => {
   const { protocolo } = req.params
   try {
     const solResult = await db.query(
-      `SELECT s.*, os.id as ordem_servico_id, os.status as os_status,
-        os.equipe_id, os.data_abertura as os_data_abertura,
-        os.data_encerramento as os_data_encerramento,
-        os.observacao_execucao as os_observacao, os.resultado as os_resultado,
-        e.nome as equipe_nome
+      `SELECT s.id, s.protocolo, s.codigo_poste_informado, s.tipo_problema,
+        s.status_atual, s.prioridade, s.criado_em, s.atualizado_em,
+        os.id as ordem_servico_id, os.status as os_status,
+        os.data_abertura as os_data_abertura,
+        os.data_encerramento as os_data_encerramento
       FROM solicitacoes s
       LEFT JOIN ordens_servico os ON os.solicitacao_id = s.id
-      LEFT JOIN equipes e ON os.equipe_id = e.id
       WHERE s.protocolo = $1`,
       [protocolo]
     )
@@ -96,25 +103,16 @@ router.get('/publica/:protocolo', async (req: Request, res: Response) => {
     const solicitacao = solResult.rows[0]
 
     const histResult = await db.query(
-      `SELECT sl.*, au.username as criado_por_username
+      `SELECT sl.id, sl.status_anterior, sl.status_novo, sl.criado_em
       FROM status_logs sl
-      LEFT JOIN admin_users au ON sl.criado_por = au.username
       WHERE sl.solicitacao_id = $1
       ORDER BY sl.criado_em ASC`,
       [solicitacao.id]
     )
 
-    const anexosResult = await db.query(
-      `SELECT id, arquivo_nome, arquivo_tipo, tamanho_bytes, criado_em FROM anexos
-      WHERE solicitacao_id = $1 OR ordem_servico_id = $2
-      ORDER BY criado_em ASC`,
-      [solicitacao.id, solicitacao.ordem_servico_id]
-    )
-
     res.json({
       solicitacao,
       historico: histResult.rows,
-      anexos: anexosResult.rows,
     })
   } catch (error) {
     console.error('Erro na consulta publica:', error)

@@ -107,6 +107,13 @@ router.post(
   }
 )
 
+function sanitizeFilename(name: string): string {
+  return name
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .replace(/_{2,}/g, '_')
+    .substring(0, 100)
+}
+
 router.post(
   '/upload-public',
   publicUploadLimiter,
@@ -117,19 +124,24 @@ router.post(
       return
     }
 
-    const { solicitacao_id } = req.body
+    const { solicitacao_id, protocolo } = req.body
 
-    if (!solicitacao_id) {
-      res.status(400).json({ error: 'Informe solicitacao_id' })
+    if (!solicitacao_id || !protocolo) {
+      res.status(400).json({ error: 'Informe solicitacao_id e protocolo' })
       return
     }
 
     try {
-      const sol = await db.query('SELECT id FROM solicitacoes WHERE id = $1', [Number(solicitacao_id)])
+      const sol = await db.query(
+        'SELECT id FROM solicitacoes WHERE id = $1 AND protocolo = $2',
+        [Number(solicitacao_id), String(protocolo).trim()]
+      )
       if (sol.rows.length === 0) {
         res.status(404).json({ error: 'Solicitacao nao encontrada' })
         return
       }
+
+      const sanitized = sanitizeFilename(req.file.originalname)
 
       const result = await db.query(
         `INSERT INTO anexos (solicitacao_id, arquivo_nome, arquivo_path, arquivo_tipo, tamanho_bytes, arquivo_dados)
@@ -137,8 +149,8 @@ router.post(
         RETURNING id, solicitacao_id, arquivo_nome, arquivo_path, arquivo_tipo, tamanho_bytes, criado_em`,
         [
           Number(solicitacao_id),
-          req.file.originalname,
-          req.file.originalname,
+          sanitized,
+          sanitized,
           req.file.mimetype,
           req.file.size,
           req.file.buffer,
@@ -166,7 +178,8 @@ router.get('/:id/view', authMiddleware, requireRole(['admin', 'gestor', 'operado
 
     if (anexo.arquivo_dados) {
       res.setHeader('Content-Type', anexo.arquivo_tipo || 'application/octet-stream')
-      res.setHeader('Cache-Control', 'public, max-age=3600')
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+      res.setHeader('Cache-Control', 'private, no-store')
       res.send(Buffer.from(anexo.arquivo_dados))
       return
     }
@@ -174,7 +187,8 @@ router.get('/:id/view', authMiddleware, requireRole(['admin', 'gestor', 'operado
     const filePath = path.join(uploadsDir, anexo.arquivo_path)
     if (fs.existsSync(filePath)) {
       res.setHeader('Content-Type', anexo.arquivo_tipo || 'application/octet-stream')
-      res.setHeader('Cache-Control', 'public, max-age=3600')
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+      res.setHeader('Cache-Control', 'private, no-store')
       fs.createReadStream(filePath).pipe(res)
       return
     }
@@ -200,12 +214,16 @@ router.get('/:id/download', authMiddleware, requireRole(['admin', 'gestor', 'ope
     if (anexo.arquivo_dados) {
       res.setHeader('Content-Disposition', `attachment; filename="${anexo.arquivo_nome}"`)
       res.setHeader('Content-Type', anexo.arquivo_tipo || 'application/octet-stream')
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+      res.setHeader('Cache-Control', 'private, no-store')
       res.send(Buffer.from(anexo.arquivo_dados))
       return
     }
 
     const filePath = path.join(uploadsDir, anexo.arquivo_path)
     if (fs.existsSync(filePath)) {
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+      res.setHeader('Cache-Control', 'private, no-store')
       res.download(filePath, anexo.arquivo_nome)
       return
     }

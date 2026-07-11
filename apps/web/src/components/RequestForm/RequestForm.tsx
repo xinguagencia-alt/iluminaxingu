@@ -108,11 +108,12 @@ export function RequestForm() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
 
-  async function uploadFilePublico(file: File, solicitacaoId: number): Promise<boolean> {
+  async function uploadFilePublico(file: File, solicitacaoId: number, protocolo: string): Promise<boolean> {
     try {
       const formData = new FormData()
       formData.append('arquivo', file)
       formData.append('solicitacao_id', String(solicitacaoId))
+      formData.append('protocolo', protocolo)
 
       const response = await fetch(`${API_URL}/api/anexos/upload-public`, {
         method: 'POST',
@@ -174,7 +175,7 @@ export function RequestForm() {
       if (filesToUpload.length > 0) {
         setUploadingFiles(true)
         for (const file of filesToUpload) {
-          await uploadFilePublico(file, data.id)
+          await uploadFilePublico(file, data.id, data.protocolo)
         }
         setUploadingFiles(false)
         setFilesToUpload([])

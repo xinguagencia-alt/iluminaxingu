@@ -16,8 +16,9 @@ import { UserManagement } from './components/UserManagement/UserManagement'
 import { LogradouroManager } from './components/LogradouroManager/LogradouroManager'
 import { AdminPanel } from './components/AdminPanel/AdminPanel'
 import { MapaPostes } from './components/MapaPostes/MapaPostes'
+import { PostesReparadosList } from './components/PostesReparadosList/PostesReparadosList'
 
-type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'postes-editar' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema' | 'mapa'
+type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'postes-editar' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema' | 'mapa' | 'reparos'
 
 const ADMIN_PAGE_HINTS: Record<Page, string> = {
   home: '',
@@ -34,6 +35,7 @@ const ADMIN_PAGE_HINTS: Record<Page, string> = {
   logradouros: 'Padronize bairros, ruas e avenidas para relatorios mais confiaveis.',
   sistema: 'Auditoria e exportacao de dados para administracao interna.',
   mapa: 'Visualize os postes no mapa e acompanhe a cobertura por bairro.',
+  reparos: 'Consulte os postes reparados por equipe e acompanhe o historico de atendimentos.',
 }
 
 function usePathname() {
@@ -269,6 +271,13 @@ function AdminLayout() {
             Equipes
           </button>
           <button
+            className={`navButton ${currentPage === 'reparos' ? 'navButtonActive' : ''}`}
+            onClick={() => setCurrentPage('reparos')}
+            aria-current={currentPage === 'reparos' ? 'page' : undefined}
+          >
+            Reparos
+          </button>
+          <button
             className={`navButton ${currentPage === 'logradouros' ? 'navButtonActive' : ''}`}
             onClick={() => setCurrentPage('logradouros')}
             aria-current={currentPage === 'logradouros' ? 'page' : undefined}
@@ -331,6 +340,7 @@ function AdminLayout() {
             />
           )}
           {currentPage === 'equipes' && <EquipeList />}
+          {currentPage === 'reparos' && <PostesReparadosList />}
           {currentPage === 'usuarios' && user.perfil === 'admin' && <UserManagement />}
           {currentPage === 'sistema' && user.perfil === 'admin' && <AdminPanel />}
           {currentPage === 'logradouros' && <LogradouroManager />}

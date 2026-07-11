@@ -22,13 +22,6 @@ function formatDate(dateString: string | null): string {
   })
 }
 
-function formatFileSize(bytes: number | null): string {
-  if (!bytes) return ''
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
-
 function StatusBadge({ label, color, large }: { label: string; color: string; large?: boolean }) {
   return (
     <span
@@ -74,7 +67,7 @@ export function SolicitacaoPublica({ onVoltar, initialProtocolo }: SolicitacaoPu
   }
 
   if (data) {
-    const { solicitacao, historico, anexos } = data
+    const { solicitacao, historico } = data
     const statusColor = STATUS_COLORS[solicitacao.status_atual]
     const prioridadeColor = PRIORIDADE_COLORS[solicitacao.prioridade]
 
@@ -105,30 +98,13 @@ export function SolicitacaoPublica({ onVoltar, initialProtocolo }: SolicitacaoPu
               {PRIORIDADE_LABELS[solicitacao.prioridade]}
             </span>
           </span>
-          <span className={styles.pill}>
-            <span className={styles.pillLabel}>Solicitante</span>
-            <span className={styles.pillValue}>{solicitacao.nome_solicitante}</span>
-          </span>
+          {solicitacao.codigo_poste_informado && (
+            <span className={styles.pill}>
+              <span className={styles.pillLabel}>Poste</span>
+              <span className={styles.pillValue}>{solicitacao.codigo_poste_informado}</span>
+            </span>
+          )}
         </div>
-
-        {solicitacao.endereco_informado && (
-          <div className={styles.addressCard}>
-            <span className={styles.addressIcon}>📍</span>
-            <div className={styles.addressText}>
-              <span>{solicitacao.endereco_informado}</span>
-              {solicitacao.codigo_poste_informado && (
-                <span className={styles.addressTag}>{solicitacao.codigo_poste_informado}</span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {solicitacao.descricao && (
-          <div className={styles.card}>
-            <h2 className={styles.cardTitle}>Descricao</h2>
-            <p className={styles.cardText}>{solicitacao.descricao}</p>
-          </div>
-        )}
 
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Ordem de Servico</h2>
@@ -146,10 +122,6 @@ export function SolicitacaoPublica({ onVoltar, initialProtocolo }: SolicitacaoPu
               </div>
               <div className={styles.osGrid}>
                 <div className={styles.osField}>
-                  <span className={styles.osFieldLabel}>Equipe</span>
-                  <span className={styles.osFieldValue}>{solicitacao.equipe_nome || '-'}</span>
-                </div>
-                <div className={styles.osField}>
                   <span className={styles.osFieldLabel}>Abertura</span>
                   <span className={styles.osFieldValue}>{formatDate(solicitacao.os_data_abertura)}</span>
                 </div>
@@ -158,18 +130,6 @@ export function SolicitacaoPublica({ onVoltar, initialProtocolo }: SolicitacaoPu
                   <span className={styles.osFieldValue}>{formatDate(solicitacao.os_data_encerramento)}</span>
                 </div>
               </div>
-              {solicitacao.os_observacao && (
-                <div className={styles.osNote}>
-                  <span className={styles.osFieldLabel}>Observacao</span>
-                  <p>{solicitacao.os_observacao}</p>
-                </div>
-              )}
-              {solicitacao.os_resultado && (
-                <div className={styles.osNote}>
-                  <span className={styles.osFieldLabel}>Resultado</span>
-                  <p>{solicitacao.os_resultado}</p>
-                </div>
-              )}
             </div>
           ) : (
             <div className={styles.osPending}>
@@ -221,42 +181,10 @@ export function SolicitacaoPublica({ onVoltar, initialProtocolo }: SolicitacaoPu
                         </div>
                         <span className={styles.timelineDate}>{formatDate(item.criado_em)}</span>
                       </div>
-                      {item.criado_por_username && (
-                        <span className={styles.timelineUser}>{item.criado_por_username}</span>
-                      )}
-                      {item.observacao && (
-                        <div className={styles.timelineObs}>{item.observacao}</div>
-                      )}
                     </div>
                   </div>
                 )
               })}
-            </div>
-          )}
-        </div>
-
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>Anexos</h2>
-          {anexos.length === 0 ? (
-            <div className={styles.emptyBox}>Nenhum anexo enviado.</div>
-          ) : (
-            <div className={styles.attachments}>
-              {anexos.map((anexo) => (
-                <div key={anexo.id} className={styles.attachmentLink}>
-                  <div className={styles.attachmentIcon}>
-                    {anexo.arquivo_tipo?.startsWith('image/') ? '🖼️' : '📄'}
-                  </div>
-                  <div className={styles.attachmentInfo}>
-                    <span className={styles.attachmentName}>{anexo.arquivo_nome}</span>
-                    <span className={styles.attachmentMeta}>
-                      {anexo.arquivo_tipo || 'Arquivo'}
-                      {anexo.tamanho_bytes ? ` · ${formatFileSize(anexo.tamanho_bytes)}` : ''}
-                      {' · '}{formatDate(anexo.criado_em)}
-                    </span>
-                  </div>
-                  <span className={styles.attachmentAction}>Painel interno</span>
-                </div>
-              ))}
             </div>
           )}
         </div>
