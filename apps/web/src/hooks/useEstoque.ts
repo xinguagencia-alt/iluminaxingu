@@ -47,6 +47,11 @@ export interface ItemUsadoOS {
   criado_em: string
 }
 
+interface ToggleResult {
+  ok: boolean
+  error?: string
+}
+
 interface UseEstoqueResult {
   config: Record<string, string>
   itens: ItemEstoque[]
@@ -58,7 +63,7 @@ interface UseEstoqueResult {
   refetchItens: () => void
   refetchMovimentacoes: () => void
   refetchItensUsados: () => void
-  toggleEstoque: (ativo: boolean) => Promise<boolean>
+  toggleEstoque: (ativo: boolean) => Promise<ToggleResult>
   criarItem: (dados: Partial<ItemEstoque>) => Promise<boolean>
   atualizarItem: (id: number, dados: Partial<ItemEstoque>) => Promise<boolean>
   excluirItem: (id: number) => Promise<boolean>
@@ -136,18 +141,27 @@ export function useEstoque(): UseEstoqueResult {
     fetchAll()
   }, [fetchAll])
 
-  const toggleEstoque = useCallback(async (ativo: boolean): Promise<boolean> => {
+  const toggleEstoque = useCallback(async (ativo: boolean): Promise<ToggleResult> => {
     try {
       const response = await fetch(`${API_URL}/api/estoque/config`, {
         method: 'PUT',
         headers: headers(),
         body: JSON.stringify({ chave: 'estoque_ativo', valor: ativo ? 'true' : 'false' }),
       })
-      if (!response.ok) return false
-      await fetchConfig()
-      return true
-    } catch {
-      return false
+      const body = await response.json().catch(() => null)
+      if (!response.ok) {
+        const msg = (body && body.error) || `Erro HTTP ${response.status}`
+        return { ok: false, error: msg }
+      }
+      if (body && body.config) {
+        setConfig(body.config)
+      } else {
+        await fetchConfig()
+      }
+      return { ok: true }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Falha de conexao com o servidor'
+      return { ok: false, error: msg }
     }
   }, [headers, fetchConfig])
 

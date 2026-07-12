@@ -27,24 +27,24 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
   )
 }
 
-function ConfigTab({ config, toggleEstoque }: { config: Record<string, string>; toggleEstoque: (a: boolean) => Promise<boolean> }) {
+function ConfigTab({ config, toggleEstoque }: { config: Record<string, string>; toggleEstoque: (a: boolean) => Promise<{ ok: boolean; error?: string }> }) {
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const ativo = config.estoque_ativo === 'true'
 
   function showToast(message: string, type: 'success' | 'error') {
     setToast({ message, type })
-    setTimeout(() => setToast(null), 3500)
+    setTimeout(() => setToast(null), 4000)
   }
 
   async function handleToggle() {
     setSaving(true)
-    const ok = await toggleEstoque(!ativo)
+    const result = await toggleEstoque(!ativo)
     setSaving(false)
-    if (ok) {
-      showToast(ativo ? 'Estoque desabilitado com sucesso' : 'Estoque habilitado com sucesso', 'success')
+    if (result.ok) {
+      showToast(!ativo ? 'Estoque habilitado com sucesso' : 'Estoque desabilitado com sucesso', 'success')
     } else {
-      showToast('Erro ao alterar configuracao', 'error')
+      showToast(result.error || 'Erro ao alterar configuracao', 'error')
     }
   }
 

@@ -46,10 +46,17 @@ router.put('/config', authMiddleware, requireRole(['admin']), async (req: Reques
        ON CONFLICT (chave) DO UPDATE SET valor = $2, atualizado_em = NOW()`,
       [chave, String(valor)]
     )
-    res.json({ message: 'Configuracao atualizada' })
+    const configResult = await db.query(
+      `SELECT chave, valor FROM configuracao_estoque ORDER BY chave`
+    )
+    const config: Record<string, string> = {}
+    for (const row of configResult.rows) {
+      config[row.chave] = row.valor
+    }
+    res.json({ message: 'Configuracao atualizada', config })
   } catch (error) {
     console.error('Erro ao atualizar config estoque:', error)
-    res.status(500).json({ error: 'Erro interno do servidor' })
+    res.status(500).json({ error: 'Erro ao salvar configuracao no banco de dados' })
   }
 })
 
