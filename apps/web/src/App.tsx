@@ -17,8 +17,9 @@ import { LogradouroManager } from './components/LogradouroManager/LogradouroMana
 import { AdminPanel } from './components/AdminPanel/AdminPanel'
 import { MapaPostes } from './components/MapaPostes/MapaPostes'
 import { PostesReparadosList } from './components/PostesReparadosList/PostesReparadosList'
+import { StockAdmin } from './components/StockAdmin/StockAdmin'
 
-type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'postes-editar' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema' | 'mapa' | 'reparos'
+type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'postes-editar' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema' | 'mapa' | 'reparos' | 'estoque'
 
 const ADMIN_PAGE_HINTS: Record<Page, string> = {
   home: '',
@@ -36,6 +37,7 @@ const ADMIN_PAGE_HINTS: Record<Page, string> = {
   sistema: 'Auditoria e exportacao de dados para administracao interna.',
   mapa: 'Visualize os postes no mapa e acompanhe a cobertura por bairro.',
   reparos: 'Consulte os postes reparados por equipe e acompanhe o historico de atendimentos.',
+  estoque: 'Controle de materiais: itens, entradas, saidas e saldos do estoque de iluminacao publica.',
 }
 
 function usePathname() {
@@ -309,6 +311,15 @@ function AdminLayout() {
               Sistema
             </button>
           )}
+          {user.perfil === 'admin' && (
+            <button
+              className={`navButton ${currentPage === 'estoque' ? 'navButtonActive' : ''}`}
+              onClick={() => setCurrentPage('estoque')}
+              aria-current={currentPage === 'estoque' ? 'page' : undefined}
+            >
+              Estoque
+            </button>
+          )}
           <div className="userInfo">
             <span className="userName">{user.nomeCompleto}</span>
             <button className="navButton" onClick={handleLogout}>
@@ -343,6 +354,7 @@ function AdminLayout() {
           {currentPage === 'reparos' && <PostesReparadosList />}
           {currentPage === 'usuarios' && user.perfil === 'admin' && <UserManagement />}
           {currentPage === 'sistema' && user.perfil === 'admin' && <AdminPanel />}
+          {currentPage === 'estoque' && user.perfil === 'admin' && <StockAdmin />}
           {currentPage === 'logradouros' && <LogradouroManager />}
           {currentPage === 'mapa' && <MapaPostes />}
           {currentPage === 'postes' && (

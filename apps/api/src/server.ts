@@ -13,6 +13,7 @@ import ruasRoutes from './modules/ruas/routes.js'
 import anexosRoutes from './modules/anexos/routes.js'
 import auditoriaRoutes from './modules/auditoria/routes.js'
 import exportRoutes from './modules/export/routes.js'
+import estoqueRoutes from './modules/estoque/routes.js'
 import { criarTabelaAuditoria } from './modules/auditoria/helper.js'
 import { db } from './db.js'
 
@@ -193,6 +194,80 @@ async function ensureDatabaseSchema() {
   ).catch(() => {})
 
   await criarTabelaAuditoria()
+
+  // Estoque
+  await db.query(
+    `CREATE TABLE IF NOT EXISTS configuracao_estoque (
+      id SERIAL PRIMARY KEY,
+      chave VARCHAR(50) UNIQUE NOT NULL,
+      valor VARCHAR(200) NOT NULL,
+      descricao TEXT,
+      criado_em TIMESTAMP DEFAULT NOW(),
+      atualizado_em TIMESTAMP DEFAULT NOW()
+    )`
+  ).catch(() => {})
+  await db.query(
+    `INSERT INTO configuracao_estoque (chave, valor, descricao) VALUES
+      ('estoque_ativo', 'false', 'Modulo de estoque habilitado')
+    ON CONFLICT (chave) DO NOTHING`
+  ).catch(() => {})
+
+  await db.query(
+    `CREATE TABLE IF NOT EXISTS itens_estoque (
+      id SERIAL PRIMARY KEY,
+      nome VARCHAR(150) NOT NULL,
+      categoria VARCHAR(50) NOT NULL,
+      unidade_medida VARCHAR(30) NOT NULL,
+      estoque_minimo NUMERIC(10,2) DEFAULT 0,
+      estoque_atual NUMERIC(10,2) DEFAULT 0,
+      ativo BOOLEAN DEFAULT TRUE,
+      observacao TEXT,
+      codigo_interno VARCHAR(50),
+      criado_em TIMESTAMP DEFAULT NOW(),
+      atualizado_em TIMESTAMP DEFAULT NOW()
+    )`
+  ).catch(() => {})
+
+  await db.query(
+    `CREATE TABLE IF NOT EXISTS movimentacoes_estoque (
+      id SERIAL PRIMARY KEY,
+      item_id INTEGER NOT NULL REFERENCES itens_estoque(id),
+      tipo VARCHAR(20) NOT NULL,
+      quantidade NUMERIC(10,2) NOT NULL,
+      saldo_anterior NUMERIC(10,2) NOT NULL,
+      saldo_posterior NUMERIC(10,2) NOT NULL,
+      observacao TEXT,
+      os_id INTEGER,
+      nota_fiscal VARCHAR(50),
+      fornecedor VARCHAR(150),
+      usuario VARCHAR(100),
+      data_movimento TIMESTAMP DEFAULT NOW(),
+      criado_em TIMESTAMP DEFAULT NOW()
+    )`
+  ).catch(() => {})
+
+  await db.query(
+    `CREATE TABLE IF NOT EXISTS itens_usados_os (
+      id SERIAL PRIMARY KEY,
+      os_id INTEGER NOT NULL,
+      item_id INTEGER NOT NULL REFERENCES itens_estoque(id),
+      quantidade NUMERIC(10,2) NOT NULL,
+      usuario VARCHAR(100),
+      observacao TEXT,
+      criado_em TIMESTAMP DEFAULT NOW()
+    )`
+  ).catch(() => {})
+  await db.query(
+    `DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'itens_usados_os_os_item_uniq'
+      ) THEN
+        ALTER TABLE itens_usados_os
+          ADD CONSTRAINT itens_usados_os_os_item_uniq UNIQUE (os_id, item_id);
+      END IF;
+    END$$`
+  ).catch(() => {})
 }
 
 app.use(
@@ -266,6 +341,7 @@ app.use('/api/ruas', ruasRoutes)
 app.use('/api/anexos', anexosRoutes)
 app.use('/api/auditoria', auditoriaRoutes)
 app.use('/api/export', exportRoutes)
+app.use('/api/estoque', authMiddleware, estoqueRoutes)
 
 ensureDatabaseSchema()
   .then(() => {

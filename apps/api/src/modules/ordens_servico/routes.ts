@@ -3,6 +3,17 @@ import { db } from '../../db.js'
 import { authMiddleware, requireRole } from '../auth/middleware.js'
 import { notificarStatusSolicitacao } from '../notificacoes/notificacoes.js'
 
+async function estoqueAtivo(): Promise<boolean> {
+  try {
+    const result = await db.query(
+      `SELECT valor FROM configuracao_estoque WHERE chave = 'estoque_ativo'`
+    )
+    return result.rows.length > 0 && result.rows[0].valor === 'true'
+  } catch {
+    return false
+  }
+}
+
 const router = Router()
 
 // Listar postes reparados por equipe
@@ -154,10 +165,24 @@ router.get('/:id/detalhe', async (req: Request, res: Response) => {
       [id, ordemResult.rows[0].solicitacao_id]
     )
 
+    let itensUsados: unknown[] = []
+    try {
+      const itensResult = await db.query(
+        `SELECT iu.*, i.nome as item_nome, i.unidade_medida, i.categoria as item_categoria
+         FROM itens_usados_os iu
+         JOIN itens_estoque i ON iu.item_id = i.id
+         WHERE iu.os_id = $1
+         ORDER BY iu.criado_em ASC`,
+        [id]
+      )
+      itensUsados = itensResult.rows
+    } catch { /* table may not exist yet */ }
+
     res.json({
       ordem: ordemResult.rows[0],
       historico: historicoResult.rows,
       anexos: anexosResult.rows,
+      itens_usados: itensUsados,
     })
   } catch (error) {
     console.error('Erro ao buscar detalhes da ordem:', error)
@@ -359,6 +384,78 @@ router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'ope
         'INSERT INTO status_logs (solicitacao_id, status_anterior, status_novo, observacao, criado_por) VALUES ($1, $2, $3, $4, $5)',
         [current.rows[0].solicitacao_id, statusAnterior, 'concluida', observacao_execucao || 'Ordem concluida', 'equipe']
       )
+
+      // Baixa automatica de estoque se modulo habilitado e materiais informados
+      const materiaisUsados = req.body.materiais_usados
+      if (Array.isArray(materiaisUsados) && materiaisUsados.length > 0) {
+        try {
+          if (await estoqueAtivo()) {
+            // Verificar se ja existe baixa registrada para esta OS
+            const jaExiste = await db.query(
+              `SELECT 1 FROM itens_usados_os WHERE os_id = $1 LIMIT 1`,
+              [id]
+            )
+            if (jaExiste.rows.length === 0) {
+              const client = await db.getClient()
+              try {
+                await client.query('BEGIN')
+
+                for (const material of materiaisUsados) {
+                  const { item_id, quantidade, observacao } = material
+                  if (!item_id || !quantidade || Number(quantidade) <= 0) {
+                    throw new Error(`Item ${item_id}: quantidade invalida`)
+                  }
+
+                  // Lock the row to prevent concurrent modifications
+                  const itemResult = await client.query(
+                    'SELECT id, estoque_atual, nome FROM itens_estoque WHERE id = $1 FOR UPDATE',
+                    [item_id]
+                  )
+                  if (itemResult.rows.length === 0) {
+                    throw new Error(`Item ${item_id} nao encontrado no estoque`)
+                  }
+
+                  const estoqueAtual = Number(itemResult.rows[0].estoque_atual)
+                  const qtd = Number(quantidade)
+                  const novoSaldo = estoqueAtual - qtd
+
+                  if (novoSaldo < 0) {
+                    throw new Error(
+                      `Estoque insuficiente para "${itemResult.rows[0].nome}": disponivel ${estoqueAtual}, necessario ${qtd}`
+                    )
+                  }
+
+                  await client.query(
+                    `INSERT INTO movimentacoes_estoque (item_id, tipo, quantidade, saldo_anterior, saldo_posterior, os_id, usuario, data_movimento)
+                     VALUES ($1, 'baixa_os', $2, $3, $4, $5, $6, NOW())`,
+                    [item_id, qtd, estoqueAtual, novoSaldo, id, req.user?.username || null]
+                  )
+
+                  await client.query(
+                    'UPDATE itens_estoque SET estoque_atual = $1 WHERE id = $2',
+                    [novoSaldo, item_id]
+                  )
+
+                  await client.query(
+                    `INSERT INTO itens_usados_os (os_id, item_id, quantidade, usuario, observacao)
+                     VALUES ($1, $2, $3, $4, $5)`,
+                    [id, item_id, qtd, req.user?.username || null, observacao || null]
+                  )
+                }
+
+                await client.query('COMMIT')
+              } catch (txError) {
+                await client.query('ROLLBACK')
+                console.error('Erro na baixa de estoque (rollback):', txError)
+              } finally {
+                client.release()
+              }
+            }
+          }
+        } catch (estoqueErr) {
+          console.error('Erro na baixa automatica de estoque:', estoqueErr)
+        }
+      }
 
       notificarStatusSolicitacao({
         email: current.rows[0].email,

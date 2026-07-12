@@ -590,6 +590,134 @@
   font-weight: 600;
 }
 
+.stockMaterialRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.stockMaterialSelect {
+  flex: 2;
+  padding: 9px 12px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+.stockMaterialSelect:focus {
+  outline: none;
+  border-color: #d97706;
+}
+
+.stockMaterialQty {
+  flex: 0 0 80px;
+  padding: 9px 10px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  background: #f8fafc;
+  text-align: center;
+}
+
+.stockMaterialQty:focus {
+  outline: none;
+  border-color: #d97706;
+}
+
+.stockMaterialObs {
+  flex: 1;
+  padding: 9px 10px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  background: #f8fafc;
+}
+
+.stockMaterialObs:focus {
+  outline: none;
+  border-color: #d97706;
+}
+
+.stockMaterialRemove {
+  flex: 0 0 32px;
+  height: 36px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: white;
+  color: #dc2626;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.stockMaterialRemove:hover {
+  background: #fef2f2;
+}
+
+.stockMaterialAdd {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border: 1px dashed #d1d5db;
+  border-radius: 10px;
+  background: white;
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.stockMaterialAdd:hover {
+  border-color: #d97706;
+  color: #92400e;
+}
+
+.stockUsedList {
+  display: grid;
+  gap: 8px;
+}
+
+.stockUsedItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fffaf5;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+}
+
+.stockUsedInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stockUsedName {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.92rem;
+}
+
+.stockUsedMeta {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.stockUsedObs {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -720,6 +848,22 @@
   .closureStatusGroup {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .stockMaterialRow {
+    flex-wrap: wrap;
+  }
+
+  .stockMaterialSelect {
+    flex: 1 1 100%;
+  }
+
+  .stockMaterialQty {
+    flex: 1 1 80px;
+  }
+
+  .stockMaterialObs {
+    flex: 1 1 80px;
   }
 
   .mapButton,

@@ -10,6 +10,7 @@ import { STATUS_LABELS, STATUS_COLORS, TIPOS_PROBLEMA, type StatusSolicitacao } 
 import { FileUpload } from '../FileUpload/FileUpload'
 import { PosteForm } from '../PosteForm/PosteForm'
 import { API_URL } from '../../config/api'
+import type { ItemEstoque } from '../../hooks/useEstoque'
 import styles from './OrdemServicoDetail.module.css'
 
 function formatDate(dateString: string | null): string {
@@ -174,6 +175,33 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
   const [fechamentoMsg, setFechamentoMsg] = useState<string | null>(null)
   const [previewAnexo, setPreviewAnexo] = useState<{ id: number; name: string } | null>(null)
   const [showPosteForm, setShowPosteForm] = useState(false)
+  const [estoqueAtivo, setEstoqueAtivo] = useState(false)
+  const [itensEstoque, setItensEstoque] = useState<ItemEstoque[]>([])
+  const [materiaisSelecionados, setMateriaisSelecionados] = useState<{ item_id: number; quantidade: string; observacao: string }[]>([])
+
+  useEffect(() => {
+    if (!token) return
+    fetch(`${API_URL}/api/estoque/config`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (r) => {
+        if (!r.ok) return {} as Record<string, string>
+        return (await r.json()) as Record<string, string>
+      })
+      .then((config) => {
+        const ativo = config.estoque_ativo === 'true'
+        setEstoqueAtivo(ativo)
+        if (ativo) {
+          fetch(`${API_URL}/api/estoque/itens?ativo=true`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+            .then(r => r.ok ? r.json() : [])
+            .then(setItensEstoque)
+            .catch(() => {})
+        }
+      })
+      .catch(() => {})
+  }, [token])
 
   async function handleUpload(file: File): Promise<boolean> {
     const result = await upload(file, undefined, ordemId)
@@ -200,18 +228,34 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
     setFechamentoSalvando(true)
     setFechamentoMsg(null)
     try {
+      const body: Record<string, unknown> = {
+        status: fechamentoStatus,
+        observacao_execucao: fechamentoObs || null,
+        resultado: fechamentoResultado || null,
+        material_utilizado: fechamentoMaterial || null,
+      }
+
+      // Enviar materiais estruturados se estoque ativo e itens selecionados
+      if (estoqueAtivo && materiaisSelecionados.length > 0) {
+        const itensValidos = materiaisSelecionados
+          .filter(m => m.item_id > 0 && Number(m.quantidade) > 0)
+          .map(m => ({
+            item_id: m.item_id,
+            quantidade: Number(m.quantidade),
+            observacao: m.observacao || undefined,
+          }))
+        if (itensValidos.length > 0) {
+          body.materiais_usados = itensValidos
+        }
+      }
+
       const response = await fetch(`${API_URL}/api/ordens-servico/${ordemId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          status: fechamentoStatus,
-          observacao_execucao: fechamentoObs || null,
-          resultado: fechamentoResultado || null,
-          material_utilizado: fechamentoMaterial || null,
-        }),
+        body: JSON.stringify(body),
       })
       if (!response.ok) {
         const data = await response.json()
@@ -221,6 +265,7 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
       setFechamentoObs('')
       setFechamentoResultado('')
       setFechamentoMaterial('')
+      setMateriaisSelecionados([])
       refetch()
     } catch (err) {
       setFechamentoMsg(err instanceof Error ? err.message : 'Erro ao salvar')
@@ -256,7 +301,7 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
 
   if (!data) return null
 
-  const { ordem, historico, anexos } = data
+  const { ordem, historico, anexos, itens_usados } = data
   const enderecoPoste = [ordem.poste_rua, ordem.poste_numero, ordem.poste_bairro, ordem.poste_complemento]
     .filter(Boolean)
     .join(', ')
@@ -505,6 +550,27 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
         )}
       </div>
 
+      {itens_usados && itens_usados.length > 0 && (
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Materiais Utilizados (Estoque)</h3>
+          <div className={styles.stockUsedList}>
+            {itens_usados.map((item) => (
+              <div key={item.id} className={styles.stockUsedItem}>
+                <div className={styles.stockUsedInfo}>
+                  <span className={styles.stockUsedName}>{item.item_nome}</span>
+                  <span className={styles.stockUsedMeta}>
+                    {item.quantidade} {item.unidade_medida} | {item.item_categoria}
+                  </span>
+                </div>
+                {item.observacao && (
+                  <span className={styles.stockUsedObs}>{item.observacao}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {ordem.status !== 'concluida' && ordem.status !== 'cancelada' && (
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Fechamento Operacional</h3>
@@ -566,11 +632,83 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
                 id="material"
                 className={styles.closureTextarea}
                 rows={2}
-                placeholder="Ex: 1 lâmpada LED, 2 cabos, 1 disjuntor..."
+                placeholder="Ex: 1 lampada LED, 2 cabos, 1 disjuntor..."
                 value={fechamentoMaterial}
                 onChange={(e) => setFechamentoMaterial(e.target.value)}
               />
             </div>
+            {estoqueAtivo && (
+              <div className={styles.closureField}>
+                <span className={styles.infoLabel}>Itens do estoque (baixa automatica)</span>
+                <p style={{ fontSize: '.82rem', color: '#6b7280', margin: '0 0 8px' }}>
+                  Selecione os materiais utilizados. O estoque sera deduzido automaticamente ao encerrar.
+                </p>
+                {materiaisSelecionados.map((mat, idx) => (
+                  <div key={idx} className={styles.stockMaterialRow}>
+                    <select
+                      className={styles.stockMaterialSelect}
+                      value={mat.item_id || ''}
+                      onChange={(e) => {
+                        const updated = [...materiaisSelecionados]
+                        updated[idx] = { ...updated[idx], item_id: Number(e.target.value) }
+                        setMateriaisSelecionados(updated)
+                      }}
+                    >
+                      <option value="">Selecione o item...</option>
+                      {itensEstoque.map(item => (
+                        <option key={item.id} value={item.id}>
+                          {item.nome} ({item.estoque_atual} {item.unidade_medida} disponiveis)
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      className={styles.stockMaterialQty}
+                      placeholder="Qtd"
+                      value={mat.quantidade}
+                      onChange={(e) => {
+                        const updated = [...materiaisSelecionados]
+                        updated[idx] = { ...updated[idx], quantidade: e.target.value }
+                        setMateriaisSelecionados(updated)
+                      }}
+                    />
+                    <input
+                      className={styles.stockMaterialObs}
+                      placeholder="Obs. (opcional)"
+                      value={mat.observacao}
+                      onChange={(e) => {
+                        const updated = [...materiaisSelecionados]
+                        updated[idx] = { ...updated[idx], observacao: e.target.value }
+                        setMateriaisSelecionados(updated)
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className={styles.stockMaterialRemove}
+                      onClick={() => {
+                        setMateriaisSelecionados(materiaisSelecionados.filter((_, i) => i !== idx))
+                      }}
+                    >
+                      x
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className={styles.stockMaterialAdd}
+                  onClick={() => {
+                    setMateriaisSelecionados([
+                      ...materiaisSelecionados,
+                      { item_id: 0, quantidade: '', observacao: '' },
+                    ])
+                  }}
+                >
+                  + Adicionar item
+                </button>
+              </div>
+            )}
             {fechamentoMsg && (
               <div className={fechamentoMsg.includes('sucesso') ? styles.closureSuccess : styles.closureError}>
                 {fechamentoMsg}

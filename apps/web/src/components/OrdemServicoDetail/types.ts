@@ -58,8 +58,22 @@ export interface Anexo {
   criado_em: string
 }
 
+export interface ItemUsadoOS {
+  id: number
+  os_id: number
+  item_id: number
+  item_nome: string
+  unidade_medida: string
+  item_categoria: string
+  quantidade: number
+  usuario: string | null
+  observacao: string | null
+  criado_em: string
+}
+
 export interface OrdemServicoDetailData {
   ordem: OrdemServicoDetalhe
   historico: StatusLog[]
   anexos: Anexo[]
+  itens_usados: ItemUsadoOS[]
 }
