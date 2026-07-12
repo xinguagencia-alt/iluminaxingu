@@ -29,27 +29,66 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
 
 function ConfigTab({ config, toggleEstoque }: { config: Record<string, string>; toggleEstoque: (a: boolean) => Promise<boolean> }) {
   const [saving, setSaving] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const ativo = config.estoque_ativo === 'true'
+
+  function showToast(message: string, type: 'success' | 'error') {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3500)
+  }
 
   async function handleToggle() {
     setSaving(true)
-    await toggleEstoque(!ativo)
+    const ok = await toggleEstoque(!ativo)
     setSaving(false)
+    if (ok) {
+      showToast(ativo ? 'Estoque desabilitado com sucesso' : 'Estoque habilitado com sucesso', 'success')
+    } else {
+      showToast('Erro ao alterar configuracao', 'error')
+    }
   }
 
   return (
     <div className={styles.configSection}>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      <div className={`${styles.configStatusBanner} ${ativo ? styles.configStatusOn : styles.configStatusOff}`}>
+        <div className={styles.configStatusIcon}>
+          {ativo ? (
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          ) : (
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          )}
+        </div>
+        <div className={styles.configStatusContent}>
+          <span className={`${styles.configStatusBadge} ${ativo ? styles.configBadgeOn : styles.configBadgeOff}`}>
+            {ativo ? 'Modulo ativo' : 'Modulo inativo'}
+          </span>
+          <p className={styles.configStatusDesc}>
+            {ativo
+              ? 'O sistema ja esta controlando entrada, saida e baixa de materiais automaticamente.'
+              : 'Nenhuma movimentacao de estoque esta sendo registrada. Habilite para iniciar o controle.'}
+          </p>
+        </div>
+      </div>
+
       <div className={styles.configCard}>
         <div className={styles.configInfo}>
           <h3>Modulo de Estoque</h3>
-          <p>{ativo ? 'O modulo esta habilitado. O sistema controla entrada, saida e baixa de materiais automaticamente.' : 'O modulo esta desabilitado. Nenhuma movimentacao de estoque e registrada.'}</p>
+          <p>
+            {ativo
+              ? 'Ao desabilitar, o sistema para de registrar movimentacoes. A baixa automatica na OS tambem sera desativada.'
+              : 'Ao habilitar, o sistema passa a controlar entradas, saidas e baixa automatica de materiais nas ordens de servico.'}
+          </p>
         </div>
         <button
-          className={`${styles.toggleBtn} ${ativo ? styles.toggleActive : ''}`}
+          className={`${styles.toggleBtn} ${ativo ? styles.toggleBtnDisable : styles.toggleBtnEnable}`}
           onClick={handleToggle}
           disabled={saving}
         >
-          {saving ? 'Salvando...' : ativo ? 'Desabilitar' : 'Habilitar'}
+          {saving ? (
+            <span className={styles.toggleSpinner} />
+          ) : ativo ? 'Desabilitar' : 'Habilitar'}
         </button>
       </div>
     </div>
