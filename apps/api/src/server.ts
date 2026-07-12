@@ -19,6 +19,7 @@ import { db } from './db.js'
 
 const app = express()
 const port = process.env.PORT || 3333
+const serverStartedAt = new Date().toISOString()
 
 app.set('trust proxy', 1)
 app.use(helmet())
@@ -306,7 +307,9 @@ app.get('/health', async (_request, response) => {
   response.json({
     status: 'ok',
     service: 'iluminaxingu-api',
-    deploy: 'v13-limpo',
+    deploy: 'v14-estoque',
+    started_at: serverStartedAt,
+    modules: ['solicitacoes', 'postes', 'ordens_servico', 'equipes', 'bairros', 'ruas', 'anexos', 'auditoria', 'export', 'estoque'],
     solicitacoes_columns: columns,
     bairros_columns: bairrosColumns,
     postes_columns: postesColumns,
