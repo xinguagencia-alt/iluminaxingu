@@ -86,43 +86,31 @@ export function useEstoque(): UseEstoqueResult {
   }), [token])
 
   const fetchConfig = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/estoque/config`, { headers: headers() })
-      if (response.ok) {
-        const data = await response.json()
-        setConfig(data)
-      }
-    } catch { /* ignore */ }
+    const response = await fetch(`${API_URL}/api/estoque/config`, { headers: headers() })
+    if (!response.ok) throw new Error(`Config: ${response.status}`)
+    const data = await response.json()
+    setConfig(data)
   }, [headers])
 
   const fetchItens = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/estoque/itens`, { headers: headers() })
-      if (response.ok) {
-        const data = await response.json()
-        setItens(data)
-      }
-    } catch { /* ignore */ }
+    const response = await fetch(`${API_URL}/api/estoque/itens`, { headers: headers() })
+    if (!response.ok) throw new Error(`Itens: ${response.status}`)
+    const data = await response.json()
+    setItens(data)
   }, [headers])
 
   const fetchMovimentacoes = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/estoque/movimentacoes?limit=200`, { headers: headers() })
-      if (response.ok) {
-        const data = await response.json()
-        setMovimentacoes(data)
-      }
-    } catch { /* ignore */ }
+    const response = await fetch(`${API_URL}/api/estoque/movimentacoes?limit=200`, { headers: headers() })
+    if (!response.ok) throw new Error(`Movimentacoes: ${response.status}`)
+    const data = await response.json()
+    setMovimentacoes(data)
   }, [headers])
 
   const fetchItensUsados = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/estoque/itens-usados-os`, { headers: headers() })
-      if (response.ok) {
-        const data = await response.json()
-        setItensUsados(data)
-      }
-    } catch { /* ignore */ }
+    const response = await fetch(`${API_URL}/api/estoque/itens-usados-os`, { headers: headers() })
+    if (!response.ok) throw new Error(`Itens usados: ${response.status}`)
+    const data = await response.json()
+    setItensUsados(data)
   }, [headers])
 
   const fetchAll = useCallback(async () => {

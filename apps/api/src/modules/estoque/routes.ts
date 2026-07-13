@@ -13,7 +13,16 @@ async function requireEstoqueAtivo(req: Request, res: Response, next: NextFuncti
       res.status(400).json({ error: 'Modulo de estoque desabilitado' })
       return
     }
-  } catch { /* tables may not exist yet */ }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : ''
+    if (msg.includes('does not exist')) {
+      next()
+      return
+    }
+    console.error('Erro ao verificar estoque ativo:', error)
+    res.status(500).json({ error: 'Erro ao verificar status do modulo de estoque' })
+    return
+  }
   next()
 }
 
