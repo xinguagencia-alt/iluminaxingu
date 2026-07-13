@@ -129,7 +129,7 @@
 }
 
 .tableWrapper {
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .tableHint {
@@ -236,6 +236,12 @@
   .table td {
     padding: 12px;
     font-size: 0.86rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .filters {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

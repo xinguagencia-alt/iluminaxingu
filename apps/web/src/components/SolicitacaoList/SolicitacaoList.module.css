@@ -304,7 +304,7 @@
 }
 
 .tableWrapper {
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .tableHint {

@@ -308,6 +308,10 @@
     flex-wrap: wrap;
   }
 
+  .actions {
+    flex-wrap: wrap;
+  }
+
   .tableWrapper {
     overflow-x: auto;
   }

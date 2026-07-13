@@ -343,12 +343,18 @@
   }
 }
 
-@media (max-width: 768px) {
-  .grid,
-  .twoColumns {
-    grid-template-columns: 1fr;
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
   }
 
+  .barRow {
+    grid-template-columns: 110px 1fr 44px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
   .container {
     gap: 14px;
   }
@@ -386,6 +392,11 @@
 }
 
 @media (max-width: 480px) {
+  .grid,
+  .twoColumns {
+    grid-template-columns: 1fr;
+  }
+
   .barRow {
     grid-template-columns: 80px 1fr 32px;
     gap: 8px;
