@@ -884,31 +884,39 @@
   .attachmentInfo {
     width: 100%;
   }
+
+  .section {
+    padding: 20px;
+  }
 }
 
 @media (max-width: 640px) {
   .container {
-    gap: 16px;
+    gap: 14px;
   }
 
   .section,
   .loading,
   .errorState {
+    padding: 16px 14px;
+    border-radius: 18px;
+  }
+
+  .hero {
     padding: 18px 16px;
     border-radius: 20px;
   }
 
-  .hero {
-    padding: 20px 18px;
-    border-radius: 22px;
+  .heroCopy h2 {
+    font-size: 1.5rem;
   }
 
   .timeline {
-    padding-left: 22px;
+    padding-left: 20px;
   }
 
   .timelineDot {
-    left: -18px;
+    left: -16px;
   }
 
   .previewContainer {
@@ -916,12 +924,20 @@
   }
 
   .previewClose {
-    top: -34px;
+    top: -32px;
     right: 0;
   }
 
   .previewFileName {
     white-space: normal;
     word-break: break-word;
+  }
+
+  .mapButton,
+  .mapButtonSecondary,
+  .posteActionButton,
+  .closureSubmit {
+    font-size: 0.88rem;
+    padding: 10px 16px;
   }
 }

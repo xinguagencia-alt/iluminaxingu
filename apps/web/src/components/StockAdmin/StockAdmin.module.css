@@ -113,11 +113,116 @@
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
 @media (max-width: 760px) {
-  .headerTop { flex-direction: column; }
-  .formGrid { grid-template-columns: 1fr; }
-  .statsGrid { grid-template-columns: 1fr 1fr; }
+  .header {
+    padding: 22px 20px;
+  }
+
+  .headerTop {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 18px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .configStatusBanner {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .configCard {
+    flex-direction: column;
+    text-align: center;
+  }
 }
+
 @media (max-width: 640px) {
-  .statsGrid { grid-template-columns: 1fr; }
-  .toolbar { flex-direction: column; align-items: stretch; }
+  .header {
+    padding: 18px 16px;
+    border-radius: 22px;
+  }
+
+  .header h2 {
+    font-size: 1.6rem;
+  }
+
+  .tabs {
+    gap: 6px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 8px;
+  }
+
+  .tab {
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+
+  .content {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statCard {
+    padding: 16px;
+  }
+
+  .statValue {
+    font-size: 1.5rem;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primaryBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .formCard {
+    padding: 16px;
+  }
+
+  .tableWrap {
+    border-radius: 12px;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px;
+    font-size: 0.82rem;
+  }
+
+  .configStatusBanner {
+    padding: 16px;
+  }
+
+  .configStatusIcon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .configCard {
+    padding: 18px;
+  }
+
+  .toggleBtn {
+    width: 100%;
+    justify-content: center;
+  }
 }

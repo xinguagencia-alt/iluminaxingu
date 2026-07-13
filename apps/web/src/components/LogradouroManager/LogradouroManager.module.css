@@ -48,5 +48,83 @@
 .toastError { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 .toastClose { background: none; border: none; color: inherit; font-size: 1.2rem; cursor: pointer; padding: 0; line-height: 1; }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@media (max-width: 760px) { .addForm,.listItem { flex-direction: column; align-items: stretch; } }
-@media (max-width: 640px) { .tabs { overflow-x: auto; flex-wrap: nowrap; } .tab { white-space: nowrap; } }
+@media (max-width: 760px) {
+  .header {
+    padding: 22px 20px;
+  }
+
+  .content {
+    border-radius: 20px;
+  }
+
+  .addForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .listItem {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .searchWrapper {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 18px 16px;
+    border-radius: 22px;
+  }
+
+  .header h2 {
+    font-size: 1.6rem;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding-bottom: 8px;
+  }
+
+  .tab {
+    white-space: nowrap;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+  }
+
+  .content {
+    border-radius: 18px;
+  }
+
+  .addForm {
+    padding: 14px;
+  }
+
+  .searchWrapper {
+    padding: 12px 14px;
+  }
+
+  .listItem {
+    padding: 12px 14px;
+  }
+
+  .itemNome {
+    font-size: 0.9rem;
+  }
+
+  .deleteButton,
+  .editButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .footer {
+    padding: 10px 14px;
+    font-size: 0.82rem;
+  }
+}

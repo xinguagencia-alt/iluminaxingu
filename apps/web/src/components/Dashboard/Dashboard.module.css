@@ -364,31 +364,35 @@
   }
 
   .barRow {
-    grid-template-columns: 90px 1fr 34px;
-    gap: 8px;
+    grid-template-columns: 100px 1fr 40px;
+    gap: 10px;
   }
 
   .barLabel {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
   }
 
   .listItemHeader {
     gap: 6px;
   }
+
+  .card {
+    padding: 18px;
+  }
+
+  .card strong {
+    font-size: 1.9rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-
   .barRow {
-    grid-template-columns: 72px 1fr 28px;
-    gap: 6px;
+    grid-template-columns: 80px 1fr 32px;
+    gap: 8px;
   }
 
   .barLabel {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
   }
 
   .barTrack {
@@ -400,15 +404,21 @@
   }
 
   .card strong {
-    font-size: 1.7rem;
+    font-size: 1.6rem;
   }
 
   .protocolTag {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
   }
 
   .miniBadge,
   .miniBadgeNeutral {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
+  }
+
+  .statStack > div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
 }

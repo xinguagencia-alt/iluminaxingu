@@ -51,5 +51,71 @@
 .toastError { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 .toastClose { background: none; border: none; color: inherit; font-size: 1.2rem; cursor: pointer; padding: 0; line-height: 1; }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@media (max-width: 760px) { .auditHeader { flex-direction: column; align-items: stretch; } }
-@media (max-width: 640px) { .exportGrid { grid-template-columns: 1fr; } .auditItemHeader { flex-wrap: wrap; } .auditDate { margin-left: 0; width: 100%; } }
+@media (max-width: 760px) {
+  .header {
+    padding: 22px 20px;
+  }
+
+  .auditHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .content {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 18px 16px;
+    border-radius: 22px;
+  }
+
+  .header h2 {
+    font-size: 1.6rem;
+  }
+
+  .tabs {
+    gap: 6px;
+  }
+
+  .tab {
+    padding: 10px 14px;
+    font-size: 0.88rem;
+  }
+
+  .content {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .exportGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .exportCard {
+    padding: 16px;
+    min-height: 100px;
+  }
+
+  .auditItem {
+    padding: 12px;
+  }
+
+  .auditItemHeader {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .auditDate {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .acaoBadge,
+  .tabelaBadge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+}

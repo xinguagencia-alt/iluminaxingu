@@ -450,6 +450,12 @@
     padding-left: 16px;
     padding-right: 16px;
   }
+
+  .table th,
+  .table td {
+    padding: 12px;
+    font-size: 0.88rem;
+  }
 }
 
 @media (max-width: 640px) {
@@ -457,10 +463,22 @@
     padding: 0 0 20px;
   }
 
+  .hero {
+    padding: 20px 18px;
+  }
+
+  .summaryCard {
+    padding: 16px;
+  }
+
+  .summaryCard strong {
+    font-size: 1.5rem;
+  }
+
   .table th,
   .table td {
-    padding: 12px;
-    font-size: 0.86rem;
+    padding: 10px;
+    font-size: 0.84rem;
   }
 
   .actions {
@@ -468,11 +486,23 @@
     align-items: stretch;
   }
 
+  .actionButton {
+    width: 100%;
+    justify-content: center;
+  }
+
   .modal {
-    padding: 20px;
+    padding: 18px;
+    border-radius: 20px;
   }
 
   .modalActions {
     flex-direction: column-reverse;
+  }
+
+  .modalCancelButton,
+  .modalConfirmButton {
+    width: 100%;
+    justify-content: center;
   }
 }

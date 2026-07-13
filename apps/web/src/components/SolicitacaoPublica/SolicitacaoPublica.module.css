@@ -601,17 +601,9 @@
    Mobile
    ============================================ */
 
-@media (max-width: 640px) {
-  .container {
-    gap: 12px;
-  }
-
+@media (max-width: 768px) {
   .searchCard {
-    padding: 40px 20px;
-  }
-
-  .searchTitle {
-    font-size: 1.15rem;
+    padding: 48px 24px;
   }
 
   .searchForm {
@@ -619,11 +611,43 @@
   }
 
   .hero {
-    padding: 24px 20px;
+    padding: 28px 24px;
+  }
+
+  .osGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .card {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    gap: 12px;
+  }
+
+  .searchCard {
+    padding: 36px 18px;
+    border-radius: 14px;
+  }
+
+  .searchTitle {
+    font-size: 1.1rem;
+  }
+
+  .searchForm {
+    flex-direction: column;
+  }
+
+  .hero {
+    padding: 20px 18px;
+    border-radius: 14px;
   }
 
   .heroProtocol {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
   }
 
   .pills {
@@ -632,10 +656,12 @@
 
   .pill {
     min-width: 0;
+    padding: 12px 14px;
   }
 
   .card {
-    padding: 18px 16px;
+    padding: 16px;
+    border-radius: 14px;
   }
 
   .osGrid {
@@ -643,7 +669,7 @@
   }
 
   .osBox {
-    padding: 14px;
+    padding: 12px;
   }
 
   .timelineTop {
@@ -658,6 +684,7 @@
 
   .addressCard {
     flex-wrap: wrap;
+    padding: 12px;
   }
 
   .addressText {

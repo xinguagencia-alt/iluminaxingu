@@ -299,9 +299,16 @@
   }
 }
 
+@media (max-width: 900px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .hero {
     flex-direction: column;
+    padding: 22px 20px;
   }
 
   .heroStats {
@@ -321,8 +328,24 @@
     display: block;
   }
 
+  .table th,
+  .table td {
+    padding: 12px;
+    font-size: 0.86rem;
+  }
+
+  .modal {
+    padding: 20px;
+  }
+
   .modalActions {
     flex-direction: column;
+  }
+
+  .modalCancelButton,
+  .modalConfirmButton {
+    width: 100%;
+    justify-content: center;
   }
 
   .actionsCell {
@@ -333,12 +356,12 @@
 
 @media (max-width: 640px) {
   .container {
-    gap: 16px;
+    gap: 14px;
   }
 
   .hero {
-    padding: 20px 18px;
-    border-radius: 22px;
+    padding: 18px 16px;
+    border-radius: 20px;
   }
 
   .filtersCard,
@@ -346,12 +369,18 @@
   .loading,
   .errorState,
   .emptyState {
-    border-radius: 20px;
+    border-radius: 18px;
   }
 
   .table th,
   .table td {
-    padding: 12px;
-    font-size: 0.84rem;
+    padding: 10px;
+    font-size: 0.82rem;
+  }
+
+  .editButton,
+  .retryButton {
+    font-size: 0.8rem;
+    padding: 8px 12px;
   }
 }
