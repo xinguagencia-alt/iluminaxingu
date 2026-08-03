@@ -10,6 +10,13 @@ export type StatusSolicitacao =
 
 export type PrioridadeSolicitacao = 'baixa' | 'media' | 'alta' | 'urgente'
 
+export type StatusSla =
+  | 'dentro_do_prazo'
+  | 'vence_hoje'
+  | 'atrasada'
+  | 'concluida_no_prazo'
+  | 'concluida_com_atraso'
+
 export interface Solicitacao {
   id: number
   protocolo: string
@@ -28,6 +35,9 @@ export interface Solicitacao {
   auto_identificado: boolean | null
   criado_em: string
   atualizado_em: string
+  prazo_sla: string
+  status_sla: StatusSla
+  horas_restantes: number | null
 }
 
 export const STATUS_LABELS: Record<StatusSolicitacao, string> = {
@@ -73,4 +83,20 @@ export const TIPOS_PROBLEMA: Record<string, string> = {
   risco_eletrico: 'Risco elétrico',
   fio_exposto: 'Fio exposto',
   outro: 'Outro',
+}
+
+export const STATUS_SLA_LABELS: Record<StatusSla, string> = {
+  dentro_do_prazo: 'Dentro do prazo',
+  vence_hoje: 'Vence hoje',
+  atrasada: 'Atrasada',
+  concluida_no_prazo: 'Concluída no prazo',
+  concluida_com_atraso: 'Concluída com atraso',
+}
+
+export const STATUS_SLA_COLORS: Record<StatusSla, string> = {
+  dentro_do_prazo: '#16a34a',
+  vence_hoje: '#d97706',
+  atrasada: '#dc2626',
+  concluida_no_prazo: '#16a34a',
+  concluida_com_atraso: '#6b7280',
 }

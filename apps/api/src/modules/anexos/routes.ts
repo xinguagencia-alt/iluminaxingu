@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
@@ -7,11 +7,27 @@ import rateLimit from 'express-rate-limit'
 import { db } from '../../db.js'
 import { authMiddleware, requireRole } from '../auth/middleware.js'
 
+function handleMulterError(err: unknown, _req: Request, res: Response, next: NextFunction) {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      res.status(413).json({ error: 'Arquivo muito grande. Tamanho maximo: 4MB.' })
+      return
+    }
+    res.status(400).json({ error: `Erro no upload: ${err.message}` })
+    return
+  }
+  if (err instanceof Error && err.message === 'Tipo de arquivo nao permitido') {
+    res.status(415).json({ error: err.message })
+    return
+  }
+  next(err)
+}
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const uploadsDir = path.resolve(__dirname, '../../../uploads')
-fs.mkdirSync(uploadsDir, { recursive: true })
+try { fs.mkdirSync(uploadsDir, { recursive: true }) } catch {}
 
 const storage = multer.memoryStorage()
 
@@ -33,10 +49,12 @@ const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFil
   }
 }
 
+const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB - seguro para Vercel Serverless
+
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: MAX_FILE_SIZE },
 })
 
 const router = Router()
@@ -54,6 +72,7 @@ router.post(
   authMiddleware,
   requireRole(['admin', 'gestor', 'operador']),
   upload.single('arquivo'),
+  handleMulterError,
   async (req: Request, res: Response) => {
     if (!req.file) {
       res.status(400).json({ error: 'Nenhum arquivo enviado' })
@@ -118,6 +137,7 @@ router.post(
   '/upload-public',
   publicUploadLimiter,
   upload.single('arquivo'),
+  handleMulterError,
   async (req: Request, res: Response) => {
     if (!req.file) {
       res.status(400).json({ error: 'Nenhum arquivo enviado' })

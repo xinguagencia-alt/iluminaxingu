@@ -5,8 +5,11 @@ import {
   STATUS_COLORS,
   PRIORIDADE_LABELS,
   PRIORIDADE_COLORS,
+  STATUS_SLA_LABELS,
+  STATUS_SLA_COLORS,
   TIPOS_PROBLEMA,
   type StatusSolicitacao,
+  type StatusSla,
 } from '../SolicitacaoList/types'
 import { STATUS_ORDEM_LABELS, STATUS_ORDEM_COLORS, type StatusOrdemServico } from '../OrdemServicoList/types'
 import styles from './SolicitacaoPublica.module.css'
@@ -104,6 +107,27 @@ export function SolicitacaoPublica({ onVoltar, initialProtocolo }: SolicitacaoPu
               <span className={styles.pillValue}>{solicitacao.codigo_poste_informado}</span>
             </span>
           )}
+        </div>
+
+        <div className={styles.slaCard}>
+          <div className={styles.slaHeader}>
+            <span className={styles.slaLabel}>Prazo estimado</span>
+            <span
+              className={styles.slaBadge}
+              style={{ backgroundColor: STATUS_SLA_COLORS[solicitacao.status_sla as StatusSla] }}
+            >
+              {STATUS_SLA_LABELS[solicitacao.status_sla as StatusSla]}
+            </span>
+          </div>
+          <div className={styles.slaValue}>
+            {new Date(solicitacao.prazo_sla).toLocaleString('pt-BR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </div>
         </div>
 
         <div className={styles.card}>

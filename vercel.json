@@ -6,6 +6,6 @@
   "rewrites": [
     { "source": "/prefeitura", "destination": "/index.html" },
     { "source": "/prefeitura/(.*)", "destination": "/index.html" },
-    { "source": "/((?!assets/|api/).*)", "destination": "/index.html" }
+    { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ]
 }

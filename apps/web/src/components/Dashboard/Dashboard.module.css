@@ -66,8 +66,14 @@
   line-height: 1.65;
 }
 
+.heroMetrics {
+  display: flex;
+  gap: 14px;
+  min-width: 340px;
+}
+
 .heroMetric {
-  min-width: 190px;
+  flex: 1;
   display: grid;
   align-content: center;
   padding: 20px 22px;
@@ -78,7 +84,7 @@
 
 .heroMetric strong {
   display: block;
-  font-size: 2.2rem;
+  font-size: 2rem;
   line-height: 1;
 }
 
@@ -86,49 +92,88 @@
   display: block;
   margin-top: 8px;
   opacity: 0.85;
+  font-size: 0.82rem;
 }
 
-.grid {
+.kpiGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
-.card,
+.kpiCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(146, 64, 14, 0.1);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.kpiCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1);
+}
+
+.kpiCardAlert {
+  border-color: #fca5a5;
+  background: rgba(255, 252, 252, 0.95);
+}
+
+.kpiIcon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+}
+
+.kpiContent {
+  min-width: 0;
+}
+
+.kpiLabel {
+  display: block;
+  color: #6b7280;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.kpiValue {
+  display: block;
+  font-size: 1.6rem;
+  color: #111827;
+  line-height: 1.1;
+}
+
+.kpiValueAlert {
+  color: #dc2626;
+}
+
+.slaSection {
+  display: grid;
+  gap: 0;
+}
+
+.twoColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
 .panel {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(146, 64, 14, 0.1);
   border-radius: 24px;
   padding: 22px;
   box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
-}
-
-.cardLabel {
-  display: block;
-  color: #9a3412;
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 10px;
-}
-
-.card strong {
-  display: block;
-  font-size: 2.1rem;
-  color: #111827;
-}
-
-.card p {
-  color: #6b7280;
-  margin-top: 8px;
-  line-height: 1.55;
-}
-
-.twoColumns {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 16px;
 }
 
 .panelHeader {
@@ -158,14 +203,100 @@
   border: 1px solid #fed7aa;
 }
 
+.panelBadgeRed {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.slaBar {
+  display: flex;
+  gap: 4px;
+  height: 56px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.slaSegment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: flex 0.3s ease;
+}
+
+.slaBarLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+.slaSegment strong {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.slaSegmentOk {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.slaSegmentAtencao {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.slaSegmentAtrasado {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.slaLegend {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.slaLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.slaDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.slaDotOk {
+  background: #16a34a;
+}
+
+.slaDotAtencao {
+  background: #d97706;
+}
+
+.slaDotAtrasado {
+  background: #dc2626;
+}
+
 .barChart {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .barRow {
   display: grid;
-  grid-template-columns: 120px 1fr 40px;
+  grid-template-columns: 130px 1fr 40px;
   align-items: center;
   gap: 12px;
 }
@@ -179,7 +310,7 @@
 }
 
 .barTrack {
-  height: 18px;
+  height: 16px;
   background: #f3f4f6;
   border-radius: 999px;
   overflow: hidden;
@@ -199,41 +330,78 @@
   text-align: right;
 }
 
-.listSection {
-  display: grid;
-  gap: 12px;
+.tableWrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.listItem {
-  padding: 12px 0;
-  border-top: 1px solid #f3f4f6;
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
 }
 
-.listItem:first-child {
-  border-top: 0;
-  padding-top: 0;
+.table th {
+  text-align: left;
+  padding: 10px 12px;
+  color: #6b7280;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
 }
 
-.listItemHeader {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background: #fffbeb;
+}
+
+.tdName {
+  font-weight: 600;
+  color: #1f2937;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tdDate {
+  white-space: nowrap;
+  color: #94a3b8;
+  font-size: 0.76rem;
 }
 
 .protocolTag {
   display: inline-block;
-  padding: 4px 9px;
+  padding: 3px 8px;
   border-radius: 8px;
   background: #fff7ed;
   color: #d97706;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 800;
   font-family: monospace;
+  white-space: nowrap;
 }
 
-.miniBadge {
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+}
+
+.slaBadge {
   display: inline-block;
   padding: 3px 8px;
   border-radius: 999px;
@@ -242,40 +410,19 @@
   white-space: nowrap;
 }
 
-.miniBadgeNeutral {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: #f3f4f6;
-  color: #475569;
-  font-size: 0.72rem;
-  font-weight: 700;
-  white-space: nowrap;
+.slaOk {
+  background: #dcfce7;
+  color: #166534;
 }
 
-.listItemBody {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: baseline;
+.slaAtencao {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-.listItemName {
-  font-size: 0.9rem;
-  color: #1e293b;
-  font-weight: 700;
-}
-
-.listItemType {
-  font-size: 0.79rem;
-  color: #6b7280;
-}
-
-.listItemDate {
-  display: block;
-  margin-top: 5px;
-  font-size: 0.76rem;
-  color: #94a3b8;
+.slaAtrasado {
+  background: #fef2f2;
+  color: #991b1b;
 }
 
 .emptyText {
@@ -332,25 +479,22 @@
 }
 
 @media (max-width: 1024px) {
-  .grid,
+  .kpiGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .twoColumns {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
   .hero {
     flex-direction: column;
     align-items: flex-start;
   }
-}
 
-@media (max-width: 860px) {
-  .grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .barRow {
-    grid-template-columns: 110px 1fr 44px;
-    gap: 12px;
+  .heroMetrics {
+    min-width: auto;
+    width: 100%;
   }
 }
 
@@ -364,13 +508,24 @@
     border-radius: 24px;
   }
 
-  .heroMetric {
-    min-width: auto;
-    width: 100%;
+  .heroMetric strong {
+    font-size: 1.6rem;
+  }
+
+  .kpiGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpiCard {
+    padding: 16px;
+  }
+
+  .kpiValue {
+    font-size: 1.4rem;
   }
 
   .barRow {
-    grid-template-columns: 100px 1fr 40px;
+    grid-template-columns: 100px 1fr 36px;
     gap: 10px;
   }
 
@@ -378,25 +533,28 @@
     font-size: 0.78rem;
   }
 
-  .listItemHeader {
-    gap: 6px;
+  .slaBar {
+    height: auto;
+    flex-direction: column;
   }
 
-  .card {
-    padding: 18px;
+  .slaSegment {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px 14px;
   }
 
-  .card strong {
-    font-size: 1.9rem;
+  .table {
+    font-size: 0.78rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 8px;
   }
 }
 
 @media (max-width: 480px) {
-  .grid,
-  .twoColumns {
-    grid-template-columns: 1fr;
-  }
-
   .barRow {
     grid-template-columns: 80px 1fr 32px;
     gap: 8px;
@@ -414,17 +572,18 @@
     font-size: 0.75rem;
   }
 
-  .card strong {
-    font-size: 1.6rem;
-  }
-
   .protocolTag {
     font-size: 0.7rem;
   }
 
-  .miniBadge,
-  .miniBadgeNeutral {
+  .badge,
+  .slaBadge {
     font-size: 0.66rem;
+  }
+
+  .heroMetrics {
+    flex-direction: column;
+    gap: 10px;
   }
 
   .statStack > div {

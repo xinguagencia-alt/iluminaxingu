@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useSolicitacoes } from './useSolicitacoes'
 import { useEquipes } from '../../hooks/useEquipes'
+import { useAuth } from '../../contexts/AuthContext'
+import { API_URL } from '../../config/api'
 import {
   Solicitacao,
   StatusSolicitacao,
@@ -9,7 +11,10 @@ import {
   STATUS_COLORS,
   PRIORIDADE_LABELS,
   PRIORIDADE_COLORS,
+  STATUS_SLA_LABELS,
+  STATUS_SLA_COLORS,
   TIPOS_PROBLEMA,
+  type StatusSla,
 } from './types'
 import styles from './SolicitacaoList.module.css'
 
@@ -41,13 +46,36 @@ function StatusBadge({ status }: { status: StatusSolicitacao }) {
 function PrioridadeBadge({ prioridade }: { prioridade: PrioridadeSolicitacao }) {
   return (
     <span
-      className={styles.badge}
+      className={`${styles.badge} ${prioridade === 'urgente' ? styles.badgeUrgente : ''}`}
       style={{
         backgroundColor: PRIORIDADE_COLORS[prioridade],
         color: 'white',
       }}
     >
       {PRIORIDADE_LABELS[prioridade]}
+    </span>
+  )
+}
+
+function SlaBadge({ statusSla, prazoSla }: { statusSla: StatusSla; prazoSla: string }) {
+  const prazoFormatado = new Date(prazoSla).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
+  return (
+    <span
+      className={`${styles.badge} ${statusSla === 'atrasada' ? styles.badgeAtrasada : ''}`}
+      style={{
+        backgroundColor: STATUS_SLA_COLORS[statusSla],
+        color: 'white',
+      }}
+      title={`Prazo: ${prazoFormatado}`}
+    >
+      {STATUS_SLA_LABELS[statusSla]}
     </span>
   )
 }
@@ -227,11 +255,12 @@ export function SolicitacaoList() {
     criarOrdem,
   } = useSolicitacoes()
 
+  const { token } = useAuth()
   const [editingId, setEditingId] = useState<number | null>(null)
   const [gerandoOrdemPara, setGerandoOrdemPara] = useState<number | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
-  const temFiltros = filtros.status || filtros.prioridade || filtros.busca
+  const temFiltros = filtros.status || filtros.prioridade || filtros.busca || filtros.status_sla
 
   function showToast(message: string, type: 'success' | 'error') {
     setToast({ message, type })
@@ -275,6 +304,42 @@ export function SolicitacaoList() {
       showToast('Erro ao criar ordem de serviço.', 'error')
     }
     return success
+  }
+
+  async function handleWhatsApp(solicitacao: Solicitacao) {
+    const tipo = solicitacao.status_atual === 'concluida' ? 'concluida' : 'status'
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/solicitacoes/${solicitacao.id}/mensagem-whatsapp?tipo=${tipo}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+
+      if (!response.ok) {
+        showToast('Erro ao gerar mensagem.', 'error')
+        return
+      }
+
+      const data = await response.json()
+
+      if (data.whatsapp_url) {
+        window.open(data.whatsapp_url, '_blank')
+      } else {
+        try {
+          await navigator.clipboard.writeText(data.mensagem)
+        } catch {
+          const textarea = document.createElement('textarea')
+          textarea.value = data.mensagem
+          document.body.appendChild(textarea)
+          textarea.select()
+          document.execCommand('copy')
+          document.body.removeChild(textarea)
+        }
+        showToast('Telefone invalido. Mensagem copiada para a area de transferencia.', 'success')
+      }
+    } catch {
+      showToast('Erro ao conectar com o servidor.', 'error')
+    }
   }
 
   if (loading) {
@@ -354,6 +419,14 @@ export function SolicitacaoList() {
             <strong>{solicitacoes.filter((s) => !statusFechado(s.status_atual)).length}</strong>
             <span>em acompanhamento</span>
           </div>
+          <div className={styles.heroStat}>
+            <strong style={{ color: '#dc2626' }}>{solicitacoes.filter((s) => s.status_sla === 'atrasada').length}</strong>
+            <span>atrasadas</span>
+          </div>
+          <div className={styles.heroStat}>
+            <strong style={{ color: '#d97706' }}>{solicitacoes.filter((s) => s.status_sla === 'vence_hoje').length}</strong>
+            <span>vence hoje</span>
+          </div>
         </div>
       </section>
 
@@ -400,6 +473,19 @@ export function SolicitacaoList() {
           ))}
         </select>
 
+        <select
+          className={styles.select}
+          value={filtros.status_sla}
+          onChange={(e) => setFiltro('status_sla', e.target.value)}
+        >
+          <option value="">Todos os SLA</option>
+          {Object.entries(STATUS_SLA_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+
         {temFiltros && (
           <button className={styles.clearButton} onClick={limparFiltros}>
             Limpar filtros
@@ -428,6 +514,7 @@ export function SolicitacaoList() {
                 <th>Tipo</th>
                 <th>Status</th>
                 <th>Prioridade</th>
+                <th>SLA</th>
                 <th>Ordem</th>
                 <th>Data</th>
                 <th></th>
@@ -468,6 +555,9 @@ export function SolicitacaoList() {
                     <PrioridadeBadge prioridade={solicitacao.prioridade} />
                   </td>
                   <td>
+                    <SlaBadge statusSla={solicitacao.status_sla} prazoSla={solicitacao.prazo_sla} />
+                  </td>
+                  <td>
                     {solicitacao.ordem_servico_id !== null ? (
                       <span className={styles.ordemBadge}>
                         OS #{solicitacao.ordem_servico_id}
@@ -494,9 +584,16 @@ Atualizar status
                           className={styles.gerarOrdemButton}
                           onClick={() => setGerandoOrdemPara(solicitacao.id)}
                         >
-Gerar OS
+ Gerar OS
                         </button>
                       )}
+                      <button
+                        className={styles.whatsappButton}
+                        onClick={() => handleWhatsApp(solicitacao)}
+                        title="Enviar mensagem via WhatsApp"
+                      >
+WhatsApp
+                      </button>
                     </div>
                   </td>
                 </tr>

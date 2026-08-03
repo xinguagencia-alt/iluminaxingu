@@ -8,6 +8,28 @@ import { SolicitacaoPublica } from '../SolicitacaoPublica/SolicitacaoPublica'
 import { API_URL } from '../../config/api'
 import styles from './RequestForm.module.css'
 
+function normalizarTelefone(telefone: string): string | null {
+  const apenasNumeros = telefone.replace(/\D/g, '')
+  if (apenasNumeros.length === 10 || apenasNumeros.length === 11) {
+    return `55${apenasNumeros}`
+  }
+  if (
+    (apenasNumeros.length === 12 || apenasNumeros.length === 13) &&
+    apenasNumeros.startsWith('55')
+  ) {
+    return apenasNumeros
+  }
+  return null
+}
+
+function montarMensagemProtocolo(nome: string, protocolo: string): string {
+  const nomeFormatado = nome.split(' ')[0]
+  return (
+    `Ola, ${nomeFormatado}. Sua solicitacao de iluminacao publica foi registrada no IluminaXingu. ` +
+    `Protocolo: ${protocolo}. Guarde este numero para acompanhar o andamento.`
+  )
+}
+
 const INITIAL_STATE: FormData = {
   nome: '',
   telefone: '',
@@ -35,6 +57,7 @@ export function RequestForm() {
   const [buscaProtocolo, setBuscaProtocolo] = useState('')
   const [protocoloBusca, setProtocoloBusca] = useState<string | null>(null)
   const [posteIdentificado, setPosteIdentificado] = useState<string | null>(null)
+  const [copyFeedback, setCopyFeedback] = useState(false)
   const { postes } = usePostes()
 
   useEffect(() => {
@@ -108,7 +131,7 @@ export function RequestForm() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
 
-  async function uploadFilePublico(file: File, solicitacaoId: number, protocolo: string): Promise<boolean> {
+  async function uploadFilePublico(file: File, solicitacaoId: number, protocolo: string): Promise<{ ok: boolean; error?: string }> {
     try {
       const formData = new FormData()
       formData.append('arquivo', file)
@@ -120,9 +143,13 @@ export function RequestForm() {
         body: formData,
       })
 
-      return response.ok
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        return { ok: false, error: data.error || 'Erro ao enviar arquivo' }
+      }
+      return { ok: true }
     } catch {
-      return false
+      return { ok: false, error: 'Erro de conexao ao enviar arquivo' }
     }
   }
 
@@ -174,11 +201,18 @@ export function RequestForm() {
 
       if (filesToUpload.length > 0) {
         setUploadingFiles(true)
+        const uploadErrors: string[] = []
         for (const file of filesToUpload) {
-          await uploadFilePublico(file, data.id, data.protocolo)
+          const result = await uploadFilePublico(file, data.id, data.protocolo)
+          if (!result.ok && result.error) {
+            uploadErrors.push(`${file.name}: ${result.error}`)
+          }
         }
         setUploadingFiles(false)
         setFilesToUpload([])
+        if (uploadErrors.length > 0) {
+          setSubmitError(`Solicitacao enviada, mas houve erro no upload:\n${uploadErrors.join('\n')}`)
+        }
       }
     } catch (err) {
       setSubmitError(
@@ -256,6 +290,29 @@ export function RequestForm() {
   }
 
   if (protocolo) {
+    const telefoneNormalizado = normalizarTelefone(formData.telefone)
+    const mensagem = montarMensagemProtocolo(formData.nome, protocolo)
+    const whatsappUrl = telefoneNormalizado
+      ? `https://wa.me/${telefoneNormalizado}?text=${encodeURIComponent(mensagem)}`
+      : null
+
+    async function handleCopiarMensagem() {
+      try {
+        await navigator.clipboard.writeText(mensagem)
+        setCopyFeedback(true)
+        setTimeout(() => setCopyFeedback(false), 2500)
+      } catch {
+        const textarea = document.createElement('textarea')
+        textarea.value = mensagem
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+        setCopyFeedback(true)
+        setTimeout(() => setCopyFeedback(false), 2500)
+      }
+    }
+
     return (
       <div className={styles.success}>
         <h2>Solicitacao Enviada!</h2>
@@ -269,6 +326,37 @@ export function RequestForm() {
         <p className={styles.info}>
 Guarde esse numero. Com ele, voce pode consultar o andamento sempre que precisar.
         </p>
+
+        <div className={styles.whatsappSection}>
+          {whatsappUrl ? (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.whatsappButton}
+            >
+              Enviar pelo WhatsApp
+            </a>
+          ) : (
+            <button
+              type="button"
+              className={styles.whatsappButton}
+              onClick={handleCopiarMensagem}
+            >
+              Copiar mensagem
+            </button>
+          )}
+          {whatsappUrl && (
+            <button
+              type="button"
+              className={styles.copyButton}
+              onClick={handleCopiarMensagem}
+            >
+              {copyFeedback ? 'Copiado!' : 'Copiar mensagem'}
+            </button>
+          )}
+        </div>
+
         <button
           className={styles.button}
           onClick={() => {
@@ -485,6 +573,11 @@ Atualizar GPS
           </select>
           {errors.tipoProblema && (
             <span className={styles.error}>{errors.tipoProblema}</span>
+          )}
+          {(formData.tipoProblema === 'risco_eletrico' || formData.tipoProblema === 'fio_exposto') && (
+            <span className={styles.prioridadeInfo}>
+              Casos com risco eletrico recebem prioridade urgente de atendimento.
+            </span>
           )}
         </div>
 

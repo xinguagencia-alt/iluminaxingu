@@ -1,5 +1,5 @@
 -- Migration: Adicionar endereco estruturado na tabela postes
--- Executar no banco Railway antes de redeployar
+-- Executar no banco Supabase/Postgres
 
 -- Adicionar colunas estruturadas
 ALTER TABLE postes ADD COLUMN IF NOT EXISTS rua VARCHAR(200);

@@ -1,8 +1,0 @@
-[build]
-builder = "NIXPACKS"
-buildCommand = "echo BUILD$(date +%s) && npm install --workspaces && npm --workspace @iluminaxingu/api run build && node scripts/write-build-info.mjs"
-
-[deploy]
-startCommand = "npm --workspace @iluminaxingu/api run start"
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10

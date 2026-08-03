@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { db } from '../../db.js'
 import { authMiddleware, requireRole } from '../auth/middleware.js'
 import { notificarStatusSolicitacao } from '../notificacoes/notificacoes.js'
+import { injectSla } from '../solicitacoes/sla.js'
 
 async function estoqueAtivo(): Promise<boolean> {
   try {
@@ -131,6 +132,7 @@ router.get('/:id/detalhe', async (req: Request, res: Response) => {
       `SELECT os.*, s.protocolo, s.tipo_problema, s.endereco_informado,
         s.nome_solicitante, s.telefone, s.email, s.descricao as solicitacao_descricao,
         s.codigo_poste_informado, s.poste_id, s.prioridade,
+        s.status_atual as solicitacao_status_atual, s.atualizado_em as solicitacao_atualizado_em,
         s.latitude as solicitacao_latitude, s.longitude as solicitacao_longitude,
         p.codigo as poste_codigo, p.endereco as poste_endereco,
         p.rua as poste_rua, p.numero as poste_numero, p.bairro as poste_bairro,
@@ -178,8 +180,14 @@ router.get('/:id/detalhe', async (req: Request, res: Response) => {
       itensUsados = itensResult.rows
     } catch { /* table may not exist yet */ }
 
+    const ordemComSla = injectSla({
+      ...ordemResult.rows[0],
+      status_atual: ordemResult.rows[0].solicitacao_status_atual,
+      atualizado_em: ordemResult.rows[0].solicitacao_atualizado_em,
+    })
+
     res.json({
-      ordem: ordemResult.rows[0],
+      ordem: ordemComSla,
       historico: historicoResult.rows,
       anexos: anexosResult.rows,
       itens_usados: itensUsados,
@@ -514,3 +522,4 @@ router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'ope
 })
 
 export default router
+

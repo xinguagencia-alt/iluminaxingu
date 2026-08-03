@@ -2,7 +2,7 @@ import { execSync } from 'child_process'
 import { mkdirSync, writeFileSync } from 'fs'
 
 function getCommitSha() {
-  if (process.env.RAILWAY_GIT_COMMIT_SHA) return process.env.RAILWAY_GIT_COMMIT_SHA.trim()
+  if (process.env.VERCEL_GIT_COMMIT_SHA) return process.env.VERCEL_GIT_COMMIT_SHA.trim()
   if (process.env.GIT_COMMIT_SHA) return process.env.GIT_COMMIT_SHA.trim()
 
   try {

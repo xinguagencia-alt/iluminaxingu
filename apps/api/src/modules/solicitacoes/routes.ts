@@ -3,6 +3,15 @@ import { db } from '../../db.js'
 import rateLimit from 'express-rate-limit'
 import { authMiddleware, requireRole } from '../auth/middleware.js'
 import { notificarStatusSolicitacao, notificarNovaSolicitacao } from '../notificacoes/notificacoes.js'
+import { calcularPrioridadeAutomatica } from './prioridade.js'
+import { injectSla } from './sla.js'
+import {
+  normalizarTelefone,
+  montarMensagemProtocolo,
+  montarMensagemStatus,
+  montarMensagemConclusao,
+  montarWhatsAppUrl,
+} from './whatsapp.js'
 
 const router = Router()
 
@@ -50,7 +59,7 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
        ORDER BY s.criado_em DESC`,
       values
     )
-    res.json(result.rows)
+    res.json(result.rows.map((row) => injectSla(row)))
   } catch (error) {
     console.error('Erro ao listar solicitacoes:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
@@ -65,7 +74,7 @@ router.get('/protocolo/:protocolo', authMiddleware, async (req: Request, res: Re
       res.status(404).json({ error: 'Solicitacao nao encontrada' })
       return
     }
-    res.json(result.rows[0])
+    res.json(injectSla(result.rows[0]))
   } catch (error) {
     console.error('Erro ao buscar solicitacao:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
@@ -111,7 +120,7 @@ router.get('/publica/:protocolo', publicGetLimiter, async (req: Request, res: Re
     )
 
     res.json({
-      solicitacao,
+      solicitacao: injectSla(solicitacao),
       historico: histResult.rows,
     })
   } catch (error) {
@@ -128,9 +137,57 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
       res.status(404).json({ error: 'Solicitacao nao encontrada' })
       return
     }
-    res.json(result.rows[0])
+    res.json(injectSla(result.rows[0]))
   } catch (error) {
     console.error('Erro ao buscar solicitacao:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
+router.get('/:id/mensagem-whatsapp', authMiddleware, async (req: Request, res: Response) => {
+  const { id } = req.params
+  const tipo = (req.query.tipo as string) || 'status'
+
+  const tiposAceitos = ['protocolo', 'status', 'concluida']
+  if (!tiposAceitos.includes(tipo)) {
+    res.status(400).json({ error: 'Tipo invalido. Use: protocolo, status ou concluida' })
+    return
+  }
+
+  try {
+    const result = await db.query(
+      'SELECT id, protocolo, nome_solicitante, telefone, status_atual FROM solicitacoes WHERE id = $1',
+      [id]
+    )
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Solicitacao nao encontrada' })
+      return
+    }
+
+    const sol = result.rows[0]
+    const telefoneNormalizado = normalizarTelefone(sol.telefone || '')
+
+    let mensagem: string
+    if (tipo === 'protocolo') {
+      mensagem = montarMensagemProtocolo(sol.nome_solicitante, sol.protocolo)
+    } else if (tipo === 'concluida') {
+      mensagem = montarMensagemConclusao(sol.nome_solicitante, sol.protocolo)
+    } else {
+      mensagem = montarMensagemStatus(sol.nome_solicitante, sol.protocolo, sol.status_atual)
+    }
+
+    const whatsappUrl = telefoneNormalizado
+      ? montarWhatsAppUrl(telefoneNormalizado, mensagem)
+      : null
+
+    res.json({
+      mensagem,
+      telefone_normalizado: telefoneNormalizado,
+      whatsapp_url: whatsappUrl,
+    })
+  } catch (error) {
+    console.error('Erro ao gerar mensagem WhatsApp:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
   }
 })
@@ -242,12 +299,14 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
       }
     }
 
+    const prioridade = await calcularPrioridadeAutomatica(tipo_problema, poste_id, codigo_poste_final)
+
     const result = await db.query(
       `INSERT INTO solicitacoes (
         protocolo, nome_solicitante, telefone, email,
         poste_id, codigo_poste_informado, endereco_informado, latitude, longitude,
-        tipo_problema, descricao, consentimento_lgpd, auto_identificado
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        tipo_problema, descricao, prioridade, consentimento_lgpd, auto_identificado
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *`,
       [
         protocolo,
@@ -261,6 +320,7 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
         longitude != null ? Number(longitude) : null,
         tipo_problema,
         descricao || null,
+        prioridade,
         Boolean(consentimento_lgpd),
         auto_identificado,
       ]
@@ -280,7 +340,7 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     }).catch((err) => console.error('Falha ao enviar notificacao para admin:', err))
 
     res.status(201).json({
-      ...result.rows[0],
+      ...injectSla(result.rows[0]),
       auto_identificado,
     })
   } catch (error) {

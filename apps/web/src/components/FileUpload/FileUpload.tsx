@@ -18,8 +18,8 @@ export function FileUpload({ onUpload, uploading, disabled }: FileUploadProps) {
 
     setError(null)
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Arquivo muito grande (maximo 10MB)')
+    if (file.size > 4 * 1024 * 1024) {
+      setError('Arquivo muito grande (maximo 4MB)')
       return
     }
 

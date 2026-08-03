@@ -7,6 +7,7 @@ export interface Filtros {
   status: string
   prioridade: string
   busca: string
+  status_sla: string
 }
 
 interface UseSolicitacoesResult {
@@ -25,6 +26,7 @@ const FILTROS_INICIAIS: Filtros = {
   status: '',
   prioridade: '',
   busca: '',
+  status_sla: '',
 }
 
 export function useSolicitacoes(): UseSolicitacoesResult {
@@ -56,7 +58,10 @@ export function useSolicitacoes(): UseSolicitacoesResult {
       }
 
       const data = await response.json()
-      setSolicitacoes(data)
+      const filtrados = filtrosAtuais.status_sla
+        ? data.filter((s: Solicitacao) => s.status_sla === filtrosAtuais.status_sla)
+        : data
+      setSolicitacoes(filtrados)
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Erro ao conectar com o servidor'

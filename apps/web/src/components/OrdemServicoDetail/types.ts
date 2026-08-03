@@ -34,6 +34,9 @@ export interface OrdemServicoDetalhe {
   poste_latitude: number | null
   poste_longitude: number | null
   prioridade: string
+  prazo_sla: string | null
+  status_sla: string | null
+  horas_restantes: number | null
 }
 
 export interface StatusLog {

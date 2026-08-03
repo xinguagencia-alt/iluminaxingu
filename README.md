@@ -1,59 +1,37 @@
 # IluminaXingu
 
-Base inicial do projeto MVP do IluminaXingu.
+Sistema de gestao de iluminacao publica para o municipio de Xinguara-PA.
 
-## Stack escolhida
+## Stack
 
-- `apps/web`: React + Vite + TypeScript
-- `apps/api`: Node.js + Express + TypeScript
-- banco de dados: PostgreSQL + PostGIS
-- mapas: OpenStreetMap + Leaflet
-- armazenamento de arquivos: MinIO ou armazenamento local
-- notificacoes: e-mail e web push
+- **Frontend:** React + Vite + TypeScript
+- **API:** Node.js + Express + TypeScript (Vercel Serverless)
+- **Banco:** PostgreSQL + PostGIS (Supabase)
+- **Mapas:** OpenStreetMap + Leaflet
+- **Armazenamento:** Banco PostgreSQL (BYTEA para anexos)
 
 ## Regra do projeto
 
-Sempre priorizar ferramentas free/open source no MVP. Se uma integracao paga for considerada no futuro, ela deve ficar fora da primeira entrega e ser tratada como opcional.
+Sempre priorizar ferramentas free/open source no MVP.
 
 ## Estrutura
 
-```text
-apps/
-  api/
-  web/
+```
+iluminaxingu/
+|-- apps/
+|   |-- web/          # Frontend React + Vite
+|   `-- api/          # Backend Express + PostgreSQL
+|-- deploy/
+|   `-- api/          # Build standalone para Vercel
+|-- scripts/          # SQL migrations e seeds
 ```
 
-## Scripts
+## Variaveis de Ambiente
 
-```bash
-npm install
-npm run dev:api
-npm run dev:web
-```
-
-## Proximo passo recomendado
-
-1. Subir as dependencias.
-2. Implementar banco PostgreSQL com PostGIS.
-3. Criar os modulos iniciais de `solicitacoes`, `postes` e `ordens_servico`.
-4. Ligar o formulario do portal ao endpoint da API.
-5. Integrar o mapa com OpenStreetMap/Leaflet.
-
-## Uso com Antigravity e Mimo v2.5 free
-
-Esta base foi preparada para voces iterarem por modulos pequenos. A melhor sequencia e:
-
-1. gerar ou ajustar codigo por feature pequena;
-2. validar no navegador e na API local;
-3. consolidar no repositorio antes da proxima feature.
-# IluminaXingu
-
-## Variaveis de ambiente
-
-Crie um arquivo `.env` na raiz do projeto com pelo menos:
+### Local (.env na raiz)
 
 ```env
-JWT_SECRET=troque-este-segredo-em-local
+JWT_SECRET=seu-segredo-aqui
 DB_USER=iluminaxingu
 DB_PASSWORD=iluminaxingu
 DB_HOST=localhost
@@ -62,8 +40,73 @@ DB_NAME=iluminaxingu
 CORS_ORIGIN=http://localhost:3000
 ```
 
+### Producao (Vercel)
+
+**Frontend:**
+- `VITE_API_URL` - URL da API (ex: `https://iluminaxingu-api.vercel.app`)
+
+**API:**
+- `DATABASE_URL` - URL de conexao do Supabase
+- `JWT_SECRET` - Chave secreta para JWT
+- `CORS_ORIGIN` - `https://iluminaxingu.vercel.app`
+- `NODE_ENV` - `production`
+
+> **Importante:** Nao exponha DATABASE_URL, SUPABASE_SERVICE_ROLE_KEY ou 
+> qualquer segredo no frontend.
+
+## Limites de Upload
+
+| Configuracao | Valor |
+|--------------|-------|
+| Tamanho maximo por arquivo | 4MB |
+| Tipos permitidos | JPEG, PNG, GIF, WebP, PDF, DOC, DOCX, TXT |
+
+> O limite foi reduzido de 10MB para 4MB devido ao timeout do Vercel Serverless.
+
+## Scripts
+
+```bash
+# Instalar dependencias
+npm install
+
+# Rodar API localmente
+npm run dev:api
+
+# Rodar Frontend localmente
+npm run dev:web
+
+# Banco de dados (Docker)
+docker-compose up -d
+```
+
+## Deploy
+
+Consulte o arquivo `DEPLOY-GUIDE.md` para instrucoes detalhadas.
+
+### URLs de Producao
+- **Frontend:** https://iluminaxingu.vercel.app
+- **API:** https://iluminaxingu-api.vercel.app
+- **Banco:** Supabase (plano gratuito)
+
+### Custos
+
+| Servico | Plano | Custo |
+|---------|-------|-------|
+| Vercel (Frontend) | Hobby | $0/mes |
+| Vercel (API) | Hobby | $0/mes |
+| Supabase | Free | $0/mes |
+| **Total** | | **$0/mes** |
+
+## Seguranca
+
+- O endpoint `/api/auth/seed` **NAO deve ser usado em producao**
+- O usuario admin foi criado via bootstrap no primeiro deploy
+- Para criar novos usuarios admin, use o painel administrativo
+- Troque a senha padrao (`admin123!`) antes de usar em producao
+
 ## Autenticacao
 
-O seed de administrador deve ser usado apenas em desenvolvimento ou homologacao interna. Em producao, o primeiro usuario admin deve ser criado por um fluxo controlado pela equipe responsavel.
+O seed de administrador deve ser usado apenas em desenvolvimento. Em producao, o primeiro usuario admin e criado por um fluxo controlado.
 
-rebuild 06/27/2026 14:25:11
+---
+**Ultima atualizacao:** 30/07/2026

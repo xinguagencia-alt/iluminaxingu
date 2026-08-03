@@ -1,4 +1,4 @@
-import { StatusSolicitacao, PrioridadeSolicitacao } from '../SolicitacaoList/types'
+import { StatusSolicitacao, PrioridadeSolicitacao, StatusSla } from '../SolicitacaoList/types'
 import { StatusOrdemServico } from '../OrdemServicoList/types'
 
 export interface SolicitacaoPublica {
@@ -14,6 +14,9 @@ export interface SolicitacaoPublica {
   os_status: StatusOrdemServico | null
   os_data_abertura: string | null
   os_data_encerramento: string | null
+  prazo_sla: string
+  status_sla: StatusSla
+  horas_restantes: number | null
 }
 
 export interface StatusLogPublico {

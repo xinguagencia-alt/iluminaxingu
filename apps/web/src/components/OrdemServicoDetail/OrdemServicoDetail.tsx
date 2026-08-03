@@ -6,7 +6,7 @@ import {
   STATUS_ORDEM_COLORS,
   STATUS_ORDEM_LABELS,
 } from '../OrdemServicoList/types'
-import { STATUS_LABELS, STATUS_COLORS, TIPOS_PROBLEMA, type StatusSolicitacao } from '../SolicitacaoList/types'
+import { STATUS_LABELS, STATUS_COLORS, STATUS_SLA_LABELS, STATUS_SLA_COLORS, TIPOS_PROBLEMA, type StatusSolicitacao, type StatusSla } from '../SolicitacaoList/types'
 import { FileUpload } from '../FileUpload/FileUpload'
 import { PosteForm } from '../PosteForm/PosteForm'
 import { API_URL } from '../../config/api'
@@ -358,6 +358,22 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
             <span className={styles.infoLabel}>Prioridade</span>
             <span className={styles.infoValue}>{ordem.prioridade || 'Média'}</span>
           </div>
+          {ordem.status_sla && (
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>SLA</span>
+              <span
+                className={styles.badge}
+                style={{ backgroundColor: STATUS_SLA_COLORS[ordem.status_sla as StatusSla] || '#64748b' }}
+              >
+                {STATUS_SLA_LABELS[ordem.status_sla as StatusSla] || ordem.status_sla}
+              </span>
+              {ordem.prazo_sla && (
+                <span className={styles.infoValue} style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+                  Prazo: {formatDate(ordem.prazo_sla)}
+                </span>
+              )}
+            </div>
+          )}
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>Endereço</span>
             <span className={styles.infoValue}>{ordem.endereco_informado || '-'}</span>
