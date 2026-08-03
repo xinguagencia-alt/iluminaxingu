@@ -240,11 +240,138 @@ docker-compose up -d
 ### Pontos Fortes do Sistema
 
 - Portal publico acessivel para qualquer cidadao
-- Dashboard executivo com visao consolidada da gestão
+- Dashboard executivo com visao consolidada da gestao
 - Prioridade automatica elimina subjetividade
 - SLA rastreavel por solicitacao
 - Notificacao via WhatsApp (canal usado pela populacao)
 - Controle de acesso por perfis (admin, gestor, operador, consulta)
 - Deploy automatizado (Vercel + Supabase)
 - Codigo fonte documentado e versionado
+
+---
+
+## Roteiro de Demonstracao ao Prefeito
+
+**Duracao estimada:** 15-20 minutos
+
+### 1. Portal Publico (3 min)
+
+**URL:** https://iluminaxingu.vercel.app
+
+Mostrar como o cidadao acessa o sistema:
+- Tela inicial limpa e objetiva
+- Formulario deolicitacao com campos claros
+- Selecao de localizacao no mapa (opcional)
+- Upload de foto do problema (ate 4MB)
+- Mensagem de erro amigavel para arquivo grande
+- Consentimento LGPD visivel
+
+**Acao ao vivo:** Criar uma solicitacao de teste com:
+- Nome: cidadao ficticio
+- Telefone: numero ficticio
+- Tipo: lampada apagada
+- Endereco: rua real de Xinguara
+
+**Resultado:** Gerar protocolo e mostrar tela de confirmacao com opcao de WhatsApp.
+
+### 2. Consulta por Protocolo (2 min)
+
+**URL:** https://iluminaxingu.vercel.app
+
+Mostrar como o cidadao acompanha:
+- Campo de busca por protocolo
+- Exibicao do status atual
+- Historico de mudancas
+- Informacao de SLA e prazo estimado
+
+### 3. Painel da Prefeitura (5 min)
+
+**URL:** https://iluminaxingu.vercel.app/prefeitura
+
+**Login:** admin / admin123!
+
+Mostrar o painel administrativo:
+- Tela de login segura
+- Dashboard com indicadores visuais
+- KPIs: total, abertas, em atendimento, concluidas, atrasadas
+- Graficos: solicitacoes por bairro, por tipo, por status
+- Visao geral do SLA (barra visual)
+
+### 4. Gestao de Solicitacoes (3 min)
+
+Na lista de solicitacoes:
+- Filtros por status, prioridade, SLA
+- Badges de prioridade automatica (urgente, alta, media, baixa)
+- Badges de SLA (dentro do prazo, vence hoje, atrasada)
+- Botao WhatsApp para notificar cidadao
+- Botao "Gerar OS" para criar ordem de servico
+
+**Mostrar solicitacao urgente:** Explicar que o sistema automaticamente classificou como urgente por ser risco eletrico.
+
+### 5. Ordem de Servico (2 min)
+
+Mostrar ordem de servico ja criada:
+- Vinculacao com solicitacao
+- Equipe responsavel
+- Status da ordem
+- Timeline de execucao
+
+### 6. Dashboard Executivo (3 min)
+
+**URL:** https://iluminaxingu-api.vercel.app/api/dashboard/resumo
+
+Ou acessar pelo painel em /prefeitura > Dashboard.
+
+Mostrar indicadores consolidados:
+- Total de solicitacoes e taxa de conclusao
+- Solicitacoes por prioridade
+- SLA geral (dentro do prazo, vence hoje, atrasada)
+- Postes ativos por bairro
+- Solicitacoes urgentes com prazo
+
+### 7. Recursos Tecnicos (2 min)
+
+Mencionar para a equipe tecnica:
+- Prioridade automatica por tipo de problema
+- SLA calculado por prioridade (urgente: 24h, alta: 48h, media: 5 dias, baixa: 10 dias)
+- Notificacao via WhatsApp
+- Controle de acesso por perfis
+- Deploy automatizado Vercel + Supabase
+- Custo zero (plano gratuito)
+
+---
+
+## Dados de Demonstracao
+
+### Solicitacoes Cadastradas
+
+| ID | Protocolo | Solicitante | Tipo | Prioridade | Status | Bairro |
+|----|-----------|-------------|------|------------|--------|--------|
+| 1 | ILX20260730-UF7V78 | Paulo Silva | Risco eletrico | Urgente | Concluida | Centro |
+| 2 | ILX20260730-7Y4M0K | Teste iPhone | Lampada apagada | Media | Enviada | Centro |
+| 3 | ILX20260730-SI19K8 | Teste Validacao | Lampada apagada | Media | Enviada | - |
+| 4 | ILX20260803-4VL3BI | Maria Fernanda | Risco eletrico | Urgente | Enviada | Centro |
+| 5 | ILX20260803-TZY9WS | Joao Pedro | Lampada apagada | Media | Concluida | Atalaia |
+| 6 | ILX20260803-EC5EDV | Ana Beatriz | Lampada piscando | Media | Enviada | Jardim Novo Planalto |
+| 7 | ILX20260803-HKMLOT | Roberto Carlos | Poste danificado | Alta | Em execucao | Primavera |
+| 8 | ILX20260803-IEB0U0 | Luciana Ferreira | Fio exposto | Urgente | Em manutencao | Minerador |
+| 9 | ILX20260803-1UR5RL | Carlos Eduardo | Risco eletrico | Urgente | Enviada | Montenegro |
+| 10 | ILX20260803-5LRN9E | Fernanda Oliveira | Lampada apagada | Media | Em analise | Bela Vista |
+| 11 | ILX20260803-VFHMBL | Pedro Henrique | Poste danificado | Alta | Enviada | Aeroporto |
+
+### Ordens de Servico
+
+| ID | Solicitacao | Equipe | Status |
+|----|-------------|--------|--------|
+| 1 | Paulo Silva (ILX...UF7V78) | Hugo Bruno | Concluida |
+| 2 | Roberto Carlos (ILX...HKMLOT) | Equipe Alpha | Aberta |
+| 3 | Luciana Ferreira (ILX...IEB0U0) | Equipe Beta | Aberta |
+
+### Cenarios Importantes
+
+- **Urgente:** Solicitacoes 1, 4, 8, 9 (risco eletrico / fio exposto)
+- **Alta:** Solicitacoes 7, 11 (poste danificado)
+- **Em atendimento:** Solicitacoes 7, 8 (em_execucao / em_manutencao)
+- **Concluida:** Solicitacoes 1, 5
+- **Com OS:** Solicitacoes 1, 7, 8
 
