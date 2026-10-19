@@ -44,13 +44,20 @@ export function createApp() {
     let columns: string[] = []
     let bairrosColumns: string[] = []
     let postesColumns: string[] = []
+    let dbStatus = 'ok'
+    let dbMessage: string | undefined
+    const checkedAt = new Date().toISOString()
     try {
+      await db.query('SELECT 1')
       const result = await db.query(
         `SELECT column_name FROM information_schema.columns
          WHERE table_name = 'solicitacoes' ORDER BY ordinal_position`
       )
       columns = result.rows.map((r: { column_name: string }) => r.column_name)
-    } catch { /* ignore */ }
+    } catch (err: unknown) {
+      dbStatus = 'error'
+      dbMessage = err instanceof Error ? err.message : 'Erro desconhecido ao conectar ao banco'
+    }
     try {
       const result = await db.query(
         `SELECT column_name FROM information_schema.columns
@@ -71,6 +78,11 @@ export function createApp() {
       service: 'iluminaxingu-api',
       deploy: 'v15-vercel',
       started_at: serverStartedAt,
+      database: {
+        status: dbStatus,
+        checked_at: checkedAt,
+        ...(dbMessage ? { message: dbMessage } : {}),
+      },
       modules: ['solicitacoes', 'postes', 'ordens_servico', 'equipes', 'bairros', 'ruas', 'anexos', 'auditoria', 'export', 'estoque', 'dashboard'],
       solicitacoes_columns: columns,
       bairros_columns: bairrosColumns,

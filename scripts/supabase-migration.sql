@@ -50,13 +50,19 @@ CREATE TABLE IF NOT EXISTS solicitacoes (
   origem_canal VARCHAR(30) DEFAULT 'web',
   consentimento_lgpd BOOLEAN DEFAULT FALSE,
   auto_identificado BOOLEAN DEFAULT FALSE,
+  client_request_id VARCHAR(64),
   criado_em TIMESTAMP DEFAULT NOW(),
   atualizado_em TIMESTAMP DEFAULT NOW()
 );
 
+ALTER TABLE solicitacoes ADD COLUMN IF NOT EXISTS client_request_id VARCHAR(64);
+
 CREATE INDEX IF NOT EXISTS idx_solicitacoes_protocolo ON solicitacoes (protocolo);
 CREATE INDEX IF NOT EXISTS idx_solicitacoes_status ON solicitacoes (status_atual);
 CREATE INDEX IF NOT EXISTS idx_solicitacoes_geom ON solicitacoes USING GIST (geom);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_solicitacoes_client_request_id
+  ON solicitacoes (client_request_id)
+  WHERE client_request_id IS NOT NULL;
 
 -- Tabela de logs de status
 CREATE TABLE IF NOT EXISTS status_logs (

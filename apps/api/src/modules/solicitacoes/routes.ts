@@ -205,6 +205,7 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     tipo_problema,
     descricao,
     consentimento_lgpd,
+    client_request_id,
   } = req.body
 
   if (!nome_solicitante || !tipo_problema) {
@@ -226,7 +227,32 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     return
   }
 
+  let clientRequestId: string | null = null
+  if (client_request_id !== undefined && client_request_id !== null && client_request_id !== '') {
+    if (typeof client_request_id !== 'string') {
+      res.status(400).json({ error: 'client_request_id invalido' })
+      return
+    }
+    const clientRequestIdTrimmed = client_request_id.trim()
+    if (clientRequestIdTrimmed.length < 8 || clientRequestIdTrimmed.length > 64) {
+      res.status(400).json({ error: 'client_request_id deve ter entre 8 e 64 caracteres' })
+      return
+    }
+    clientRequestId = clientRequestIdTrimmed
+  }
+
   try {
+    if (clientRequestId) {
+      const existente = await db.query(
+        'SELECT * FROM solicitacoes WHERE client_request_id = $1',
+        [clientRequestId]
+      )
+      if (existente.rows.length > 0) {
+        res.status(200).json(injectSla(existente.rows[0]))
+        return
+      }
+    }
+
     const now = new Date()
     const datePart = now.toISOString().slice(0, 10).replace(/-/g, '')
     const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -301,29 +327,49 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
 
     const prioridade = await calcularPrioridadeAutomatica(tipo_problema, poste_id, codigo_poste_final)
 
+    const colunas = [
+      'protocolo',
+      'nome_solicitante',
+      'telefone',
+      'email',
+      'poste_id',
+      'codigo_poste_informado',
+      'endereco_informado',
+      'latitude',
+      'longitude',
+      'tipo_problema',
+      'descricao',
+      'prioridade',
+      'consentimento_lgpd',
+      'auto_identificado',
+    ]
+    const valores: unknown[] = [
+      protocolo,
+      nome_solicitante,
+      telefone,
+      email || null,
+      poste_id,
+      codigo_poste_final,
+      endereco_informado || null,
+      latitude != null ? Number(latitude) : null,
+      longitude != null ? Number(longitude) : null,
+      tipo_problema,
+      descricao || null,
+      prioridade,
+      Boolean(consentimento_lgpd),
+      auto_identificado,
+    ]
+
+    if (clientRequestId) {
+      colunas.push('client_request_id')
+      valores.push(clientRequestId)
+    }
+
     const result = await db.query(
-      `INSERT INTO solicitacoes (
-        protocolo, nome_solicitante, telefone, email,
-        poste_id, codigo_poste_informado, endereco_informado, latitude, longitude,
-        tipo_problema, descricao, prioridade, consentimento_lgpd, auto_identificado
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-      RETURNING *`,
-      [
-        protocolo,
-        nome_solicitante,
-        telefone,
-        email || null,
-        poste_id,
-        codigo_poste_final,
-        endereco_informado || null,
-        latitude != null ? Number(latitude) : null,
-        longitude != null ? Number(longitude) : null,
-        tipo_problema,
-        descricao || null,
-        prioridade,
-        Boolean(consentimento_lgpd),
-        auto_identificado,
-      ]
+      `INSERT INTO solicitacoes (${colunas.join(', ')})
+       VALUES (${valores.map((_, index) => `$${index + 1}`).join(', ')})
+       RETURNING *`,
+      valores
     )
 
     await db.query(
@@ -344,6 +390,30 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
       auto_identificado,
     })
   } catch (error) {
+    const codigoPostgres =
+      typeof error === 'object' && error !== null && 'code' in error
+        ? String((error as { code?: unknown }).code ?? '')
+        : ''
+    const restricao =
+      typeof error === 'object' && error !== null && 'constraint' in error
+        ? String((error as { constraint?: unknown }).constraint ?? '')
+        : ''
+
+    if (clientRequestId && codigoPostgres === '23505' && restricao.includes('client_request_id')) {
+      try {
+        const existente = await db.query(
+          'SELECT * FROM solicitacoes WHERE client_request_id = $1',
+          [clientRequestId]
+        )
+        if (existente.rows.length > 0) {
+          res.status(200).json(injectSla(existente.rows[0]))
+          return
+        }
+      } catch (lookupError) {
+        console.error('Erro ao recuperar solicitacao duplicada:', lookupError)
+      }
+    }
+
     console.error('Erro ao criar solicitacao:', error)
     const detail = error instanceof Error ? error.message : String(error)
     console.error('[SOLICITACAO] Detalhe:', detail)

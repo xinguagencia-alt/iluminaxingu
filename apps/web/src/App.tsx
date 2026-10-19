@@ -18,6 +18,8 @@ import { AdminPanel } from './components/AdminPanel/AdminPanel'
 import { MapaPostes } from './components/MapaPostes/MapaPostes'
 import { PostesReparadosList } from './components/PostesReparadosList/PostesReparadosList'
 import { StockAdmin } from './components/StockAdmin/StockAdmin'
+import { PendingLocal } from './components/PendingLocal/PendingLocal'
+import { useOfflineQueue } from './offline/useOfflineQueue'
 
 type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'postes-editar' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema' | 'mapa' | 'reparos' | 'estoque'
 
@@ -113,6 +115,18 @@ function AppBrand({
 
 function PublicLayout() {
   const [currentPage, setCurrentPage] = useState<'home' | 'consultar'>('home')
+  const [pendentesAberto, setPendentesAberto] = useState(false)
+  const {
+    pendentes,
+    total,
+    remover,
+    sincronizando,
+    progresso,
+    resultados,
+    errosSync,
+    sincronizarAgora,
+    limparResultados,
+  } = useOfflineQueue()
 
   return (
     <div className="app">
@@ -142,6 +156,38 @@ function PublicLayout() {
         </nav>
       </header>
       <div className="navHint">Escolha entre abrir um novo pedido ou consultar um protocolo já existente.</div>
+      {total > 0 && (
+        <button
+          type="button"
+          className="offlineBanner"
+          onClick={() => setPendentesAberto(true)}
+        >
+          📡 {total} solicitação{total > 1 ? 'ões' : ''} salva{total > 1 ? 's' : ''} neste aparelho
+          {sincronizando
+            ? progresso && progresso.total > 0
+              ? ` — sincronizando ${progresso.atual}/${progresso.total}`
+              : ' — sincronizando…'
+            : ' aguardando conexão — toque para ver'}
+        </button>
+      )}
+      {resultados.length > 0 && (
+        <div className="syncNotice" role="status" aria-live="polite">
+          <span>
+            ✅ {resultados.length === 1
+              ? 'Solicitação sincronizada com protocolo'
+              : `${resultados.length} solicitações sincronizadas com protocolos`}:{' '}
+            {resultados.map((r) => r.protocolo).join(' · ')}
+          </span>
+          <button
+            type="button"
+            className="syncNoticeClose"
+            onClick={limparResultados}
+            aria-label="Fechar aviso de sincronizacao"
+          >
+            ×
+          </button>
+        </div>
+      )}
       <main className="main">
         {currentPage === 'home' && <RequestForm />}
         {currentPage === 'consultar' && (
@@ -151,6 +197,18 @@ function PublicLayout() {
       <footer className="footer">
         <img src="/logo.png" alt="Xingu Marketing & Publicidade" className="footerLogo" />
       </footer>
+      {pendentesAberto && (
+        <PendingLocal
+          pendentes={pendentes}
+          onRemover={remover}
+          onFechar={() => setPendentesAberto(false)}
+          sincronizando={sincronizando}
+          progresso={progresso}
+          resultados={resultados}
+          errosSync={errosSync}
+          onSincronizar={sincronizarAgora}
+        />
+      )}
     </div>
   )
 }

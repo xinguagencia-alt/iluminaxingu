@@ -33,6 +33,17 @@ export async function ensureDatabaseSchema() {
   ).catch(() => {})
 
   await db.query(
+    `ALTER TABLE solicitacoes
+      ADD COLUMN IF NOT EXISTS client_request_id VARCHAR(64)`
+  ).catch(() => {})
+
+  await db.query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS idx_solicitacoes_client_request_id
+      ON solicitacoes (client_request_id)
+      WHERE client_request_id IS NOT NULL`
+  ).catch(() => {})
+
+  await db.query(
     `ALTER TABLE ordens_servico
       ADD COLUMN IF NOT EXISTS material_utilizado TEXT`
   ).catch(() => {})

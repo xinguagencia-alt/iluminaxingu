@@ -6,7 +6,25 @@ import { usePostes } from '../../hooks/usePostes'
 import { FileUpload } from '../FileUpload/FileUpload'
 import { SolicitacaoPublica } from '../SolicitacaoPublica/SolicitacaoPublica'
 import { API_URL } from '../../config/api'
+import { enfileirarSolicitacao } from '../../offline/queue'
+import type { SolicitacaoPayload } from '../../offline/types'
 import styles from './RequestForm.module.css'
+
+class ErroHttp extends Error {
+  status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'ErroHttp'
+    this.status = status
+  }
+}
+
+interface SalvoOffline {
+  anexosSalvos: number
+  anexosDescartados: boolean
+}
+
 
 function normalizarTelefone(telefone: string): string | null {
   const apenasNumeros = telefone.replace(/\D/g, '')
@@ -58,6 +76,7 @@ export function RequestForm() {
   const [protocoloBusca, setProtocoloBusca] = useState<string | null>(null)
   const [posteIdentificado, setPosteIdentificado] = useState<string | null>(null)
   const [copyFeedback, setCopyFeedback] = useState(false)
+  const [salvoOffline, setSalvoOffline] = useState<SalvoOffline | null>(null)
   const { postes } = usePostes()
 
   useEffect(() => {
@@ -166,30 +185,60 @@ export function RequestForm() {
     setSubmitting(true)
     setSubmitError(null)
 
+    const payload: SolicitacaoPayload = {
+      nome_solicitante: formData.nome.trim(),
+      telefone: formData.telefone.trim(),
+      email: formData.email.trim() || null,
+      codigo_poste: formData.codigoPoste.trim() || null,
+      poste_id: formData.posteId,
+      endereco_informado: formData.enderecoManual.trim() || null,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      tipo_problema: formData.tipoProblema,
+      descricao: formData.descricao.trim() || null,
+      consentimento_lgpd: formData.consentimentoLgpd,
+    }
+
+    // 1) POST: falha real de rede (fetch nao retorna) => salva localmente
+    let response: Response
     try {
-      const response = await fetch(`${API_URL}/api/solicitacoes`, {
+      response = await fetch(`${API_URL}/api/solicitacoes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          nome_solicitante: formData.nome.trim(),
-          telefone: formData.telefone.trim(),
-          email: formData.email.trim() || null,
-          codigo_poste: formData.codigoPoste.trim() || null,
-          poste_id: formData.posteId,
-          endereco_informado: formData.enderecoManual.trim() || null,
-          latitude: formData.latitude,
-          longitude: formData.longitude,
-          tipo_problema: formData.tipoProblema,
-          descricao: formData.descricao.trim() || null,
-          consentimento_lgpd: formData.consentimentoLgpd,
-        }),
+        body: JSON.stringify(payload),
       })
+    } catch (err) {
+      const motivo =
+        err instanceof Error && err.name === 'AbortError'
+          ? 'Tempo esgotado ao enviar'
+          : 'Sem conexao com o servidor'
+      try {
+        const resultado = await enfileirarSolicitacao(payload, filesToUpload)
+        setFilesToUpload([])
+        setSalvoOffline({
+          anexosSalvos: resultado.anexos_salvos,
+          anexosDescartados: resultado.anexos_descartados,
+        })
+      } catch {
+        setSubmitError(
+          `${motivo} e nao foi possivel salvar a solicitacao neste aparelho. Verifique o espaco disponivel e tente novamente.`
+        )
+      }
+      setSubmitting(false)
+      return
+    }
 
+    // 2) Resposta HTTP recebida: fluxo online inalterado.
+    //    Erros 4xx/5xx NAO sao enfileirados (validacao/rejeicao do servidor).
+    try {
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Erro ao enviar solicitacao')
+        const data = await response.json().catch(() => ({}))
+        throw new ErroHttp(
+          data.error || 'Erro ao enviar solicitacao',
+          response.status
+        )
       }
 
       const data = await response.json()
@@ -286,6 +335,46 @@ export function RequestForm() {
         initialProtocolo={protocoloBusca}
         onVoltar={() => setProtocoloBusca(null)}
       />
+    )
+  }
+
+  if (salvoOffline) {
+    return (
+      <div className={styles.success}>
+        <h2>Solicitação Salva!</h2>
+        <p className={styles.info}>
+          Solicitação salva neste aparelho e aguardando conexão.
+        </p>
+        <p className={styles.info}>
+          Quando houver internet e você abrir o portal novamente, o envio será
+          feito automaticamente e o <strong>protocolo oficial será gerado pelo
+          sistema</strong> nesse momento. Guarde este aparelho.
+        </p>
+        {salvoOffline.anexosSalvos > 0 && !salvoOffline.anexosDescartados && (
+          <p className={styles.autoIdentificado}>
+            {salvoOffline.anexosSalvos} anexo(s) guardado(s) junto com a
+            solicitação.
+          </p>
+        )}
+        {salvoOffline.anexosDescartados && (
+          <p className={styles.autoIdentificado}>
+            A solicitação foi salva, mas os anexos não puderam ser guardados
+            pelo aparelho (espaço indisponível).
+          </p>
+        )}
+
+        <button
+          className={styles.button}
+          onClick={() => {
+            setSalvoOffline(null)
+            setPosteIdentificado(null)
+            setSubmitError(null)
+            setFormData(INITIAL_STATE)
+          }}
+        >
+          Nova Solicitação
+        </button>
+      </div>
     )
   }
 
