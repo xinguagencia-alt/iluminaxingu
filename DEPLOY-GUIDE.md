@@ -96,6 +96,36 @@
 3. Cole o conteúdo do arquivo `scripts/supabase-migration.sql`
 4. Clique em "Run" para criar todas as tabelas
 
+### 2.1 Migration de Segurança (RLS + Grants + Índices) — APLICADA EM PRODUÇÃO
+
+A migration `scripts/migration-rls-etapa-a-b1.sql` foi **aplicada e validada diretamente no projeto de produção do Supabase** em 2026-10-23. Ela é idempotente e pode ser reaplicada com segurança, mas **toda reaplicação exige teste completo das rotas da API em seguida**.
+
+O que ela faz:
+
+- Corrige a função `public.update_timestamp` com `SET search_path = pg_catalog` (corrige alerta de search_path mutável; não usa `SECURITY DEFINER`).
+- Habilita **Row Level Security (RLS)** nas 14 tabelas da aplicação: `admin_users`, `solicitacoes`, `status_logs`, `ordens_servico`, `equipes`, `anexos`, `auditoria`, `bairros`, `ruas`, `configuracao_estoque`, `itens_estoque`, `movimentacoes_estoque`, `itens_usados_os`, `postes`.
+- Executa `REVOKE ALL ... FROM anon, authenticated` nessas tabelas e nas sequências correspondentes (bloqueia acesso direto via PostgREST/anon key).
+- Cria 6 índices de chaves estrangeiras ausentes: `solicitacoes(poste_id)`, `ordens_servico(equipe_id)`, `anexos(ordem_servico_id)`, `movimentacoes_estoque(item_id)`, `movimentacoes_estoque(os_id)`, `itens_usados_os(item_id)`.
+- **Não** contém `DROP`, `DELETE` ou alteração de dados.
+- **Não** altera `spatial_ref_sys`, `geometry_columns`, `geography_columns` nem funções PostGIS — esses objetos do PostGIS **não devem ser alterados automaticamente**.
+- **Não** cria policies RLS: a API usa a role `postgres` com atributo `BYPASSRLS`, então o acesso legítimo da aplicação continua funcionando sem policies.
+
+Arquitetura de acesso resultante:
+
+- O **frontend nunca fala com o Supabase diretamente**. O acesso público (portal do munícipe) e o acesso administrativo ocorrem **exclusivamente pela API Express**, que se conecta ao PostgreSQL com a role `postgres` (`BYPASSRLS`).
+- O RLS ativo + ausência de policies nega qualquer leitura/escrita direta por `anon` ou `authenticated` via PostgREST, mesmo que a anon key vaze.
+
+**Não adicionar esta migration ao `ensureDatabaseSchema` da API.** Alterações estruturais de segurança (RLS, grants, índices) **não devem rodar automaticamente a cada cold start** sem revisão humana — isso evita que um deploy acidental reaplique políticas sem o devido acompanhamento.
+
+**Checklist obrigatório após qualquer reaplicação manual:**
+
+1. `GET /health` → `database.status = ok`
+2. Portal: criar solicitação (`POST /api/solicitacoes`), consultar protocolo (`GET /api/solicitacoes/publica/:protocolo`)
+3. Leituras públicas: `GET /api/postes/mapa`, `GET /api/bairros`, `GET /api/ruas`
+4. Login admin (`POST /api/auth/login`) e painel (`GET /api/dashboard/resumo`)
+5. Upload público de anexo (`POST /api/anexos/upload-public`)
+6. Verificar que `relrowsecurity = true` nas 14 tabelas e que `anon`/`authenticated` não têm grants nelas
+
 ### 3. Deploy da API no Vercel
 
 1. Acesse [vercel.com](https://vercel.com)
