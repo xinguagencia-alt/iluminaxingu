@@ -95,6 +95,7 @@ export function createApp() {
       { value: 'poste_danificado', label: 'Poste danificado' },
       { value: 'lampada_apagada', label: 'Lampada apagada' },
       { value: 'lampada_piscando', label: 'Lampada piscando' },
+      { value: 'lampada_acesa_dia', label: 'Lampada acesa durante o dia' },
       { value: 'risco_eletrico', label: 'Risco eletrico' },
       { value: 'fio_exposto', label: 'Fio exposto' },
       { value: 'outro', label: 'Outro' },

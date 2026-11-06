@@ -80,6 +80,7 @@ export const TIPOS_PROBLEMA: Record<string, string> = {
   poste_danificado: 'Poste danificado',
   lampada_apagada: 'Lâmpada apagada',
   lampada_piscando: 'Lâmpada piscando',
+  lampada_acesa_dia: 'Lâmpada acesa durante o dia',
   risco_eletrico: 'Risco elétrico',
   fio_exposto: 'Fio exposto',
   outro: 'Outro',
