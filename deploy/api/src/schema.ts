@@ -241,7 +241,26 @@ export async function ensureDatabaseSchema() {
     `DO $$
     BEGIN
       IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint WHERE conname = 'itens_usados_os_os_item_uniq'
+        SELECT 1
+        FROM pg_index i
+        JOIN pg_class t ON t.oid = i.indrelid
+        JOIN pg_namespace n ON n.oid = t.relnamespace
+        WHERE n.nspname = 'public'
+          AND t.relname = 'itens_usados_os'
+          AND i.indisunique
+          AND i.indpred IS NULL
+          AND i.indnkeyatts = 2
+          AND (
+            SELECT array_agg(a.attnum ORDER BY x.ord)
+            FROM unnest(regexp_split_to_array(btrim(i.indkey::text), '[[:space:]]+'))
+              WITH ORDINALITY AS x(valor, ord)
+            JOIN pg_attribute a
+              ON a.attrelid = i.indrelid
+             AND a.attnum = x.valor::int2
+          ) = ARRAY[
+            (SELECT attnum FROM pg_attribute WHERE attrelid = t.oid AND attname = 'os_id'),
+            (SELECT attnum FROM pg_attribute WHERE attrelid = t.oid AND attname = 'item_id')
+          ]
       ) THEN
         ALTER TABLE itens_usados_os
           ADD CONSTRAINT itens_usados_os_os_item_uniq UNIQUE (os_id, item_id);
