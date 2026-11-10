@@ -260,7 +260,7 @@ export function SolicitacaoList() {
   const [gerandoOrdemPara, setGerandoOrdemPara] = useState<number | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
-  const temFiltros = filtros.status || filtros.prioridade || filtros.busca || filtros.status_sla
+  const temFiltros = filtros.status || filtros.prioridade || filtros.tipo || filtros.busca || filtros.status_sla
 
   function showToast(message: string, type: 'success' | 'error') {
     setToast({ message, type })
@@ -442,7 +442,7 @@ export function SolicitacaoList() {
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="Buscar por protocolo, nome ou telefone..."
+          placeholder="Buscar por protocolo, nome ou tipo..."
           value={filtros.busca}
           onChange={(e) => setFiltro('busca', e.target.value)}
         />
@@ -467,6 +467,19 @@ export function SolicitacaoList() {
         >
           <option value="">Todas as prioridades</option>
           {Object.entries(PRIORIDADE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className={styles.select}
+          value={filtros.tipo}
+          onChange={(e) => setFiltro('tipo', e.target.value)}
+        >
+          <option value="">Todos os tipos</option>
+          {Object.entries(TIPOS_PROBLEMA).map(([value, label]) => (
             <option key={value} value={value}>
               {label}
             </option>

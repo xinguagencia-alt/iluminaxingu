@@ -1,11 +1,12 @@
 import { db } from '../../db.js'
+import { normalizarTipoProblema } from './tipos.js'
 
 const PRIORIDADE_ORDEM = ['baixa', 'media', 'alta', 'urgente'] as const
 
 export type Prioridade = typeof PRIORIDADE_ORDEM[number]
 
 export function calcularPrioridadeBase(tipoProblema: string): Prioridade {
-  switch (tipoProblema) {
+  switch (normalizarTipoProblema(tipoProblema)) {
     case 'risco_eletrico':
     case 'fio_exposto':
       return 'urgente'

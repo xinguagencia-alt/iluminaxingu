@@ -7,7 +7,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "test": "tsx tests/run.test.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -30,6 +31,7 @@
     "@types/multer": "^2.1.0",
     "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.11.0",
+    "pg-mem": "^3.0.14",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }

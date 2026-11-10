@@ -15,6 +15,7 @@ import auditoriaRoutes from './modules/auditoria/routes.js'
 import exportRoutes from './modules/export/routes.js'
 import estoqueRoutes from './modules/estoque/routes.js'
 import dashboardRoutes from './modules/dashboard/routes.js'
+import { TIPOS_PROBLEMA } from './modules/solicitacoes/tipos.js'
 
 export function createApp() {
   const app = express()
@@ -91,15 +92,7 @@ export function createApp() {
   })
 
   app.get('/api/problem-types', (_request, response) => {
-    response.json([
-      { value: 'poste_danificado', label: 'Poste danificado' },
-      { value: 'lampada_apagada', label: 'Lampada apagada' },
-      { value: 'lampada_piscando', label: 'Lampada piscando' },
-      { value: 'lampada_acesa_dia', label: 'Lampada acesa durante o dia' },
-      { value: 'risco_eletrico', label: 'Risco eletrico' },
-      { value: 'fio_exposto', label: 'Fio exposto' },
-      { value: 'outro', label: 'Outro' },
-    ])
+    response.json(TIPOS_PROBLEMA)
   })
 
   const loginLimiter = rateLimit({

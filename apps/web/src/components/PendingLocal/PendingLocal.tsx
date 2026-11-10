@@ -6,7 +6,7 @@ const LABELS_TIPO: Record<string, string> = {
   poste_danificado: 'Poste danificado',
   lampada_apagada: 'Lâmpada apagada',
   lampada_piscando: 'Lâmpada piscando',
-  lampada_acesa_dia: 'Lâmpada acesa durante o dia',
+  lampada_acesa_dia: 'Luminária acesa 24 horas',
   risco_eletrico: 'Risco elétrico',
   fio_exposto: 'Fio exposto',
   outro: 'Outro',

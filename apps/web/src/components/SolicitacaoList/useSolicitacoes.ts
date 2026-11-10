@@ -6,6 +6,7 @@ import { API_URL } from '../../config/api'
 export interface Filtros {
   status: string
   prioridade: string
+  tipo: string
   busca: string
   status_sla: string
 }
@@ -25,6 +26,7 @@ interface UseSolicitacoesResult {
 const FILTROS_INICIAIS: Filtros = {
   status: '',
   prioridade: '',
+  tipo: '',
   busca: '',
   status_sla: '',
 }
@@ -44,6 +46,7 @@ export function useSolicitacoes(): UseSolicitacoesResult {
       const params = new URLSearchParams()
       if (filtrosAtuais.status) params.set('status', filtrosAtuais.status)
       if (filtrosAtuais.prioridade) params.set('prioridade', filtrosAtuais.prioridade)
+      if (filtrosAtuais.tipo) params.set('tipo', filtrosAtuais.tipo)
       if (filtrosAtuais.busca) params.set('busca', filtrosAtuais.busca)
 
       const queryString = params.toString()

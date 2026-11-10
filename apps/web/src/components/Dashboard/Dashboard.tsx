@@ -51,7 +51,7 @@ const TIPOS_PROBLEMA_LABELS: Record<string, string> = {
   poste_danificado: 'Poste danificado',
   lampada_apagada: 'Lampada apagada',
   lampada_piscando: 'Lampada piscando',
-  lampada_acesa_dia: 'Lampada acesa durante o dia',
+  lampada_acesa_dia: 'Luminária acesa 24 horas',
   risco_eletrico: 'Risco eletrico',
   fio_exposto: 'Fio exposto',
   outro: 'Outro',

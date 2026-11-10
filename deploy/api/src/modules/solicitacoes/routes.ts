@@ -6,6 +6,11 @@ import { notificarStatusSolicitacao, notificarNovaSolicitacao } from '../notific
 import { calcularPrioridadeAutomatica } from './prioridade.js'
 import { injectSla } from './sla.js'
 import {
+  labelTipoProblema,
+  normalizarTipoProblema,
+  tiposProblemaQueContem,
+} from './tipos.js'
+import {
   normalizarTelefone,
   montarMensagemProtocolo,
   montarMensagemStatus,
@@ -24,7 +29,7 @@ const publicSolicitacaoLimiter = rateLimit({
 })
 
 router.get('/', authMiddleware, async (req: Request, res: Response) => {
-  const { status, prioridade, busca } = req.query
+  const { status, prioridade, tipo, busca } = req.query
 
   const conditions: string[] = []
   const values: unknown[] = []
@@ -42,10 +47,25 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
     paramIndex++
   }
 
-  if (busca && typeof busca === 'string') {
-    conditions.push(`(s.protocolo ILIKE $${paramIndex} OR s.nome_solicitante ILIKE $${paramIndex})`)
-    values.push(`%${busca}%`)
+  if (tipo && typeof tipo === 'string') {
+    conditions.push(`s.tipo_problema = $${paramIndex}`)
+    values.push(normalizarTipoProblema(tipo))
     paramIndex++
+  }
+
+  if (busca && typeof busca === 'string') {
+    const tiposEncontrados = tiposProblemaQueContem(busca)
+    if (tiposEncontrados.length > 0) {
+      conditions.push(
+        `(s.protocolo ILIKE $${paramIndex} OR s.nome_solicitante ILIKE $${paramIndex} OR s.tipo_problema = ANY($${paramIndex + 1}::text[]))`
+      )
+      values.push(`%${busca}%`, tiposEncontrados)
+      paramIndex += 2
+    } else {
+      conditions.push(`(s.protocolo ILIKE $${paramIndex} OR s.nome_solicitante ILIKE $${paramIndex})`)
+      values.push(`%${busca}%`)
+      paramIndex++
+    }
   }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
@@ -202,11 +222,13 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     endereco_informado,
     latitude,
     longitude,
-    tipo_problema,
+    tipo_problema: tipo_problema_body,
     descricao,
     consentimento_lgpd,
     client_request_id,
   } = req.body
+
+  const tipo_problema = normalizarTipoProblema(tipo_problema_body)
 
   if (!nome_solicitante || !tipo_problema) {
     res.status(400).json({ error: 'Nome e tipo de problema sao obrigatorios' })
@@ -380,7 +402,7 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     notificarNovaSolicitacao({
       protocolo,
       nomeSolicitante: nome_solicitante,
-      tipoProblema: tipo_problema,
+      tipoProblema: labelTipoProblema(tipo_problema),
       descricao,
       endereco: endereco_informado,
     }).catch((err) => console.error('Falha ao enviar notificacao para admin:', err))
