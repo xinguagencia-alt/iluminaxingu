@@ -8,6 +8,13 @@ import { SolicitacaoPublica } from '../SolicitacaoPublica/SolicitacaoPublica'
 import { API_URL } from '../../config/api'
 import { enfileirarSolicitacao } from '../../offline/queue'
 import type { SolicitacaoPayload } from '../../offline/types'
+import {
+  ehTipoPermitido,
+  validarEmail,
+  validarLocalizacao,
+  validarNomeCompleto,
+  validarTelefone,
+} from '../../validation/solicitacao'
 import styles from './RequestForm.module.css'
 
 class ErroHttp extends Error {
@@ -97,6 +104,7 @@ export function RequestForm() {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           }))
+          limparErroLocalizacao()
           setLoadingGeo(false)
         },
         (error) => {
@@ -123,31 +131,35 @@ export function RequestForm() {
   function validate(): FormErrors {
     const newErrors: FormErrors = {}
 
-    if (!formData.nome.trim()) {
-      newErrors.nome = 'Nome e obrigatorio'
+    const nome = validarNomeCompleto(formData.nome)
+    if (!nome.ok) newErrors.nome = nome.erro
+
+    const telefone = validarTelefone(formData.telefone)
+    if (!telefone.ok) newErrors.contato = telefone.erro
+
+    if (!newErrors.contato) {
+      const email = validarEmail(formData.email)
+      if (!email.ok) newErrors.contato = email.erro
     }
 
-    if (!formData.telefone.trim()) {
-      newErrors.contato = 'Informe um telefone para receber o protocolo e o retorno'
+    if (!ehTipoPermitido(formData.tipoProblema)) {
+      newErrors.tipoProblema = 'Selecione um tipo de problema valido'
     }
 
-    if (formData.email.trim() && !isValidEmail(formData.email)) {
-      newErrors.contato = 'E-mail invalido'
-    }
-
-    if (!formData.tipoProblema) {
-      newErrors.tipoProblema = 'Selecione o tipo de problema'
-    }
+    const localizacao = validarLocalizacao({
+      poste_id: formData.posteId,
+      codigo_poste: formData.codigoPoste,
+      endereco_informado: formData.enderecoManual,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+    })
+    if (!localizacao.ok) newErrors.localizacao = localizacao.erro
 
     if (!formData.consentimentoLgpd) {
       newErrors.consentimentoLgpd = 'Voce deve concordar com o uso dos dados para enviar a solicitacao'
     }
 
     return newErrors
-  }
-
-  function isValidEmail(email: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
 
   async function uploadFilePublico(file: File, solicitacaoId: number, protocolo: string): Promise<{ ok: boolean; error?: string }> {
@@ -272,15 +284,23 @@ export function RequestForm() {
     }
   }
 
+  function limparErroLocalizacao(): void {
+    setErrors((prev) => (prev.localizacao ? { ...prev, localizacao: undefined } : prev))
+  }
+
   function handleChange(field: keyof FormData, value: string) {
     setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
+    if (field === 'enderecoManual' || field === 'codigoPoste') {
+      limparErroLocalizacao()
+    }
   }
 
   function handleLocationSelect(lat: number, lng: number) {
     setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }))
+    limparErroLocalizacao()
   }
 
   function captureLocation() {
@@ -299,6 +319,7 @@ export function RequestForm() {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         }))
+        limparErroLocalizacao()
         setLoadingGeo(false)
       },
       (error) => {
@@ -635,6 +656,10 @@ Atualizar GPS
             placeholder="Ex: POSTE-00123"
           />
         </div>
+
+        {errors.localizacao && (
+          <span className={styles.error}>{errors.localizacao}</span>
+        )}
       </section>
 
       <section className={styles.section}>

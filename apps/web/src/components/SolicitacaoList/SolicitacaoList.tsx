@@ -479,7 +479,9 @@ export function SolicitacaoList() {
           onChange={(e) => setFiltro('tipo', e.target.value)}
         >
           <option value="">Todos os tipos</option>
-          {Object.entries(TIPOS_PROBLEMA).map(([value, label]) => (
+          {Object.entries(TIPOS_PROBLEMA)
+            .filter(([value]) => value !== 'outro')
+            .map(([value, label]) => (
             <option key={value} value={value}>
               {label}
             </option>

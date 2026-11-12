@@ -1,27 +1,30 @@
+import {
+  TIPOS_PROBLEMA_PERMITIDOS,
+  normalizarTipoProblema,
+} from './validacao.js'
+
+export { normalizarTipoProblema }
+
 export interface TipoProblemaInfo {
   value: string
   label: string
 }
 
-export const TIPOS_PROBLEMA: TipoProblemaInfo[] = [
-  { value: 'poste_danificado', label: 'Poste danificado' },
-  { value: 'lampada_apagada', label: 'Lampada apagada' },
-  { value: 'lampada_piscando', label: 'Lampada piscando' },
-  { value: 'lampada_acesa_dia', label: 'Luminária acesa 24 horas' },
-  { value: 'risco_eletrico', label: 'Risco eletrico' },
-  { value: 'fio_exposto', label: 'Fio exposto' },
-  { value: 'outro', label: 'Outro' },
-]
-
-const ALIASES_TIPO_PROBLEMA: Record<string, string> = {
-  luminaria_acesa_24h: 'lampada_acesa_dia',
+const LABELS_TIPO_PROBLEMA: Record<string, string> = {
+  poste_danificado: 'Poste danificado',
+  lampada_apagada: 'Lampada apagada',
+  lampada_piscando: 'Lampada piscando',
+  lampada_acesa_dia: 'Luminária acesa 24 horas',
+  risco_eletrico: 'Risco eletrico',
+  fio_exposto: 'Fio exposto',
 }
 
-export function normalizarTipoProblema(valor: unknown): string {
-  if (typeof valor !== 'string') return ''
-  const limpo = valor.trim()
-  return ALIASES_TIPO_PROBLEMA[limpo] ?? limpo
-}
+export const TIPOS_PROBLEMA: TipoProblemaInfo[] = TIPOS_PROBLEMA_PERMITIDOS.map(
+  (value) => ({
+    value,
+    label: LABELS_TIPO_PROBLEMA[value] ?? value,
+  })
+)
 
 export function labelTipoProblema(valor: unknown): string {
   if (typeof valor !== 'string' || !valor) return ''

@@ -8,6 +8,9 @@ export interface Equipe {
   descricao: string | null
   responsavel: string | null
   ativo: boolean
+  status_disponibilidade?: string
+  capacidade_maxima?: number
+  especialidades?: string | null
   criado_em: string
 }
 
@@ -19,7 +22,15 @@ interface UseEquipesResult {
   criar: (dados: { nome: string; descricao?: string; responsavel?: string }) => Promise<boolean>
   atualizar: (
     id: number,
-    dados: { nome?: string; descricao?: string; responsavel?: string; ativo?: boolean }
+    dados: {
+      nome?: string
+      descricao?: string
+      responsavel?: string
+      ativo?: boolean
+      status_disponibilidade?: string
+      capacidade_maxima?: number
+      especialidades?: string | null
+    }
   ) => Promise<boolean>
   excluir: (id: number) => Promise<boolean>
 }
@@ -86,7 +97,15 @@ export function useEquipes(): UseEquipesResult {
   const atualizar = useCallback(
     async (
       id: number,
-      dados: { nome?: string; descricao?: string; responsavel?: string; ativo?: boolean }
+      dados: {
+        nome?: string
+        descricao?: string
+        responsavel?: string
+        ativo?: boolean
+        status_disponibilidade?: string
+        capacidade_maxima?: number
+        especialidades?: string | null
+      }
     ): Promise<boolean> => {
       try {
         const response = await fetch(`${API_URL}/api/equipes/${id}`, {

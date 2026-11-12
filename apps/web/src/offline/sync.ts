@@ -1,4 +1,3 @@
-import { API_URL } from '../config/api'
 import { listarPendentes, salvarPendente, removerPendente } from './db'
 import type {
   ErroSync,
@@ -7,11 +6,18 @@ import type {
   SolicitacaoPendente,
 } from './types'
 import { EVENTO_FILA_ALTERADA } from './types'
+import { garantirSolicitacaoValida } from '../validation/solicitacao'
 
 const TIMEOUT_SOLICITACAO_MS = 20000
 const TIMEOUT_ANEXO_MS = 30000
 const BACKOFF_INICIAL_MS = 15000
 const BACKOFF_MAXIMO_MS = 10 * 60 * 1000
+
+let apiBaseUrl = ''
+
+export function definirApiBaseUrl(url: string): void {
+  apiBaseUrl = url
+}
 
 export interface ResultadoSync {
   protocolos: ResultadoProtocolo[]
@@ -178,7 +184,7 @@ async function enviarSolicitacao(item: SolicitacaoPendente): Promise<ResultadoCr
   let response: Response
   try {
     response = await fetchComTimeout(
-      `${API_URL}/api/solicitacoes`,
+      `${apiBaseUrl}/api/solicitacoes`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -298,7 +304,7 @@ async function enviarAnexo(
     formData.append('protocolo', String(item.protocolo_oficial))
 
     response = await fetchComTimeout(
-      `${API_URL}/api/anexos/upload-public`,
+      `${apiBaseUrl}/api/anexos/upload-public`,
       { method: 'POST', body: formData },
       TIMEOUT_ANEXO_MS
     )
@@ -341,6 +347,18 @@ async function processarItem(
       'Identificador local (client_request_id) indisponivel. A solicitacao foi mantida neste aparelho.'
     await registrarFalha(atual, mensagem, false)
     resultado.erros.push({ id_local: atual.id_local || '', nome, mensagem })
+    return
+  }
+
+  try {
+    garantirSolicitacaoValida(atual.payload)
+  } catch (erro) {
+    const mensagem =
+      erro instanceof Error
+        ? erro.message
+        : 'Solicitacao invalida neste aparelho. Corrija os dados e reenvie.'
+    await registrarFalha(atual, mensagem, false)
+    resultado.erros.push({ id_local: atual.id_local, nome, mensagem })
     return
   }
 

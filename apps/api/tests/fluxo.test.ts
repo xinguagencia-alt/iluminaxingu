@@ -1,5 +1,6 @@
 import { baseUrl, cabecalhoAuth, encerrarServico } from './helpers/servidor.js'
 import { executar } from './helpers/setup.js'
+import { ehErroDeConsultaGpsNaoSuportada } from '../src/modules/solicitacoes/routes.js'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
@@ -54,7 +55,8 @@ test('endpoint publico de tipos devolve o novo nome', async () => {
   assert.equal(response.status, 200)
   const tipos = await response.json()
 
-  assert.equal(tipos.length, 7)
+  assert.equal(tipos.length, 6)
+  assert.ok(!tipos.some((t: { value: string }) => t.value === 'outro'))
   const tipo = tipos.find((t: { value: string }) => t.value === VALOR)
   assert.ok(tipo, 'o defeito continua sendo um tipo valido')
   assert.equal(tipo.label, NOVO_LABEL)
@@ -162,25 +164,41 @@ test('registro antigo com o mesmo valor continua visivel e com SLA', async () =>
 
 test('demais tipos continuam recebendo a prioridade correta', async () => {
   const risco = await postSolicitacao(
-    payload({ nome_solicitante: 'Ana Paula', tipo_problema: 'risco_eletrico' })
+    payload({
+      nome_solicitante: 'Ana Paula',
+      tipo_problema: 'risco_eletrico',
+      endereco_informado: 'Rua Tipos Um, 1, Centro',
+    })
   )
   assert.equal(risco.status, 201)
   assert.equal(risco.json.prioridade, 'urgente')
 
   const poste = await postSolicitacao(
-    payload({ nome_solicitante: 'Bruno Costa', tipo_problema: 'poste_danificado' })
+    payload({
+      nome_solicitante: 'Bruno Costa',
+      tipo_problema: 'poste_danificado',
+      endereco_informado: 'Rua Tipos Dois, 2, Centro',
+    })
   )
   assert.equal(poste.status, 201)
   assert.equal(poste.json.prioridade, 'alta')
 
   const apagada = await postSolicitacao(
-    payload({ nome_solicitante: 'Carla Mendes', tipo_problema: 'lampada_apagada' })
+    payload({
+      nome_solicitante: 'Carla Mendes',
+      tipo_problema: 'lampada_apagada',
+      endereco_informado: 'Rua Tipos Tres, 3, Centro',
+    })
   )
   assert.equal(apagada.status, 201)
   assert.equal(apagada.json.prioridade, 'media')
 
   const alias = await postSolicitacao(
-    payload({ nome_solicitante: 'Diego Alves', tipo_problema: 'luminaria_acesa_24h' })
+    payload({
+      nome_solicitante: 'Diego Alves',
+      tipo_problema: 'luminaria_acesa_24h',
+      endereco_informado: 'Rua Tipos Quatro, 4, Centro',
+    })
   )
   assert.equal(alias.status, 201)
   assert.equal(alias.json.tipo_problema, VALOR, 'alias gravado com o valor canonico')
@@ -312,7 +330,8 @@ test('dashboard agrega o tipo novo junto com os demais', async () => {
   assert.ok(tipos.includes('poste_danificado'))
   assert.ok(tipos.includes('lampada_apagada'))
 
-  assert.equal(resumo.contadores.total, 6)
+  // Total inclui registros de outros arquivos de teste no mesmo banco em memoria
+  assert.ok(resumo.contadores.total >= 6, `total ${resumo.contadores.total} >= 6`)
   assert.ok(resumo.ordens.total >= 1)
   assert.ok(resumo.por_status['concluida'] >= 1)
   assert.ok(resumo.por_prioridade['urgente'] >= 1)
@@ -322,8 +341,252 @@ test('resumo de exportacao conta as solicitacoes', async () => {
   const resposta = await fetch(`${baseUrl}/api/export`, { headers: cabecalhoAuth })
   assert.equal(resposta.status, 200)
   const resumo = await resposta.json()
-  assert.equal(resumo.solicitacoes, 6)
+  assert.ok(resumo.solicitacoes >= 6, `solicitacoes ${resumo.solicitacoes} >= 6`)
   assert.ok(resumo.ordens_servico >= 1)
+})
+
+test('API rejeita tipo fora do catalogo, inclusive outro', async () => {
+  const outro = await postSolicitacao(payload({ tipo_problema: 'outro' }))
+  assert.equal(outro.status, 400, JSON.stringify(outro.json))
+  assert.match(outro.json.error, /Tipo de problema/i)
+
+  const desconhecido = await postSolicitacao(payload({ tipo_problema: 'enchente' }))
+  assert.equal(desconhecido.status, 400)
+  assert.match(desconhecido.json.error, /Tipo de problema/i)
+
+  const aliasContinuaAceito = await postSolicitacao(
+    payload({ nome_solicitante: 'Hugo Lemes', tipo_problema: 'luminaria_acesa_24h' })
+  )
+  assert.equal(aliasContinuaAceito.status, 201)
+  assert.equal(aliasContinuaAceito.json.tipo_problema, VALOR)
+})
+
+test('API rejeita nome, telefone, e-mail e consentimento invalidos', async () => {
+  const semSobrenome = await postSolicitacao(payload({ nome_solicitante: 'Maria' }))
+  assert.equal(semSobrenome.status, 400)
+  assert.match(semSobrenome.json.error, /sobrenome/i)
+
+  const telefoneCurto = await postSolicitacao(payload({ telefone: '12345' }))
+  assert.equal(telefoneCurto.status, 400)
+  assert.match(telefoneCurto.json.error, /telefone/i)
+
+  const telefoneSemDdd = await postSolicitacao(payload({ telefone: '01 99999-0001' }))
+  assert.equal(telefoneSemDdd.status, 400)
+
+  const emailInvalido = await postSolicitacao(payload({ email: 'nao-e-email' }))
+  assert.equal(emailInvalido.status, 400)
+  assert.match(emailInvalido.json.error, /e-mail/i)
+
+  const semConsentimento = await postSolicitacao(payload({ consentimento_lgpd: false }))
+  assert.equal(semConsentimento.status, 400)
+  assert.match(semConsentimento.json.error, /LGPD/i)
+})
+
+test('API rejeita localizacao ausente, incompleta ou fora das faixas', async () => {
+  const semLocalizacao = await postSolicitacao(
+    payload({ endereco_informado: null, latitude: null, longitude: null })
+  )
+  assert.equal(semLocalizacao.status, 400)
+  assert.match(semLocalizacao.json.error, /localizacao/i)
+
+  const latitudeSozinha = await postSolicitacao(
+    payload({ endereco_informado: null, latitude: -1.4, longitude: null })
+  )
+  assert.equal(latitudeSozinha.status, 400)
+  assert.match(latitudeSozinha.json.error, /juntas/i)
+
+  const enderecoSemBairro = await postSolicitacao(
+    payload({ endereco_informado: 'Rua das Flores' })
+  )
+  assert.equal(enderecoSemBairro.status, 400)
+  assert.match(enderecoSemBairro.json.error, /bairro/i)
+
+  const coordenadasForaDeFaixa = await postSolicitacao(
+    payload({ endereco_informado: null, latitude: 999, longitude: 0 })
+  )
+  assert.equal(coordenadasForaDeFaixa.status, 400)
+  assert.match(coordenadasForaDeFaixa.json.error, /Coordenadas/i)
+})
+
+test('API exige que o poste informado exista no sistema', async () => {
+  const inexistente = await postSolicitacao(
+    payload({ poste_id: 999999, endereco_informado: null })
+  )
+  assert.equal(inexistente.status, 400, JSON.stringify(inexistente.json))
+  assert.match(inexistente.json.error, /nao encontrado/i)
+
+  const codigoInexistente = await postSolicitacao(
+    payload({ codigo_poste: 'NAO-EXISTE', endereco_informado: null })
+  )
+  assert.equal(codigoInexistente.status, 400)
+  assert.match(codigoInexistente.json.error, /nao encontrado/i)
+
+  await executar(
+    `INSERT INTO postes (codigo, rua, bairro, status_ativo)
+     VALUES ('POSTE-VALIDACAO-1', 'Rua das Flores', 'Centro', TRUE)`
+  )
+
+  const existente = await postSolicitacao(
+    payload({ nome_solicitante: 'Gilda Rocha', codigo_poste: 'POSTE-VALIDACAO-1', endereco_informado: null })
+  )
+  assert.equal(existente.status, 201, JSON.stringify(existente.json))
+  assert.equal(existente.json.codigo_poste_informado, 'POSTE-VALIDACAO-1')
+  assert.ok(existente.json.poste_id, 'poste resolvido para o registro')
+})
+
+test('API aceita coordenadas validas mesmo sem poste proximo', async () => {
+  const resposta = await postSolicitacao(
+    payload({
+      nome_solicitante: 'Fabio Gomes',
+      endereco_informado: null,
+      latitude: -1.4558,
+      longitude: -48.5039,
+    })
+  )
+  assert.equal(resposta.status, 201, JSON.stringify(resposta.json))
+  assert.equal(resposta.json.auto_identificado, false)
+  assert.equal(resposta.json.latitude, -1.4558)
+  assert.equal(resposta.json.longitude, -48.5039)
+})
+
+test('descricao continua opcional e vazia vira null', async () => {
+  const semDescricao = await postSolicitacao(
+    payload({
+      nome_solicitante: 'Iara Nogueira',
+      descricao: null,
+      endereco_informado: 'Rua Desc Um, 10, Centro',
+    })
+  )
+  assert.equal(semDescricao.status, 201)
+  assert.equal(semDescricao.json.descricao, null)
+
+  const descricaoVazia = await postSolicitacao(
+    payload({
+      nome_solicitante: 'Joao Pires',
+      descricao: '   ',
+      endereco_informado: 'Rua Desc Dois, 20, Centro',
+    })
+  )
+  assert.equal(descricaoVazia.status, 201)
+  assert.equal(descricaoVazia.json.descricao, null)
+})
+
+test('catch da consulta GPS so engole funcoes nao suportadas', () => {
+  assert.equal(
+    ehErroDeConsultaGpsNaoSuportada(
+      'ERROR: function radians(text) does not exist\nHINT: funcao nao implementada'
+    ),
+    true,
+    'pg-mem: funcao geografica ausente cai no fallback'
+  )
+  assert.equal(
+    ehErroDeConsultaGpsNaoSuportada(
+      new Error('function radians(numeric) does not exist')
+    ),
+    true,
+    'PostgreSQL real: funcao ausente cai no fallback'
+  )
+  assert.equal(
+    ehErroDeConsultaGpsNaoSuportada('operator does not exist: double precision * unknown'),
+    true,
+    'operador ausente cai no fallback'
+  )
+  assert.equal(
+    ehErroDeConsultaGpsNaoSuportada('ERROR: unsupported join type'),
+    true
+  )
+
+  assert.equal(
+    ehErroDeConsultaGpsNaoSuportada('connection to server was lost'),
+    false,
+    'falha de rede nao pode virar fallback silencioso'
+  )
+  assert.equal(
+    ehErroDeConsultaGpsNaoSuportada(new Error('relation "postes" does not exist')),
+    false,
+    'erro de esquema nao pode virar fallback silencioso'
+  )
+  assert.equal(
+    ehErroDeConsultaGpsNaoSuportada('syntax error at or near "SELECT"'),
+    false
+  )
+})
+
+test('prioridade sobe com 3 abertas e somente abertas contam no recalculo', async () => {
+  await executar(
+    `INSERT INTO postes (codigo, rua, bairro, status_ativo)
+     VALUES ('POSTE-PRIORIDADE-1', 'Avenida Central', 'Centro', TRUE)`
+  )
+  const posteRow = await executar(
+    `SELECT id FROM postes WHERE codigo = 'POSTE-PRIORIDADE-1'`
+  )
+  const postePrioridade = Number(posteRow.rows[0].id)
+
+  // Semeia 3 abertas via SQL com tipo lampada_piscando.
+  // A API nao permite 3 abertas iguais (duplicidade); a contagem de prioridade
+  // e por poste e independe do tipo.
+  for (let i = 1; i <= 3; i++) {
+    await executar(
+      `INSERT INTO solicitacoes
+        (protocolo, nome_solicitante, telefone, poste_id, codigo_poste_informado,
+         tipo_problema, status_atual, prioridade, consentimento_lgpd)
+       VALUES ($1, $2, $3, $4, $5, $6, 'enviada', 'media', TRUE)`,
+      [
+        `ILX20250101-SEED0${i}`,
+        `Seed Prioridade ${i}`,
+        '(69) 99999-000${i}',
+        postePrioridade,
+        'POSTE-PRIORIDADE-1',
+        'lampada_piscando',
+      ]
+    )
+  }
+
+  const base = {
+    codigo_poste: 'POSTE-PRIORIDADE-1',
+    endereco_informado: null,
+    tipo_problema: 'lampada_apagada',
+  }
+
+  // 4a via API com 3 abertas → media sobe para alta (tipo diferente dos seeds evita duplicidade)
+  const quarta = await postSolicitacao(
+    payload({ nome_solicitante: 'Tereza Luz', ...base })
+  )
+  assert.equal(quarta.status, 201, JSON.stringify(quarta.json))
+  assert.equal(
+    quarta.json.prioridade,
+    'alta',
+    '4a: 3 abertas → media sobe para alta'
+  )
+
+  // Encerra os 3 seeds → resta apenas a 4a aberta
+  await executar(
+    `UPDATE solicitacoes SET status_atual = 'concluida', atualizado_em = NOW()
+     WHERE codigo_poste_informado = 'POSTE-PRIORIDADE-1'
+       AND nome_solicitante LIKE 'Seed Prioridade%'`
+  )
+
+  // 5a via API com 1 aberta (a 4a) → sem elevacao, permanece media
+  const quinta = await postSolicitacao(
+    payload({
+      nome_solicitante: 'Ulisses Pires',
+      ...base,
+      tipo_problema: 'lampada_piscando',
+    })
+  )
+  assert.equal(quinta.status, 201, JSON.stringify(quinta.json))
+  assert.equal(
+    quinta.json.prioridade,
+    'media',
+    '5a: com 3 encerradas fora, resta 1 aberta → volta a media'
+  )
+
+  const detalheQuarta = await (
+    await fetch(`${baseUrl}/api/solicitacoes/${quarta.json.id}`, {
+      headers: cabecalhoAuth,
+    })
+  ).json()
+  assert.equal(detalheQuarta.status_atual, 'enviada', 'a 4a continua aberta')
 })
 
 test('encerra o servidor de teste', async () => {

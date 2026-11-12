@@ -3,6 +3,12 @@ import { db } from '../../db.js'
 import { authMiddleware, requireRole } from '../auth/middleware.js'
 import { notificarStatusSolicitacao } from '../notificacoes/notificacoes.js'
 import { injectSla } from '../solicitacoes/sla.js'
+import {
+  distribuirOs,
+  listarFilaDistribuicao,
+  processarFilaDistribuicao,
+} from './distribuicao.js'
+import { registrarAuditoria } from '../auditoria/helper.js'
 
 async function estoqueAtivo(): Promise<boolean> {
   try {
@@ -16,6 +22,54 @@ async function estoqueAtivo(): Promise<boolean> {
 }
 
 const router = Router()
+
+// Fila de distribuicao (consulta autenticada; nao altera estado)
+router.get('/fila', authMiddleware, requireRole(['admin', 'gestor', 'operador']), async (_req: Request, res: Response) => {
+  try {
+    const fila = await listarFilaDistribuicao()
+    res.json({ total: fila.length, fila })
+  } catch (error) {
+    console.error('Erro ao listar fila de distribuicao:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
+// Processar fila (acao administrativa; nao e GET)
+router.post('/distribuir-fila', authMiddleware, requireRole(['admin']), async (_req: Request, res: Response) => {
+  try {
+    const resultado = await processarFilaDistribuicao()
+    res.json({
+      message: 'Fila processada',
+      ...resultado,
+    })
+  } catch (error) {
+    console.error('Erro ao processar fila de distribuicao:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
+// Distribuir uma OS especifica (acao controlada)
+router.post('/:id/distribuir', authMiddleware, requireRole(['admin', 'gestor']), async (req: Request, res: Response) => {
+  const id = String(req.params.id)
+  if (!/^\d+$/.test(id)) {
+    res.status(400).json({ error: 'ID invalido' })
+    return
+  }
+  try {
+    const resultado = await distribuirOs(Number(id), {
+      origem: req.user?.username || 'painel',
+    })
+    res.json(resultado)
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error)
+    if (msg.includes('nao encontrada')) {
+      res.status(404).json({ error: 'Ordem de servico nao encontrada' })
+      return
+    }
+    console.error('Erro ao distribuir ordem:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
 
 // Listar postes reparados por equipe
 router.get('/postes-reparados', async (req: Request, res: Response) => {
@@ -262,6 +316,21 @@ router.post('/', authMiddleware, requireRole(['admin', 'gestor', 'operador']), a
       'INSERT INTO status_logs (solicitacao_id, status_anterior, status_novo, criado_por) VALUES ($1, $2, $3, $4)',
       [solicitacao_id, solicitacao.rows[0].status_atual, 'em_execucao', 'operador']
     )
+
+    await registrarAuditoria({
+      tabela: 'ordens_servico',
+      registroId: Number(result.rows[0].id),
+      acao: 'criar',
+      dadosAntes: null,
+      dadosDepois: {
+        solicitacao_id,
+        equipe_id,
+        origem: 'manual',
+        status: 'em_execucao',
+      },
+      usuarioId: req.user?.userId ?? null,
+      usuarioNome: req.user?.nomeCompleto ?? req.user?.username ?? null,
+    })
 
     notificarStatusSolicitacao({
       email: solicitacao.rows[0].email,

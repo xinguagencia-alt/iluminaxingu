@@ -188,7 +188,8 @@ export async function ensureDatabaseSchema() {
   ).catch(() => {})
   await db.query(
     `INSERT INTO configuracao_estoque (chave, valor, descricao) VALUES
-      ('estoque_ativo', 'false', 'Modulo de estoque habilitado')
+      ('estoque_ativo', 'false', 'Modulo de estoque habilitado'),
+      ('fluxo_operacional', 'manual', 'Modo operacional do fluxo de solicitacoes (manual|automatico)')
     ON CONFLICT (chave) DO NOTHING`
   ).catch(() => {})
 

@@ -15,6 +15,7 @@ import auditoriaRoutes from './modules/auditoria/routes.js'
 import exportRoutes from './modules/export/routes.js'
 import estoqueRoutes from './modules/estoque/routes.js'
 import dashboardRoutes from './modules/dashboard/routes.js'
+import fluxoRoutes from './modules/fluxo/routes.js'
 import { TIPOS_PROBLEMA } from './modules/solicitacoes/tipos.js'
 
 export function createApp() {
@@ -84,7 +85,7 @@ export function createApp() {
         checked_at: checkedAt,
         ...(dbMessage ? { message: dbMessage } : {}),
       },
-      modules: ['solicitacoes', 'postes', 'ordens_servico', 'equipes', 'bairros', 'ruas', 'anexos', 'auditoria', 'export', 'estoque', 'dashboard'],
+      modules: ['solicitacoes', 'postes', 'ordens_servico', 'equipes', 'bairros', 'ruas', 'anexos', 'auditoria', 'export', 'estoque', 'dashboard', 'fluxo'],
       solicitacoes_columns: columns,
       bairros_columns: bairrosColumns,
       postes_columns: postesColumns,
@@ -114,6 +115,7 @@ export function createApp() {
   app.use('/api/auditoria', auditoriaRoutes)
   app.use('/api/export', exportRoutes)
   app.use('/api/estoque', authMiddleware, estoqueRoutes)
+  app.use('/api/fluxo', fluxoRoutes)
 
   return app
 }

@@ -227,6 +227,12 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
             <strong>{ordens.filter((ordem) => ordem.status === 'em_execucao').length}</strong>
             <span>em execução</span>
           </div>
+          <div className={styles.heroStat}>
+            <strong>
+              {ordens.filter((ordem) => ordem.status === 'aberta' && !ordem.equipe_id).length}
+            </strong>
+            <span>aguardando equipe</span>
+          </div>
         </div>
       </section>
 
@@ -294,7 +300,17 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
                   <td>
                     <StatusBadge status={ordem.status} />
                   </td>
-                  <td>{ordem.equipe_nome || '-'}</td>
+                  <td>
+                    {ordem.equipe_nome ? (
+                      ordem.equipe_nome
+                    ) : ordem.status === 'aberta' ? (
+                      <span title="Nenhuma equipe atribuida ainda">
+                        Aguardando equipe
+                      </span>
+                    ) : (
+                      '-'
+                    )}
+                  </td>
                   <td>{ordem.endereco_informado || '-'}</td>
                   <td>{formatDate(ordem.data_abertura)}</td>
                   <td>{formatDate(ordem.data_execucao)}</td>

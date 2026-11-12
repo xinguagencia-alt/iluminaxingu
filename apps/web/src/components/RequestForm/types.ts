@@ -16,6 +16,7 @@ export interface FormErrors {
   nome?: string
   contato?: string
   tipoProblema?: string
+  localizacao?: string
   consentimentoLgpd?: string
 }
 
@@ -26,7 +27,6 @@ export type TipoProblema =
   | 'lampada_acesa_dia'
   | 'risco_eletrico'
   | 'fio_exposto'
-  | 'outro'
 
 export const TIPOS_PROBLEMA: { value: TipoProblema; label: string }[] = [
   { value: 'poste_danificado', label: 'Poste danificado' },
@@ -35,5 +35,4 @@ export const TIPOS_PROBLEMA: { value: TipoProblema; label: string }[] = [
   { value: 'lampada_acesa_dia', label: 'Luminária acesa 24 horas' },
   { value: 'risco_eletrico', label: 'Risco elétrico' },
   { value: 'fio_exposto', label: 'Fio exposto' },
-  { value: 'outro', label: 'Outro' },
 ]

@@ -46,6 +46,22 @@
 .exportButton:disabled { background: #fdba74; cursor: not-allowed; }
 .loading,.empty { padding: 44px; text-align: center; color: #9ca3af; }
 .error { padding: 10px 14px; margin-bottom: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; color: #dc2626; font-size: .9rem; }
+.fluxoBanner { display: flex; gap: 14px; align-items: flex-start; padding: 20px; border-radius: 18px; margin-bottom: 16px; border: 1px solid transparent; }
+.fluxoBannerManual { background: linear-gradient(135deg, rgba(255,247,237,.95), rgba(255,237,213,.9)); border-color: rgba(251,191,36,.28); }
+.fluxoBannerAuto { background: linear-gradient(135deg, rgba(236,253,245,.95), rgba(209,250,229,.9)); border-color: rgba(16,185,129,.28); }
+.fluxoBadge { display: inline-block; padding: 6px 12px; border-radius: 999px; font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.fluxoBadgeManual { background: #fef3c7; color: #92400e; }
+.fluxoBadgeAuto { background: #d1fae5; color: #065f46; }
+.fluxoDesc { margin: 10px 0 0; color: #4b5563; font-size: .95rem; line-height: 1.55; }
+.fluxoCard { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 18px; border: 1px solid #ffedd5; border-radius: 18px; background: rgba(255,255,255,.92); flex-wrap: wrap; }
+.fluxoInfo h3 { margin: 0 0 6px; font-size: 1.05rem; color: #374151; }
+.fluxoInfo p { margin: 0; color: #6b7280; font-size: .9rem; line-height: 1.55; max-width: 560px; }
+.fluxoActions { display: flex; gap: 10px; flex-wrap: wrap; }
+.fluxoBtn { padding: 12px 18px; border-radius: 12px; border: 1px solid #d1d5db; background: white; color: #374151; font-size: .9rem; font-weight: 700; cursor: pointer; }
+.fluxoBtn:hover:not(:disabled) { background: #f3f4f6; }
+.fluxoBtn:disabled { opacity: .65; cursor: not-allowed; }
+.fluxoBtnActive { background: linear-gradient(135deg, #f59e0b, #ea580c); border-color: transparent; color: white; }
+.fluxoBtnActiveAuto { background: linear-gradient(135deg, #10b981, #059669); border-color: transparent; color: white; }
 .toast { position: fixed; top: 20px; right: 20px; display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 12px; box-shadow: 0 16px 30px rgba(17,24,39,.18); z-index: 1000; animation: slideIn .3s ease; font-weight: 700; }
 .toastSuccess { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 .toastError { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }

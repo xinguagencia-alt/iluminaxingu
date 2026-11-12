@@ -30,7 +30,9 @@ async function requireEstoqueAtivo(req: Request, res: Response, next: NextFuncti
 router.get('/config', async (_req: Request, res: Response) => {
   try {
     const result = await db.query(
-      `SELECT chave, valor, descricao FROM configuracao_estoque ORDER BY chave`
+      `SELECT chave, valor, descricao FROM configuracao_estoque
+       WHERE chave LIKE 'estoque%'
+       ORDER BY chave`
     )
     const config: Record<string, string> = {}
     for (const row of result.rows) {
@@ -49,6 +51,10 @@ router.put('/config', authMiddleware, requireRole(['admin']), async (req: Reques
     res.status(400).json({ error: 'Chave e valor sao obrigatorios' })
     return
   }
+  if (!String(chave).startsWith('estoque')) {
+    res.status(400).json({ error: 'Chave de configuracao nao permitida' })
+    return
+  }
   try {
     await db.query(
       `INSERT INTO configuracao_estoque (chave, valor) VALUES ($1, $2)
@@ -56,7 +62,9 @@ router.put('/config', authMiddleware, requireRole(['admin']), async (req: Reques
       [chave, String(valor)]
     )
     const configResult = await db.query(
-      `SELECT chave, valor FROM configuracao_estoque ORDER BY chave`
+      `SELECT chave, valor FROM configuracao_estoque
+       WHERE chave LIKE 'estoque%'
+       ORDER BY chave`
     )
     const config: Record<string, string> = {}
     for (const row of configResult.rows) {

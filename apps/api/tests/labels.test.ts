@@ -75,15 +75,36 @@ test('nenhum codigo fonte ainda usa o nome antigo', () => {
 test('copia da API usada no deploy esta sincronizada com apps/api', () => {
   const arquivos = [
     'src/app.ts',
+    'src/schema.ts',
     'src/modules/solicitacoes/routes.ts',
     'src/modules/solicitacoes/prioridade.ts',
     'src/modules/solicitacoes/tipos.ts',
+    'src/modules/solicitacoes/validacao.ts',
+    'src/modules/solicitacoes/duplicidade.ts',
+    'src/modules/estoque/routes.ts',
+    'src/modules/fluxo/routes.ts',
+    'src/modules/ordens_servico/automatica.ts',
+    'src/modules/ordens_servico/distribuicao.ts',
+    'src/modules/ordens_servico/routes.ts',
+    'src/modules/equipes/routes.ts',
   ]
 
   for (const arquivo of arquivos) {
     const origem = ler(`apps/api/${arquivo}`)
     const deploy = ler(`deploy/api/${arquivo}`)
     assert.equal(deploy, origem, `deploy/api/${arquivo} deve ser identico a apps/api/${arquivo}`)
+  }
+})
+
+test('espelho web do validador esta sincronizado com apps/api', () => {
+  const arquivos = [
+    { origem: 'src/modules/solicitacoes/validacao.ts', espelho: 'src/validation/solicitacao.ts' },
+  ]
+
+  for (const arquivo of arquivos) {
+    const origem = ler(`apps/api/${arquivo.origem}`)
+    const web = ler(`apps/web/${arquivo.espelho}`)
+    assert.equal(web, origem, `apps/web/${arquivo.espelho} deve ser identico a apps/api/${arquivo.origem}`)
   }
 })
 

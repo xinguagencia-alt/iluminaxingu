@@ -3,6 +3,20 @@ import { db } from '../../db.js'
 import rateLimit from 'express-rate-limit'
 import { authMiddleware, requireRole } from '../auth/middleware.js'
 import { notificarStatusSolicitacao, notificarNovaSolicitacao } from '../notificacoes/notificacoes.js'
+import {
+  buscarSolicitacaoDuplicada,
+  comLockLocalizacao,
+  montarChaveLocalizacao,
+} from './duplicidade.js'
+import {
+  decidirElegibilidadeAutomatica,
+  lerModoOperacional,
+} from '../fluxo/routes.js'
+import {
+  criarOsAutomatica,
+  registrarFalhaOsAutomatica,
+} from '../ordens_servico/automatica.js'
+import { distribuirOs } from '../ordens_servico/distribuicao.js'
 import { calcularPrioridadeAutomatica } from './prioridade.js'
 import { injectSla } from './sla.js'
 import {
@@ -10,6 +24,11 @@ import {
   normalizarTipoProblema,
   tiposProblemaQueContem,
 } from './tipos.js'
+import {
+  ERRO_POSTE_NAO_ENCONTRADO,
+  primeiraMensagemDeErro,
+  validarSolicitacao,
+} from './validacao.js'
 import {
   normalizarTelefone,
   montarMensagemProtocolo,
@@ -20,9 +39,24 @@ import {
 
 const router = Router()
 
+function limiteSolicitacoesPublicas(): number {
+  const configurado = Number(process.env.RATE_LIMIT_SOLICITACAO_MAX)
+  if (Number.isFinite(configurado) && configurado > 0) return configurado
+  return 8
+}
+
+export function ehErroDeConsultaGpsNaoSuportada(erro: unknown): boolean {
+  const mensagem = erro instanceof Error ? erro.message : String(erro)
+  return (
+    /function\s+.*\)\s+does not exist/i.test(mensagem) ||
+    /operator\s+does not exist/i.test(mensagem) ||
+    /not supported|unsupported/i.test(mensagem)
+  )
+}
+
 const publicSolicitacaoLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 8,
+  max: limiteSolicitacoesPublicas(),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Muitas solicitacoes enviadas. Tente novamente em 15 minutos.' },
@@ -213,41 +247,27 @@ router.get('/:id/mensagem-whatsapp', authMiddleware, async (req: Request, res: R
 })
 
 router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) => {
-  const {
-    nome_solicitante,
-    telefone,
-    email,
-    poste_id: poste_id_body,
-    codigo_poste,
-    endereco_informado,
-    latitude,
-    longitude,
-    tipo_problema: tipo_problema_body,
-    descricao,
-    consentimento_lgpd,
-    client_request_id,
-  } = req.body
+  const body: Record<string, unknown> =
+    req.body && typeof req.body === 'object'
+      ? (req.body as Record<string, unknown>)
+      : {}
 
-  const tipo_problema = normalizarTipoProblema(tipo_problema_body)
-
-  if (!nome_solicitante || !tipo_problema) {
-    res.status(400).json({ error: 'Nome e tipo de problema sao obrigatorios' })
-    return
-  }
-
-  if (!telefone || !String(telefone).trim()) {
+  const validacao = validarSolicitacao(body)
+  if (!validacao.ok) {
     res.status(400).json({
-      error: 'Informe um telefone para receber o protocolo e o retorno',
+      error: primeiraMensagemDeErro(validacao.erros),
+      erros: validacao.erros,
     })
     return
   }
 
-  if (!consentimento_lgpd) {
-    res.status(400).json({
-      error: 'O consentimento com a LGPD e obrigatorio para enviar a solicitacao',
-    })
-    return
-  }
+  const valores = validacao.valores
+  const nome_solicitante = valores.nome_solicitante
+  const telefone = valores.telefone
+  const email = valores.email
+  const tipo_problema = valores.tipo_problema
+  const descricao = valores.descricao
+  const client_request_id = body.client_request_id
 
   let clientRequestId: string | null = null
   if (client_request_id !== undefined && client_request_id !== null && client_request_id !== '') {
@@ -270,7 +290,10 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
         [clientRequestId]
       )
       if (existente.rows.length > 0) {
-        res.status(200).json(injectSla(existente.rows[0]))
+        res.status(200).json({
+          ...injectSla(existente.rows[0]),
+          elegivel_os_automatica: false,
+        })
         return
       }
     }
@@ -281,39 +304,33 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     const protocolo = `ILX${datePart}-${randomPart}`
 
     let poste_id: number | null = null
-    let codigo_poste_final: string | null = codigo_poste || null
+    let codigo_poste_final: string | null = valores.codigo_poste
     let auto_identificado = false
 
-    if (poste_id_body != null) {
-      const posteIdNumerico = Number(poste_id_body)
-      if (!isNaN(posteIdNumerico)) {
-        const posteManual = await db.query(
-          'SELECT id, codigo FROM postes WHERE id = $1 AND status_ativo = TRUE',
-          [posteIdNumerico]
-        )
-        if (posteManual.rows.length > 0) {
-          poste_id = posteManual.rows[0].id
-          codigo_poste_final = posteManual.rows[0].codigo
-        }
+    if (valores.poste_id != null) {
+      const posteManual = await db.query(
+        'SELECT id, codigo FROM postes WHERE id = $1 AND status_ativo = TRUE',
+        [valores.poste_id]
+      )
+      if (posteManual.rows.length === 0) {
+        res.status(400).json({ error: ERRO_POSTE_NAO_ENCONTRADO })
+        return
       }
-    }
-
-    if (!poste_id && codigo_poste) {
+      poste_id = posteManual.rows[0].id
+      codigo_poste_final = posteManual.rows[0].codigo
+    } else if (codigo_poste_final) {
       const posteResult = await db.query(
         'SELECT id, codigo FROM postes WHERE codigo = $1 AND status_ativo = TRUE',
-        [codigo_poste]
+        [codigo_poste_final]
       )
-      if (posteResult.rows.length > 0) {
-        poste_id = posteResult.rows[0].id
-        codigo_poste_final = posteResult.rows[0].codigo
+      if (posteResult.rows.length === 0) {
+        res.status(400).json({ error: ERRO_POSTE_NAO_ENCONTRADO })
+        return
       }
-    }
-
-    if (!poste_id && latitude != null && longitude != null) {
-      const lat = Number(latitude)
-      const lng = Number(longitude)
-
-      if (!isNaN(lat) && !isNaN(lng)) {
+      poste_id = posteResult.rows[0].id
+      codigo_poste_final = posteResult.rows[0].codigo
+    } else if (valores.latitude != null && valores.longitude != null) {
+      try {
         const postesProximos = await db.query(
           `WITH postes_com_distancia AS (
             SELECT
@@ -336,7 +353,7 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
           WHERE distancia_metros <= 8
           ORDER BY distancia_metros
           LIMIT 2`,
-          [lat, lng]
+          [valores.latitude, valores.longitude]
         )
 
         if (postesProximos.rows.length === 1) {
@@ -344,72 +361,178 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
           codigo_poste_final = postesProximos.rows[0].codigo
           auto_identificado = true
         }
+      } catch (gpsError) {
+        if (ehErroDeConsultaGpsNaoSuportada(gpsError)) {
+          console.warn(
+            `[SOLICITACAO] Funcao geografica indisponivel neste banco; seguindo sem auto-identificacao (lat=${valores.latitude}, lng=${valores.longitude}): ${
+              gpsError instanceof Error ? gpsError.message : String(gpsError)
+            }`
+          )
+        } else {
+          throw gpsError
+        }
       }
     }
 
-    const prioridade = await calcularPrioridadeAutomatica(tipo_problema, poste_id, codigo_poste_final)
-
-    const colunas = [
-      'protocolo',
-      'nome_solicitante',
-      'telefone',
-      'email',
-      'poste_id',
-      'codigo_poste_informado',
-      'endereco_informado',
-      'latitude',
-      'longitude',
-      'tipo_problema',
-      'descricao',
-      'prioridade',
-      'consentimento_lgpd',
-      'auto_identificado',
-    ]
-    const valores: unknown[] = [
-      protocolo,
-      nome_solicitante,
-      telefone,
-      email || null,
+    const chaveLocal = montarChaveLocalizacao({
       poste_id,
-      codigo_poste_final,
-      endereco_informado || null,
-      latitude != null ? Number(latitude) : null,
-      longitude != null ? Number(longitude) : null,
-      tipo_problema,
-      descricao || null,
-      prioridade,
-      Boolean(consentimento_lgpd),
-      auto_identificado,
-    ]
+      codigo_poste: codigo_poste_final,
+      latitude: valores.latitude,
+      longitude: valores.longitude,
+      endereco: valores.endereco_informado,
+    })
 
-    if (clientRequestId) {
-      colunas.push('client_request_id')
-      valores.push(clientRequestId)
+    const lockKey = `${chaveLocal ?? 'sem-local'}|${tipo_problema}`
+    const resultadoCriacao = await comLockLocalizacao(lockKey, async () => {
+      const existente = await buscarSolicitacaoDuplicada(chaveLocal, tipo_problema)
+      if (existente) {
+        return { tipo: 'duplicada' as const, solicitacao: existente }
+      }
+
+      const prioridade = await calcularPrioridadeAutomatica(
+        tipo_problema,
+        poste_id,
+        codigo_poste_final
+      )
+
+      const colunas = [
+        'protocolo',
+        'nome_solicitante',
+        'telefone',
+        'email',
+        'poste_id',
+        'codigo_poste_informado',
+        'endereco_informado',
+        'latitude',
+        'longitude',
+        'tipo_problema',
+        'descricao',
+        'prioridade',
+        'consentimento_lgpd',
+        'auto_identificado',
+      ]
+      const parametros: unknown[] = [
+        protocolo,
+        nome_solicitante,
+        telefone,
+        email,
+        poste_id,
+        codigo_poste_final,
+        valores.endereco_informado,
+        valores.latitude,
+        valores.longitude,
+        tipo_problema,
+        descricao,
+        prioridade,
+        true,
+        auto_identificado,
+      ]
+
+      if (clientRequestId) {
+        colunas.push('client_request_id')
+        parametros.push(clientRequestId)
+      }
+
+      const result = await db.query(
+        `INSERT INTO solicitacoes (${colunas.join(', ')})
+         VALUES (${parametros.map((_, index) => `$${index + 1}`).join(', ')})
+         RETURNING *`,
+        parametros
+      )
+
+      await db.query(
+        'INSERT INTO status_logs (solicitacao_id, status_novo, criado_por) VALUES ($1, $2, $3)',
+        [result.rows[0].id, 'enviada', 'sistema']
+      )
+
+      return { tipo: 'criada' as const, solicitacao: result.rows[0] as Record<string, unknown> }
+    })
+
+    const modoOperacional = await lerModoOperacional()
+
+    if (resultadoCriacao.tipo === 'duplicada') {
+      res.status(200).json({
+        ...injectSla(resultadoCriacao.solicitacao),
+        duplicada: true,
+        fluxo: modoOperacional,
+        elegivel_os_automatica: decidirElegibilidadeAutomatica({
+          modo: modoOperacional,
+          duplicada: true,
+        }),
+        os_automatica: null,
+      })
+      return
     }
 
-    const result = await db.query(
-      `INSERT INTO solicitacoes (${colunas.join(', ')})
-       VALUES (${valores.map((_, index) => `$${index + 1}`).join(', ')})
-       RETURNING *`,
-      valores
-    )
+    const elegivelOs = decidirElegibilidadeAutomatica({
+      modo: modoOperacional,
+      duplicada: false,
+    })
 
-    await db.query(
-      'INSERT INTO status_logs (solicitacao_id, status_novo, criado_por) VALUES ($1, $2, $3)',
-      [result.rows[0].id, 'enviada', 'sistema']
-    )
+    let osAutomatica: Record<string, unknown> | null = null
+    let osAutomaticaErro: string | null = null
+    let distribuicao: Record<string, unknown> | null = null
+
+    if (elegivelOs) {
+      try {
+        const resultadoOs = await criarOsAutomatica(
+          Number(resultadoCriacao.solicitacao.id)
+        )
+        osAutomatica = resultadoOs.ordem
+
+        if (resultadoOs.ordem && resultadoOs.ordem.id != null) {
+          try {
+            const resultadoDist = await distribuirOs(Number(resultadoOs.ordem.id), {
+              origem: 'automatica',
+            })
+            distribuicao = resultadoDist as unknown as Record<string, unknown>
+            if (resultadoDist.atribuida && osAutomatica) {
+              osAutomatica = {
+                ...osAutomatica,
+                equipe_id: resultadoDist.equipe_id,
+              }
+            }
+          } catch (distError) {
+            console.error(
+              '[DISTRIBUICAO] Falha ao distribuir OS automatica:',
+              distError
+            )
+          }
+        }
+      } catch (osError) {
+        osAutomaticaErro =
+          osError instanceof Error ? osError.message : String(osError)
+        await registrarFalhaOsAutomatica(
+          Number(resultadoCriacao.solicitacao.id),
+          osAutomaticaErro
+        )
+      }
+    }
 
     notificarNovaSolicitacao({
       protocolo,
       nomeSolicitante: nome_solicitante,
       tipoProblema: labelTipoProblema(tipo_problema),
       descricao,
-      endereco: endereco_informado,
+      endereco: valores.endereco_informado,
     }).catch((err) => console.error('Falha ao enviar notificacao para admin:', err))
 
     res.status(201).json({
-      ...injectSla(result.rows[0]),
+      ...injectSla(resultadoCriacao.solicitacao),
       auto_identificado,
+      duplicada: false,
+      fluxo: modoOperacional,
+      elegivel_os_automatica: elegivelOs,
+      os_automatica: osAutomatica
+        ? {
+            id: osAutomatica.id,
+            status: osAutomatica.status,
+            equipe_id: osAutomatica.equipe_id ?? null,
+            origem: 'automatica',
+          }
+        : null,
+      distribuicao,
+      ...(osAutomaticaErro ? { os_automatica_erro: osAutomaticaErro } : {}),
     })
   } catch (error) {
     const codigoPostgres =
@@ -428,7 +551,13 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
           [clientRequestId]
         )
         if (existente.rows.length > 0) {
-          res.status(200).json(injectSla(existente.rows[0]))
+          const modoRecuperacao = await lerModoOperacional()
+          res.status(200).json({
+            ...injectSla(existente.rows[0]),
+            fluxo: modoRecuperacao,
+            elegivel_os_automatica: false,
+            os_automatica: null,
+          })
           return
         }
       } catch (lookupError) {

@@ -1,3 +1,8 @@
 import './tipos.test.js'
 import './labels.test.js'
+import './validacao.test.js'
+import './duplicidade.test.js'
+import './config_fluxo.test.js'
+import './os_automatica.test.js'
+import './distribuicao.test.js'
 import './fluxo.test.js'

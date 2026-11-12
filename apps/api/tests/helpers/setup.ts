@@ -6,6 +6,8 @@ process.env.DB_USER = process.env.DB_USER || 'iluminaxingu'
 process.env.DB_PASSWORD = process.env.DB_PASSWORD || 'iluminaxingu'
 process.env.DB_NAME = process.env.DB_NAME || 'iluminaxingu'
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'segredo-de-teste-local'
+process.env.RATE_LIMIT_SOLICITACAO_MAX =
+  process.env.RATE_LIMIT_SOLICITACAO_MAX || '1000'
 delete process.env.NOTIFICATION_EMAIL_TO
 delete process.env.SMTP_HOST
 delete process.env.SMTP_USER
@@ -40,6 +42,9 @@ const DDL = [
     criado_em TIMESTAMP DEFAULT NOW(),
     atualizado_em TIMESTAMP DEFAULT NOW()
   )`,
+  `CREATE UNIQUE INDEX idx_solicitacoes_client_request_id
+    ON solicitacoes (client_request_id)
+    WHERE client_request_id IS NOT NULL`,
   `CREATE TABLE status_logs (
     id SERIAL PRIMARY KEY,
     solicitacao_id INTEGER NOT NULL,
@@ -66,11 +71,17 @@ const DDL = [
   `CREATE TABLE equipes (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(120) NOT NULL,
+    descricao TEXT,
     responsavel VARCHAR(120),
     telefone VARCHAR(20),
     ativo BOOLEAN DEFAULT TRUE,
+    status_disponibilidade VARCHAR(30) NOT NULL DEFAULT 'disponivel',
+    capacidade_maxima INTEGER NOT NULL DEFAULT 3,
+    especialidades VARCHAR(500),
     criado_em TIMESTAMP DEFAULT NOW()
   )`,
+  `CREATE UNIQUE INDEX idx_ordens_servico_solicitacao_id_unico
+    ON ordens_servico (solicitacao_id)`,
   `CREATE TABLE postes (
     id SERIAL PRIMARY KEY,
     codigo VARCHAR(50) UNIQUE NOT NULL,
@@ -112,6 +123,17 @@ const DDL = [
     descricao TEXT,
     criado_em TIMESTAMP DEFAULT NOW(),
     atualizado_em TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE TABLE auditoria (
+    id SERIAL PRIMARY KEY,
+    tabela VARCHAR(50) NOT NULL,
+    registro_id INTEGER,
+    acao VARCHAR(20) NOT NULL,
+    dados_antes JSONB,
+    dados_depois JSONB,
+    usuario_id INTEGER,
+    usuario_nome VARCHAR(100),
+    criado_em TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE TABLE itens_estoque (
     id SERIAL PRIMARY KEY,

@@ -32,8 +32,8 @@ export async function contarSolicitacoesAbertas(posteId: number | null, codigoPo
   const statusFechados = ['concluida', 'cancelada', 'nao_procedente', 'duplicada']
 
   const conditions: string[] = [
-    `status_atual != ALL($1)`,
-    `criado_em >= NOW() - INTERVAL '7 days'`,
+    `NOT (status_atual = ANY($1::text[]))`,
+    `criado_em >= LOCALTIMESTAMP - INTERVAL '7 days'`,
   ]
   const values: unknown[] = [statusFechados]
   let paramIndex = 2

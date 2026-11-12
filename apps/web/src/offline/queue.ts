@@ -1,6 +1,7 @@
 import { salvarPendente, listarPendentes, removerPendente, contarPendentes } from './db'
 import type { AnexoPendente, SolicitacaoPayload, SolicitacaoPendente } from './types'
 import { EVENTO_FILA_ALTERADA } from './types'
+import { garantirSolicitacaoValida } from '../validation/solicitacao'
 
 function gerarIdLocal(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -23,6 +24,8 @@ export async function enfileirarSolicitacao(
   payload: SolicitacaoPayload,
   arquivos: File[]
 ): Promise<ResultadoEnfileiramento> {
+  garantirSolicitacaoValida(payload)
+
   const idLocal = gerarIdLocal()
 
   const anexos: AnexoPendente[] = []

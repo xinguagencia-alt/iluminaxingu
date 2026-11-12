@@ -7,14 +7,15 @@ import {
   labelTipoProblema,
   tiposProblemaQueContem,
 } from '../src/modules/solicitacoes/tipos.js'
+import { ehTipoPermitido } from '../src/modules/solicitacoes/validacao.js'
 import { calcularPrioridadeBase } from '../src/modules/solicitacoes/prioridade.js'
 import { calcularPrazoSla, calcularStatusSla } from '../src/modules/solicitacoes/sla.js'
 
 const NOVO_LABEL = 'Luminária acesa 24 horas'
 const VALOR_CANONICO = 'lampada_acesa_dia'
 
-test('catalogo de tipos mantem os 7 defeitos validos', () => {
-  assert.equal(TIPOS_PROBLEMA.length, 7)
+test('catalogo de tipos mantem os 6 defeitos validos', () => {
+  assert.equal(TIPOS_PROBLEMA.length, 6)
   assert.deepEqual(
     TIPOS_PROBLEMA.map((t) => t.value),
     [
@@ -24,9 +25,17 @@ test('catalogo de tipos mantem os 7 defeitos validos', () => {
       'lampada_acesa_dia',
       'risco_eletrico',
       'fio_exposto',
-      'outro',
     ]
   )
+})
+
+test('outro saiu do catalogo e e rejeitado no envio', () => {
+  assert.ok(!TIPOS_PROBLEMA.some((t) => t.value === 'outro'))
+  assert.equal(ehTipoPermitido('outro'), false)
+  assert.equal(ehTipoPermitido('tipo_inexistente'), false)
+  assert.equal(ehTipoPermitido(VALOR_CANONICO), true)
+  assert.equal(ehTipoPermitido('luminaria_acesa_24h'), true, 'alias continua aceito')
+  assert.equal(labelTipoProblema('outro'), 'outro', 'leitura de registro antigo preservada')
 })
 
 test('o tipo exibe o novo nome para o municipe', () => {

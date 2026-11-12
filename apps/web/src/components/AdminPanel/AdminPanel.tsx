@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useAuditoria } from '../../hooks/useAuditoria'
 import { useExport } from '../../hooks/useExport'
+import { useFluxo } from '../../hooks/useFluxo'
+import { useFilaDistribuicao } from '../../hooks/useFilaDistribuicao'
 import styles from './AdminPanel.module.css'
 
-type Tab = 'auditoria' | 'exportar'
+type Tab = 'auditoria' | 'exportar' | 'fluxo' | 'fila'
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
@@ -17,6 +19,7 @@ const TABELAS_LABELS: Record<string, string> = {
   solicitacoes: 'Solicitacoes',
   ordens_servico: 'Ordens de Servico',
   equipes: 'Equipes',
+  configuracao_fluxo: 'Modo do Fluxo',
 }
 
 const ACOES_LABELS: Record<string, string> = {
@@ -30,6 +33,159 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
     <div className={`${styles.toast} ${type === 'error' ? styles.toastError : styles.toastSuccess}`}>
       <span>{message}</span>
       <button className={styles.toastClose} onClick={onClose}>×</button>
+    </div>
+  )
+}
+
+function FluxoTab({ showToast }: { showToast: (message: string, type: 'success' | 'error') => void }) {
+  const { config, loading, saving, error, alterarModo } = useFluxo()
+  const modo = config?.modo ?? 'manual'
+  const automatico = modo === 'automatico'
+
+  async function handleAlterar(novo: 'manual' | 'automatico') {
+    if (novo === modo) return
+    const resultado = await alterarModo(novo)
+    if (resultado.ok) {
+      showToast(novo === 'automatico' ? 'Modo automatico ativado' : 'Modo manual ativado', 'success')
+    } else {
+      showToast(resultado.error || 'Erro ao alterar o modo', 'error')
+    }
+  }
+
+  if (loading && !config) {
+    return <div className={styles.loading}>Carregando modo do fluxo...</div>
+  }
+
+  return (
+    <div>
+      {error && <p className={styles.error}>{error}</p>}
+
+      <div className={`${styles.fluxoBanner} ${automatico ? styles.fluxoBannerAuto : styles.fluxoBannerManual}`}>
+        <div>
+          <span className={`${styles.fluxoBadge} ${automatico ? styles.fluxoBadgeAuto : styles.fluxoBadgeManual}`}>
+            {automatico ? 'Fluxo automatico' : 'Fluxo manual'}
+          </span>
+          <p className={styles.fluxoDesc}>
+            {automatico
+              ? 'Solicitacoes validadas e nao duplicadas ficam elegiveis para criacao automatica de OS (Etapa 5).'
+              : 'Nenhuma OS e criada automaticamente. O operador analisa e cria/encaminha as ordens de servico.'}
+          </p>
+        </div>
+      </div>
+
+      <div className={styles.fluxoCard}>
+        <div className={styles.fluxoInfo}>
+          <h3>Modo operacional do fluxo</h3>
+          <p>
+            Valor ativo: <strong>{automatico ? 'automatico' : 'manual'}</strong> (padrao: manual).
+            Alteracao exige perfil Administrador e fica registrada na auditoria.
+            Solicitacoes duplicadas nunca entram no fluxo automatico.
+          </p>
+        </div>
+        <div className={styles.fluxoActions}>
+          <button
+            className={`${styles.fluxoBtn} ${!automatico ? styles.fluxoBtnActive : ''}`}
+            onClick={() => handleAlterar('manual')}
+            disabled={saving || !config || modo === 'manual'}
+          >
+            Manual
+          </button>
+          <button
+            className={`${styles.fluxoBtn} ${automatico ? styles.fluxoBtnActiveAuto : ''}`}
+            onClick={() => handleAlterar('automatico')}
+            disabled={saving || !config || modo === 'automatico'}
+          >
+            Automatico
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FilaTab({ showToast }: { showToast: (message: string, type: 'success' | 'error') => void }) {
+  const { fila, loading, saving, error, refetch, processarFila } = useFilaDistribuicao()
+
+  async function handleProcessar() {
+    const resultado = await processarFila()
+    if (resultado.ok && resultado.resultado) {
+      const { processadas, atribuidas, pendentes } = resultado.resultado
+      showToast(
+        `Fila processada: ${processadas} processada(s), ${atribuidas} atribuida(s), ${pendentes} pendente(s)`,
+        'success'
+      )
+    } else {
+      showToast(resultado.error || 'Erro ao processar a fila', 'error')
+    }
+  }
+
+  if (loading && fila.length === 0 && !error) {
+    return <div className={styles.loading}>Carregando fila de distribuicao...</div>
+  }
+
+  return (
+    <div>
+      {error && <p className={styles.error}>{error}</p>}
+
+      <div className={styles.fluxoBanner} style={{
+        background: 'linear-gradient(135deg, rgba(239,246,255,.95), rgba(219,234,254,.9))',
+        borderColor: 'rgba(59,130,246,.28)',
+        marginBottom: 16,
+      }}>
+        <div>
+          <span className={styles.fluxoBadge} style={{ background: '#dbeafe', color: '#1e40af' }}>
+            Fila de equipes
+          </span>
+          <p className={styles.fluxoDesc}>
+            OS abertas sem equipe. A redistribuicao acontece ao liberar uma equipe (PUT) ou
+            pelo botao abaixo (acao POST administrativa). Sem polling.
+          </p>
+        </div>
+      </div>
+
+      <div className={styles.auditHeader}>
+        <span className={styles.auditCount}>{fila.length} OS aguardando equipe</span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className={styles.refreshButton} onClick={refetch} disabled={loading || saving}>
+            Atualizar
+          </button>
+          <button
+            className={styles.exportButton}
+            onClick={handleProcessar}
+            disabled={saving || loading}
+            style={{ marginTop: 0 }}
+          >
+            {saving ? 'Processando...' : 'Processar fila'}
+          </button>
+        </div>
+      </div>
+
+      {fila.length === 0 ? (
+        <div className={styles.empty}>Nenhuma OS na fila. Todas possuem equipe ou nao ha ordens abertas.</div>
+      ) : (
+        <div className={styles.auditList}>
+          {fila.map((item) => (
+            <div key={item.id} className={styles.auditItem}>
+              <div className={styles.auditItemHeader}>
+                <span className={styles.tabelaBadge}>{item.protocolo}</span>
+                <span className={styles.tabelaBadge}>{item.tipo_problema}</span>
+                <span className={styles.auditDate}>{item.prioridade || '-'}</span>
+              </div>
+              <div className={styles.auditItemBody}>
+                <span className={styles.auditUser}>
+                  {item.equipe_nome || 'Aguardando equipe'}
+                </span>
+                <span className={styles.auditId} title={item.motivo_detalhe}>
+                  Motivo: {item.motivo}
+                </span>
+              </div>
+              <div className={styles.auditItemBody} style={{ marginTop: 6 }}>
+                <span className={styles.auditId}>{item.endereco_informado || '-'}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -62,7 +218,7 @@ export function AdminPanel() {
 
       <div className={styles.header}>
         <h2>Painel Administrativo</h2>
-        <p className={styles.subtitle}>Auditoria, exportacao e gerenciamento do sistema</p>
+        <p className={styles.subtitle}>Auditoria, exportacao, fluxo de atendimento e gerenciamento do sistema</p>
       </div>
 
       <div className={styles.tabs}>
@@ -71,6 +227,18 @@ export function AdminPanel() {
           onClick={() => setTab('auditoria')}
         >
           Auditoria
+        </button>
+        <button
+          className={`${styles.tab} ${tab === 'fluxo' ? styles.tabActive : ''}`}
+          onClick={() => setTab('fluxo')}
+        >
+          Fluxo
+        </button>
+        <button
+          className={`${styles.tab} ${tab === 'fila' ? styles.tabActive : ''}`}
+          onClick={() => setTab('fila')}
+        >
+          Fila OS
         </button>
         <button
           className={`${styles.tab} ${tab === 'exportar' ? styles.tabActive : ''}`}
@@ -84,6 +252,9 @@ export function AdminPanel() {
       </div>
 
       <div className={styles.content}>
+        {tab === 'fluxo' && <FluxoTab showToast={showToast} />}
+        {tab === 'fila' && <FilaTab showToast={showToast} />}
+
         {tab === 'auditoria' && (
           <div>
             <div className={styles.auditHeader}>
@@ -145,7 +316,9 @@ export function AdminPanel() {
               <div className={styles.loading}>Carregando resumo...</div>
             ) : summary ? (
               <div className={styles.exportGrid}>
-                {Object.entries(TABELAS_LABELS).map(([tabela, label]) => (
+                {Object.entries(TABELAS_LABELS)
+                  .filter(([tabela]) => tabela !== 'configuracao_fluxo')
+                  .map(([tabela, label]) => (
                   <div key={tabela} className={styles.exportCard}>
                     <div className={styles.exportCardInfo}>
                       <h4>{label}</h4>
