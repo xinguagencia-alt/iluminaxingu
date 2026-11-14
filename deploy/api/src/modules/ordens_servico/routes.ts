@@ -583,6 +583,16 @@ router.patch('/:id/status', authMiddleware, requireRole(['admin', 'gestor', 'ope
       )
     }
 
+    if (['concluida', 'cancelada', 'em_manutencao'].includes(status)) {
+      try {
+        await processarFilaDistribuicao()
+      } catch (filaError) {
+        // A conclusao da OS continua confirmada mesmo se a redistribuicao
+        // da fila falhar; a fila permanece disponivel para processamento manual.
+        console.error('[DISTRIBUICAO] Falha ao acordar fila apos liberar equipe:', filaError)
+      }
+    }
+
     res.json({ message: 'Status da ordem atualizado' })
   } catch (error) {
     console.error('Erro ao atualizar ordem:', error)

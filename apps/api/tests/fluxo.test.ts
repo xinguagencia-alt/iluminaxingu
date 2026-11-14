@@ -73,7 +73,7 @@ test('solicitacao online com o novo tipo e registrada com protocolo, prioridade 
   assert.equal(json.tipo_problema, VALOR)
   assert.equal(json.prioridade, 'baixa')
   assert.equal(json.status_atual, 'enviada')
-  assert.equal(json.consentimento_lgpd, true)
+  assert.ok(!('consentimento_lgpd' in json), 'consentimento nao sai na resposta publica')
   assert.equal(json.auto_identificado, false)
   assert.ok(json.prazo_sla, 'SLA calculado na resposta')
   assert.equal(json.status_sla, 'dentro_do_prazo')
@@ -345,6 +345,29 @@ test('resumo de exportacao conta as solicitacoes', async () => {
   assert.ok(resumo.ordens_servico >= 1)
 })
 
+test('exportacao detalhada usa as colunas reais do banco', async () => {
+  for (const tabela of ['postes', 'bairros', 'ruas', 'solicitacoes', 'ordens_servico', 'equipes']) {
+    const resposta = await fetch(`${baseUrl}/api/export/${tabela}`, {
+      headers: cabecalhoAuth,
+    })
+    assert.equal(resposta.status, 200, `exportacao de ${tabela}`)
+    const corpo = await resposta.json()
+    assert.equal(corpo.tabela, tabela)
+    assert.ok(Array.isArray(corpo.dados))
+  }
+})
+
+test('health nao expoe detalhes internos do banco', async () => {
+  const resposta = await fetch(`${baseUrl}/health`)
+  assert.equal(resposta.status, 200)
+  const corpo = await resposta.json()
+  assert.equal(corpo.database.status, 'ok')
+  assert.equal('message' in corpo.database, false)
+  assert.equal('solicitacoes_columns' in corpo, false)
+  assert.equal('bairros_columns' in corpo, false)
+  assert.equal('postes_columns' in corpo, false)
+})
+
 test('API rejeita tipo fora do catalogo, inclusive outro', async () => {
   const outro = await postSolicitacao(payload({ tipo_problema: 'outro' }))
   assert.equal(outro.status, 400, JSON.stringify(outro.json))
@@ -430,8 +453,12 @@ test('API exige que o poste informado exista no sistema', async () => {
     payload({ nome_solicitante: 'Gilda Rocha', codigo_poste: 'POSTE-VALIDACAO-1', endereco_informado: null })
   )
   assert.equal(existente.status, 201, JSON.stringify(existente.json))
-  assert.equal(existente.json.codigo_poste_informado, 'POSTE-VALIDACAO-1')
-  assert.ok(existente.json.poste_id, 'poste resolvido para o registro')
+  const posteSalvo = await executar(
+    'SELECT codigo_poste_informado, poste_id FROM solicitacoes WHERE id = $1',
+    [existente.json.id]
+  )
+  assert.equal(posteSalvo.rows[0].codigo_poste_informado, 'POSTE-VALIDACAO-1')
+  assert.ok(posteSalvo.rows[0].poste_id, 'poste resolvido para o registro')
 })
 
 test('API aceita coordenadas validas mesmo sem poste proximo', async () => {
@@ -445,8 +472,12 @@ test('API aceita coordenadas validas mesmo sem poste proximo', async () => {
   )
   assert.equal(resposta.status, 201, JSON.stringify(resposta.json))
   assert.equal(resposta.json.auto_identificado, false)
-  assert.equal(resposta.json.latitude, -1.4558)
-  assert.equal(resposta.json.longitude, -48.5039)
+  const coordenadasSalvas = await executar(
+    'SELECT latitude, longitude FROM solicitacoes WHERE id = $1',
+    [resposta.json.id]
+  )
+  assert.equal(Number(coordenadasSalvas.rows[0].latitude), -1.4558)
+  assert.equal(Number(coordenadasSalvas.rows[0].longitude), -48.5039)
 })
 
 test('descricao continua opcional e vazia vira null', async () => {
@@ -458,7 +489,11 @@ test('descricao continua opcional e vazia vira null', async () => {
     })
   )
   assert.equal(semDescricao.status, 201)
-  assert.equal(semDescricao.json.descricao, null)
+  const semDescricaoSalva = await executar(
+    'SELECT descricao FROM solicitacoes WHERE id = $1',
+    [semDescricao.json.id]
+  )
+  assert.equal(semDescricaoSalva.rows[0].descricao, null)
 
   const descricaoVazia = await postSolicitacao(
     payload({
@@ -468,7 +503,11 @@ test('descricao continua opcional e vazia vira null', async () => {
     })
   )
   assert.equal(descricaoVazia.status, 201)
-  assert.equal(descricaoVazia.json.descricao, null)
+  const descricaoVaziaSalva = await executar(
+    'SELECT descricao FROM solicitacoes WHERE id = $1',
+    [descricaoVazia.json.id]
+  )
+  assert.equal(descricaoVaziaSalva.rows[0].descricao, null)
 })
 
 test('catch da consulta GPS so engole funcoes nao suportadas', () => {

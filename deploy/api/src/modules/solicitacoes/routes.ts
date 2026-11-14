@@ -554,23 +554,26 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
       endereco: valores.endereco_informado,
     }).catch((err) => console.error('Falha ao enviar notificacao para admin:', err))
 
-    res.status(201).json({
-      ...injectSla(resultadoCriacao.solicitacao),
-      auto_identificado,
-      duplicada: false,
-      fluxo: modoOperacional,
-      elegivel_os_automatica: elegivelOs,
-      os_automatica: osAutomatica
-        ? {
-            id: osAutomatica.id,
-            status: osAutomatica.status,
-            equipe_id: osAutomatica.equipe_id ?? null,
-            origem: 'automatica',
-          }
-        : null,
-      distribuicao,
-      ...(osAutomaticaErro ? { os_automatica_erro: osAutomaticaErro } : {}),
-    })
+    res.status(201).json(
+      await montarRespostaPublica(resultadoCriacao.solicitacao, {
+        duplicada: false,
+        fluxo: modoOperacional,
+        confirmacao: null,
+        incluirDetalhesCriacao: true,
+        autoIdentificado: auto_identificado,
+        elegivelOsAutomatica: elegivelOs,
+        osAutomatica: osAutomatica
+          ? {
+              id: osAutomatica.id,
+              status: osAutomatica.status,
+              equipe_id: osAutomatica.equipe_id ?? null,
+              origem: 'automatica',
+            }
+          : null,
+        distribuicao,
+        osAutomaticaErro,
+      })
+    )
   } catch (error) {
     const codigoPostgres =
       typeof error === 'object' && error !== null && 'code' in error

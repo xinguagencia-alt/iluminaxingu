@@ -64,13 +64,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const userData = await response.json()
         setUser(userData)
-      } else {
+      } else if (response.status === 401) {
         localStorage.removeItem('token')
         setToken(null)
       }
     } catch {
-      localStorage.removeItem('token')
-      setToken(null)
+      // Falhas de rede/timeout nao invalidam a sessao; preserve o token para
+      // que o administrador possa continuar quando a API voltar.
     }
   }
 

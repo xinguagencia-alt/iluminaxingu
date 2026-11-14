@@ -19,7 +19,7 @@ router.get('/:tabela', authMiddleware, requireRole(['admin']), async (req: Reque
     switch (tabela) {
       case 'postes':
         query = `SELECT id, codigo, endereco, rua, numero, bairro, complemento, latitude, longitude,
-          tipo_luminaria, potencia, data_instalacao, data_ultima_manutencao, status_ativo, criado_em, atualizado_em
+          status_ativo, criado_em, atualizado_em
           FROM postes WHERE status_ativo = TRUE ORDER BY codigo`
         break
       case 'bairros':
@@ -29,16 +29,16 @@ router.get('/:tabela', authMiddleware, requireRole(['admin']), async (req: Reque
         query = `SELECT id, nome, tipo, ativo, criado_em FROM ruas WHERE ativo = TRUE ORDER BY tipo, nome`
         break
       case 'solicitacoes':
-        query = `SELECT id, protocolo, nome_solicitante, telefone, email, codigo_poste, endereco_informado,
+        query = `SELECT id, protocolo, nome_solicitante, telefone, email, codigo_poste_informado, endereco_informado,
           latitude, longitude, tipo_problema, descricao, status_atual, prioridade, criado_em
           FROM solicitacoes ORDER BY criado_em DESC`
         break
       case 'ordens_servico':
-        query = `SELECT id, solicitacao_id, equipe_id, status, observacoes, criado_em, atualizado_em
+        query = `SELECT id, solicitacao_id, equipe_id, status, observacao_execucao, resultado, material_utilizado, criado_em, atualizado_em
           FROM ordens_servico ORDER BY criado_em DESC`
         break
       case 'equipes':
-        query = `SELECT id, nome, responsavel, telefone, ativo, criado_em FROM equipes WHERE ativo = TRUE ORDER BY nome`
+        query = `SELECT id, nome, descricao, responsavel, ativo, criado_em FROM equipes WHERE ativo = TRUE ORDER BY nome`
         break
     }
 

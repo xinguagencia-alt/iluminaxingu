@@ -96,6 +96,11 @@ export interface ContextoRespostaPublica {
   fluxo: ModoOperacional | string
   confirmacao: ConfirmacaoPublica | null
   elegivelOsAutomatica?: boolean
+  autoIdentificado?: boolean
+  osAutomatica?: Record<string, unknown> | null
+  distribuicao?: Record<string, unknown> | null
+  osAutomaticaErro?: string | null
+  incluirDetalhesCriacao?: boolean
 }
 
 export async function montarRespostaPublica(
@@ -116,7 +121,7 @@ export async function montarRespostaPublica(
 
   const os = await buscarEstadoOsPublico(Number(row.id))
 
-  return {
+  const resposta: Record<string, unknown> = {
     id: Number(row.id),
     protocolo: String(row.protocolo),
     status_atual: statusAtual,
@@ -130,6 +135,15 @@ export async function montarRespostaPublica(
     duplicada: contexto.duplicada,
     fluxo: contexto.fluxo,
     elegivel_os_automatica: contexto.elegivelOsAutomatica ?? false,
-    os_automatica: null,
+    os_automatica: contexto.osAutomatica ?? null,
   }
+
+  if (contexto.incluirDetalhesCriacao) {
+    resposta.tipo_problema = row.tipo_problema != null ? String(row.tipo_problema) : null
+    resposta.auto_identificado = Boolean(row.auto_identificado)
+    if (contexto.distribuicao) resposta.distribuicao = contexto.distribuicao
+    if (contexto.osAutomaticaErro) resposta.os_automatica_erro = contexto.osAutomaticaErro
+  }
+
+  return resposta
 }

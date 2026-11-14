@@ -43,37 +43,14 @@ export function createApp() {
 
   app.get('/health', async (_request, response) => {
     const { db } = await import('./db.js')
-    let columns: string[] = []
-    let bairrosColumns: string[] = []
-    let postesColumns: string[] = []
     let dbStatus = 'ok'
-    let dbMessage: string | undefined
     const checkedAt = new Date().toISOString()
     try {
       await db.query('SELECT 1')
-      const result = await db.query(
-        `SELECT column_name FROM information_schema.columns
-         WHERE table_name = 'solicitacoes' ORDER BY ordinal_position`
-      )
-      columns = result.rows.map((r: { column_name: string }) => r.column_name)
     } catch (err: unknown) {
       dbStatus = 'error'
-      dbMessage = err instanceof Error ? err.message : 'Erro desconhecido ao conectar ao banco'
+      console.error('[HEALTH] Banco indisponivel:', err)
     }
-    try {
-      const result = await db.query(
-        `SELECT column_name FROM information_schema.columns
-         WHERE table_name = 'bairros' ORDER BY ordinal_position`
-      )
-      bairrosColumns = result.rows.map((r: { column_name: string }) => r.column_name)
-    } catch { /* ignore */ }
-    try {
-      const result = await db.query(
-        `SELECT column_name FROM information_schema.columns
-         WHERE table_name = 'postes' ORDER BY ordinal_position`
-      )
-      postesColumns = result.rows.map((r: { column_name: string }) => r.column_name)
-    } catch { /* ignore */ }
 
     response.json({
       status: 'ok',
@@ -83,12 +60,8 @@ export function createApp() {
       database: {
         status: dbStatus,
         checked_at: checkedAt,
-        ...(dbMessage ? { message: dbMessage } : {}),
       },
       modules: ['solicitacoes', 'postes', 'ordens_servico', 'equipes', 'bairros', 'ruas', 'anexos', 'auditoria', 'export', 'estoque', 'dashboard', 'fluxo'],
-      solicitacoes_columns: columns,
-      bairros_columns: bairrosColumns,
-      postes_columns: postesColumns,
     })
   })
 
