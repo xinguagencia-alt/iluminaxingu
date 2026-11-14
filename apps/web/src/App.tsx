@@ -20,6 +20,7 @@ import { PostesReparadosList } from './components/PostesReparadosList/PostesRepa
 import { StockAdmin } from './components/StockAdmin/StockAdmin'
 import { PendingLocal } from './components/PendingLocal/PendingLocal'
 import { useOfflineQueue } from './offline/useOfflineQueue'
+import { PortalHome } from './components/PortalHome/PortalHome'
 
 type Page = 'home' | 'consultar' | 'dashboard' | 'admin' | 'postes' | 'postes-novo' | 'postes-editar' | 'ordens' | 'ordem-detail' | 'equipes' | 'usuarios' | 'logradouros' | 'sistema' | 'mapa' | 'reparos' | 'estoque'
 
@@ -470,7 +471,11 @@ function AdminLayout() {
 function AppRoutes() {
   const path = usePathname()
 
-  if (path.startsWith('/prefeitura')) {
+  if (path === '/prefeitura' || path === '/prefeitura/') {
+    return <PortalHome />
+  }
+
+  if (path.startsWith('/prefeitura/')) {
     return <AdminLayout />
   }
 

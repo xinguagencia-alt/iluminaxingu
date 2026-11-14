@@ -86,6 +86,199 @@ textarea {
   min-height: 100vh;
 }
 
+.portalHome {
+  min-height: 100vh;
+  padding: 42px 20px 56px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(251, 191, 36, 0.22), transparent 28%),
+    radial-gradient(circle at 92% 12%, rgba(249, 115, 22, 0.16), transparent 26%),
+    linear-gradient(180deg, #fffaf3 0%, #fff7ed 48%, #ffffff 100%);
+}
+
+.portalHomeHeader,
+.portalHomeMain {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.portalHomeHeader {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: var(--ink-900);
+}
+
+.portalHomeMark {
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 22px;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background: linear-gradient(145deg, #f59e0b, #b45309);
+  box-shadow: 0 14px 28px rgba(180, 83, 9, 0.22);
+}
+
+.portalHomeEyebrow,
+.portalHomeKicker {
+  color: var(--brand-700);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.portalHomeHeader h1 {
+  margin: 2px 0 3px;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1;
+  color: var(--brand-900);
+}
+
+.portalHomeHeader p,
+.portalHomeIntro p,
+.portalHomeFooterText {
+  color: var(--ink-500);
+}
+
+.portalHomeMain {
+  padding-top: 70px;
+}
+
+.portalHomeIntro {
+  max-width: 680px;
+  margin-bottom: 28px;
+}
+
+.portalHomeIntro h2 {
+  margin: 8px 0 5px;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  line-height: 1.1;
+  color: var(--ink-900);
+}
+
+.portalCards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.portalCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: start;
+  min-height: 190px;
+  padding: 24px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink-900);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+}
+
+.portalCard:hover,
+.portalCard:focus-visible {
+  border-color: var(--brand-400);
+  box-shadow: 0 18px 36px rgba(180, 83, 9, 0.16);
+  outline: none;
+}
+
+.portalCardActive {
+  border-color: rgba(245, 158, 11, 0.42);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(255, 247, 237, 0.94));
+}
+
+.portalCardSoon {
+  opacity: 0.82;
+}
+
+.portalCardIcon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 17px;
+  background: var(--brand-100);
+  font-size: 1.65rem;
+}
+
+.portalCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.portalCardTitle {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--brand-900);
+}
+
+.portalCardDescription {
+  color: var(--ink-500);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.portalCardAction {
+  grid-column: 2;
+  color: var(--brand-700);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.portalHomeNotice {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 13px 16px;
+  border: 1px solid var(--brand-200);
+  border-radius: 14px;
+  background: var(--brand-50);
+  color: var(--brand-800);
+}
+
+.portalHomeNotice button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.portalHomeFooterText {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 700px) {
+  .portalHome {
+    padding: 28px 16px 42px;
+  }
+
+  .portalHomeMain {
+    padding-top: 48px;
+  }
+
+  .portalCards {
+    grid-template-columns: 1fr;
+  }
+
+  .portalCard {
+    min-height: 170px;
+  }
+}
+
 .app {
   display: flex;
   flex-direction: column;
