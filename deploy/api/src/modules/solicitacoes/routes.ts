@@ -30,6 +30,12 @@ import {
   validarSolicitacao,
 } from './validacao.js'
 import {
+  registrarConfirmacao,
+  type ConfirmacaoPublica,
+  type EntradaConfirmacao,
+} from './confirmacoes.js'
+import { montarRespostaPublica } from './publico.js'
+import {
   normalizarTelefone,
   montarMensagemProtocolo,
   montarMensagemStatus,
@@ -43,6 +49,15 @@ function limiteSolicitacoesPublicas(): number {
   const configurado = Number(process.env.RATE_LIMIT_SOLICITACAO_MAX)
   if (Number.isFinite(configurado) && configurado > 0) return configurado
   return 8
+}
+
+async function confirmarNoPortal(entrada: EntradaConfirmacao): Promise<ConfirmacaoPublica | null> {
+  try {
+    return await registrarConfirmacao(entrada)
+  } catch (erro) {
+    console.error('[CONFIRMACAO] Falha ao registrar confirmacao:', erro)
+    return null
+  }
 }
 
 export function ehErroDeConsultaGpsNaoSuportada(erro: unknown): boolean {
@@ -290,10 +305,15 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
         [clientRequestId]
       )
       if (existente.rows.length > 0) {
-        res.status(200).json({
-          ...injectSla(existente.rows[0]),
-          elegivel_os_automatica: false,
-        })
+        const modoReplay = await lerModoOperacional()
+        res.status(200).json(
+          await montarRespostaPublica(existente.rows[0] as Record<string, unknown>, {
+            duplicada: false,
+            fluxo: modoReplay,
+            confirmacao: null,
+            elegivelOsAutomatica: false,
+          })
+        )
         return
       }
     }
@@ -451,16 +471,33 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
     const modoOperacional = await lerModoOperacional()
 
     if (resultadoCriacao.tipo === 'duplicada') {
-      res.status(200).json({
-        ...injectSla(resultadoCriacao.solicitacao),
-        duplicada: true,
-        fluxo: modoOperacional,
-        elegivel_os_automatica: decidirElegibilidadeAutomatica({
-          modo: modoOperacional,
-          duplicada: true,
-        }),
-        os_automatica: null,
+      const solicitacaoId = Number(resultadoCriacao.solicitacao.id)
+      const confirmacao = await confirmarNoPortal({
+        solicitacaoId,
+        telefoneInformado: telefone,
+        origem: clientRequestId ? 'offline' : 'portal',
+        clientRequestId,
       })
+
+      const atualizada = await db.query(
+        'SELECT * FROM solicitacoes WHERE id = $1',
+        [solicitacaoId]
+      )
+      const row =
+        (atualizada.rows[0] as Record<string, unknown> | undefined) ??
+        resultadoCriacao.solicitacao
+
+      res.status(200).json(
+        await montarRespostaPublica(row, {
+          duplicada: true,
+          fluxo: modoOperacional,
+          confirmacao,
+          elegivelOsAutomatica: decidirElegibilidadeAutomatica({
+            modo: modoOperacional,
+            duplicada: true,
+          }),
+        })
+      )
       return
     }
 
@@ -552,12 +589,14 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
         )
         if (existente.rows.length > 0) {
           const modoRecuperacao = await lerModoOperacional()
-          res.status(200).json({
-            ...injectSla(existente.rows[0]),
-            fluxo: modoRecuperacao,
-            elegivel_os_automatica: false,
-            os_automatica: null,
-          })
+          res.status(200).json(
+            await montarRespostaPublica(existente.rows[0] as Record<string, unknown>, {
+              duplicada: false,
+              fluxo: modoRecuperacao,
+              confirmacao: null,
+              elegivelOsAutomatica: false,
+            })
+          )
           return
         }
       } catch (lookupError) {

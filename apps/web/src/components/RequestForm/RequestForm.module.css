@@ -377,6 +377,43 @@
   margin-bottom: 14px;
 }
 
+.successDuplicada {
+  background: linear-gradient(180deg, #fffbeb, #ffffff);
+  border-color: #fcd34d;
+  box-shadow: 0 22px 44px rgba(146, 64, 14, 0.08);
+}
+
+.successDuplicada h2 {
+  color: #92400e;
+}
+
+.successDuplicada .protocol {
+  color: #92400e;
+  border-color: #f59e0b;
+}
+
+.duplicadaResumo {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0;
+  display: grid;
+  gap: 8px;
+}
+
+.duplicadaResumo li {
+  font-size: 0.92rem;
+  color: #78350f;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.duplicadaResumo strong {
+  color: #92400e;
+}
+
 .whatsappSection {
   display: flex;
   gap: 10px;

@@ -39,12 +39,23 @@ const DDL = [
     consentimento_lgpd BOOLEAN DEFAULT FALSE,
     auto_identificado BOOLEAN DEFAULT FALSE,
     client_request_id VARCHAR(64),
+    confirmacoes_elevacao_em TIMESTAMP,
     criado_em TIMESTAMP DEFAULT NOW(),
     atualizado_em TIMESTAMP DEFAULT NOW()
   )`,
   `CREATE UNIQUE INDEX idx_solicitacoes_client_request_id
     ON solicitacoes (client_request_id)
     WHERE client_request_id IS NOT NULL`,
+  `CREATE TABLE confirmacoes (
+    id SERIAL PRIMARY KEY,
+    solicitacao_id INTEGER NOT NULL REFERENCES solicitacoes (id) ON DELETE CASCADE,
+    telefone_normalizado VARCHAR(20) NOT NULL,
+    origem VARCHAR(20) NOT NULL DEFAULT 'portal',
+    client_request_id VARCHAR(64),
+    criado_em TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE UNIQUE INDEX idx_confirmacoes_solicitacao_telefone_unico
+    ON confirmacoes (solicitacao_id, telefone_normalizado)`,
   `CREATE TABLE status_logs (
     id SERIAL PRIMARY KEY,
     solicitacao_id INTEGER NOT NULL,

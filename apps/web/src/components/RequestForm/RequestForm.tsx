@@ -1,6 +1,12 @@
 import { useState, useEffect, FormEvent } from 'react'
-import type { FormData, FormErrors } from './types'
+import type { FormData, FormErrors, DuplicadaInfo } from './types'
 import { TIPOS_PROBLEMA } from './types'
+import {
+  elevouPrioridadeConfirmada,
+  mensagemDuplicidade,
+  totalMoradoresConfirmados,
+} from './duplicidade'
+import { PRIORIDADE_LABELS } from '../SolicitacaoList/types'
 import { MapPicker, MapMarker } from '../MapPicker/MapPicker'
 import { usePostes } from '../../hooks/usePostes'
 import { FileUpload } from '../FileUpload/FileUpload'
@@ -84,6 +90,7 @@ export function RequestForm() {
   const [posteIdentificado, setPosteIdentificado] = useState<string | null>(null)
   const [copyFeedback, setCopyFeedback] = useState(false)
   const [salvoOffline, setSalvoOffline] = useState<SalvoOffline | null>(null)
+  const [duplicada, setDuplicada] = useState<DuplicadaInfo | null>(null)
   const { postes } = usePostes()
 
   useEffect(() => {
@@ -196,6 +203,7 @@ export function RequestForm() {
     setErrors({})
     setSubmitting(true)
     setSubmitError(null)
+    setDuplicada(null)
 
     const payload: SolicitacaoPayload = {
       nome_solicitante: formData.nome.trim(),
@@ -255,6 +263,19 @@ export function RequestForm() {
 
       const data = await response.json()
       setProtocolo(data.protocolo)
+
+      if (data.duplicada === true) {
+        setDuplicada({
+          id: data.id,
+          protocolo: data.protocolo,
+          status_atual: data.status_atual,
+          status_label: data.status_label,
+          prioridade: data.prioridade,
+          os: data.os ?? null,
+          confirmacao: data.confirmacao ?? null,
+          fluxo: data.fluxo,
+        })
+      }
 
       if (data.auto_identificado && data.codigo_poste_informado) {
         setPosteIdentificado(data.codigo_poste_informado)
@@ -388,6 +409,72 @@ export function RequestForm() {
           className={styles.button}
           onClick={() => {
             setSalvoOffline(null)
+            setPosteIdentificado(null)
+            setSubmitError(null)
+            setFormData(INITIAL_STATE)
+          }}
+        >
+          Nova Solicitação
+        </button>
+      </div>
+    )
+  }
+
+  if (duplicada) {
+    const confirmacao = duplicada.confirmacao
+    const totalMoradores = totalMoradoresConfirmados(confirmacao)
+    const elevou = elevouPrioridadeConfirmada(confirmacao)
+
+    return (
+      <div className={`${styles.success} ${styles.successDuplicada}`}>
+        <h2>Este problema já está em atendimento.</h2>
+        <p>{mensagemDuplicidade(confirmacao)}</p>
+        <span className={styles.protocol}>{duplicada.protocolo}</span>
+
+        <ul className={styles.duplicadaResumo}>
+          <li>
+            Situação: <strong>{duplicada.status_label}</strong>
+          </li>
+          <li>
+            Prioridade:{' '}
+            <strong>
+              {PRIORIDADE_LABELS[duplicada.prioridade as keyof typeof PRIORIDADE_LABELS] ??
+                duplicada.prioridade}
+            </strong>
+          </li>
+          {duplicada.os?.existe && (
+            <li>
+              Ordem de serviço: <strong>{duplicada.os.estado_label}</strong>
+            </li>
+          )}
+          {totalMoradores !== null && (
+            <li>
+              Moradores que confirmaram: <strong>{totalMoradores}</strong>
+            </li>
+          )}
+          {elevou && confirmacao?.prioridade_nova && (
+            <li>
+              Prioridade elevada para{' '}
+              <strong>
+                {PRIORIDADE_LABELS[
+                  confirmacao.prioridade_nova as keyof typeof PRIORIDADE_LABELS
+                ] ?? confirmacao.prioridade_nova}
+              </strong>{' '}
+              por {totalMoradores} moradores confirmarem o mesmo problema.
+            </li>
+          )}
+        </ul>
+
+        <p className={styles.info}>
+          Guarde este número. Com ele, voce pode consultar o andamento sempre que
+          precisar.
+        </p>
+
+        <button
+          className={styles.button}
+          onClick={() => {
+            setDuplicada(null)
+            setProtocolo(null)
             setPosteIdentificado(null)
             setSubmitError(null)
             setFormData(INITIAL_STATE)
