@@ -379,7 +379,22 @@ export function RequestForm() {
     const tipoValido = tipo === '' || tipo === 'sede' || tipo === 'distrito' || tipo === 'vila'
       ? tipo
       : ''
-    setFormData((prev) => ({ ...prev, ...selecaoAposTrocarTipo(tipoValido) }))
+    const novaSelecao = selecaoAposTrocarTipo(tipoValido)
+
+    // Auto-selecionar "São Félix do Xingu" para tipo "sede"
+    let localidadeIdAuto = ''
+    if (tipoValido === 'sede') {
+      const sede = localidades.find((l) => l.tipo === 'sede')
+      if (sede) {
+        localidadeIdAuto = String(sede.id)
+      }
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      ...novaSelecao,
+      ...(localidadeIdAuto ? { localidadeId: localidadeIdAuto } : {}),
+    }))
     setErrors((prev) => ({ ...prev, localidade: undefined }))
   }
 
