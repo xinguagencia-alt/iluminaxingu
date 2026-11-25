@@ -784,30 +784,6 @@ Atualizar GPS
           markers={postes}
         />
 
-        <div className={styles.field}>
-          <label htmlFor="endereco">
-            Endereco manual (se nao souber a localizacao exata)
-          </label>
-          <input
-            id="endereco"
-            type="text"
-            value={formData.enderecoManual}
-            onChange={(e) => handleChange('enderecoManual', e.target.value)}
-            placeholder="Rua, numero, bairro, referencia"
-          />
-        </div>
-
-        <div className={styles.field}>
-          <label htmlFor="codigoPoste">Codigo do poste (se souber)</label>
-          <input
-            id="codigoPoste"
-            type="text"
-            value={formData.codigoPoste}
-            onChange={(e) => handleChange('codigoPoste', e.target.value)}
-            placeholder="Ex: POSTE-00123"
-          />
-        </div>
-
         <div className={styles.localityBlock}>
           <h3>Localidade do problema</h3>
           {estadoCatalogoLocalidades === 'carregando' ? (
@@ -871,6 +847,30 @@ Atualizar GPS
               )}
             </>
           )}
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="endereco">
+            Endereco manual (se nao souber a localizacao exata)
+          </label>
+          <input
+            id="endereco"
+            type="text"
+            value={formData.enderecoManual}
+            onChange={(e) => handleChange('enderecoManual', e.target.value)}
+            placeholder="Rua, numero, bairro, referencia"
+          />
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="codigoPoste">Codigo do poste (se souber)</label>
+          <input
+            id="codigoPoste"
+            type="text"
+            value={formData.codigoPoste}
+            onChange={(e) => handleChange('codigoPoste', e.target.value)}
+            placeholder="Ex: POSTE-00123"
+          />
         </div>
 
         {errors.localizacao && (
