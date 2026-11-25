@@ -109,7 +109,7 @@
 
 .filters {
   display: grid;
-  grid-template-columns: 1.5fr repeat(2, minmax(180px, 0.7fr)) auto;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   align-items: center;
 }

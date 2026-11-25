@@ -37,6 +37,10 @@ export interface OrdemServicoDetalhe {
   prazo_sla: string | null
   status_sla: string | null
   horas_restantes: number | null
+  localidade_id?: number | null
+  tipo_localidade?: 'sede' | 'distrito' | 'vila' | null
+  localidade_nome?: string | null
+  localidade_tipo?: 'sede' | 'distrito' | 'vila' | null
 }
 
 export interface StatusLog {

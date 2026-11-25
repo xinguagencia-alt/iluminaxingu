@@ -40,6 +40,8 @@ const DDL = [
     auto_identificado BOOLEAN DEFAULT FALSE,
     client_request_id VARCHAR(64),
     confirmacoes_elevacao_em TIMESTAMP,
+    localidade_id INTEGER,
+    tipo_localidade VARCHAR(20),
     criado_em TIMESTAMP DEFAULT NOW(),
     atualizado_em TIMESTAMP DEFAULT NOW()
   )`,
@@ -186,6 +188,16 @@ const DDL = [
     tipo VARCHAR(10) NOT NULL,
     ativo BOOLEAN DEFAULT TRUE,
     criado_em TIMESTAMP DEFAULT NOW()
+  )`,
+  `CREATE TABLE localidades (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(120) NOT NULL,
+    nome_normalizado VARCHAR(120) NOT NULL,
+    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('sede', 'distrito', 'vila')),
+    ativo BOOLEAN DEFAULT TRUE,
+    criado_em TIMESTAMP DEFAULT NOW(),
+    atualizado_em TIMESTAMP DEFAULT NOW(),
+    UNIQUE (nome_normalizado, tipo)
   )`,
 ]
 

@@ -12,6 +12,7 @@ import {
   type StatusSla,
 } from '../SolicitacaoList/types'
 import { STATUS_ORDEM_LABELS, STATUS_ORDEM_COLORS, type StatusOrdemServico } from '../OrdemServicoList/types'
+import { rotuloLocalidade } from '../../localidades'
 import styles from './SolicitacaoPublica.module.css'
 
 function formatDate(dateString: string | null): string {
@@ -99,6 +100,12 @@ export function SolicitacaoPublica({ onVoltar, initialProtocolo }: SolicitacaoPu
             <span className={styles.pillLabel}>Prioridade</span>
             <span className={styles.pillValue} style={{ color: prioridadeColor }}>
               {PRIORIDADE_LABELS[solicitacao.prioridade]}
+            </span>
+          </span>
+          <span className={styles.pill}>
+            <span className={styles.pillLabel}>Localidade</span>
+            <span className={styles.pillValue}>
+              {rotuloLocalidade(solicitacao.localidade_nome, solicitacao.localidade_tipo)}
             </span>
           </span>
           {solicitacao.codigo_poste_informado && (

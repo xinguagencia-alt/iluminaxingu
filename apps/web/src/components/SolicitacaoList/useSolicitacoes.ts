@@ -9,6 +9,8 @@ export interface Filtros {
   tipo: string
   busca: string
   status_sla: string
+  tipo_localidade: string
+  localidade_id: string
 }
 
 interface UseSolicitacoesResult {
@@ -29,6 +31,8 @@ const FILTROS_INICIAIS: Filtros = {
   tipo: '',
   busca: '',
   status_sla: '',
+  tipo_localidade: '',
+  localidade_id: '',
 }
 
 export function useSolicitacoes(): UseSolicitacoesResult {
@@ -48,6 +52,8 @@ export function useSolicitacoes(): UseSolicitacoesResult {
       if (filtrosAtuais.prioridade) params.set('prioridade', filtrosAtuais.prioridade)
       if (filtrosAtuais.tipo) params.set('tipo', filtrosAtuais.tipo)
       if (filtrosAtuais.busca) params.set('busca', filtrosAtuais.busca)
+      if (filtrosAtuais.tipo_localidade) params.set('tipo_localidade', filtrosAtuais.tipo_localidade)
+      if (filtrosAtuais.localidade_id) params.set('localidade_id', filtrosAtuais.localidade_id)
 
       const queryString = params.toString()
       const url = `${API_URL}/api/solicitacoes${queryString ? `?${queryString}` : ''}`

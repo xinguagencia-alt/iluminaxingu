@@ -17,6 +17,8 @@ export interface SolicitacaoPublica {
   prazo_sla: string
   status_sla: StatusSla
   horas_restantes: number | null
+  localidade_nome?: string | null
+  localidade_tipo?: 'sede' | 'distrito' | 'vila' | null
 }
 
 export interface StatusLogPublico {

@@ -1,3 +1,11 @@
+export const TIPOS_LOCALIDADE_PERMITIDOS = [
+  'sede',
+  'distrito',
+  'vila',
+] as const
+
+export type TipoLocalidadePermitido = (typeof TIPOS_LOCALIDADE_PERMITIDOS)[number]
+
 export const TIPOS_PROBLEMA_PERMITIDOS = [
   'poste_danificado',
   'lampada_apagada',
@@ -34,6 +42,8 @@ export interface CamposSolicitacao {
   tipo_problema?: unknown
   descricao?: unknown
   consentimento_lgpd?: unknown
+  localidade_id?: unknown
+  tipo_localidade?: unknown
 }
 
 export interface OpcoesValidacaoSolicitacao {
@@ -51,6 +61,8 @@ export interface ValoresSolicitacao {
   codigo_poste: string | null
   latitude: number | null
   longitude: number | null
+  localidade_id: number | null
+  tipo_localidade: TipoLocalidadePermitido | null
 }
 
 export type ResultadoSolicitacao =
@@ -80,6 +92,12 @@ export function normalizarTipoProblema(valor: unknown): string {
   if (typeof valor !== 'string') return ''
   const limpo = valor.trim()
   return ALIASES_TIPO_PROBLEMA[limpo] ?? limpo
+}
+
+export function ehTipoLocalidadePermitido(valor: unknown): boolean {
+  return (TIPOS_LOCALIDADE_PERMITIDOS as readonly string[]).includes(
+    typeof valor === 'string' ? valor.trim() : ''
+  )
 }
 
 export function ehTipoPermitido(valor: unknown): boolean {
@@ -292,6 +310,40 @@ export function validarLocalizacao(
   }
 }
 
+export function validarLocalidadeId(valor: unknown): ResultadoCampo<number | null> {
+  if (valor === undefined || valor === null || valor === '') {
+    return { ok: true, valor: null }
+  }
+  const id = Number(valor)
+  if (!Number.isInteger(id) || id <= 0 || id > 2147483647) {
+    return { ok: false, erro: 'Localidade invalida: ID deve ser um inteiro positivo dentro da faixa do PostgreSQL' }
+  }
+  return { ok: true, valor: id }
+}
+
+export function validarTipoLocalidade(valor: unknown): ResultadoCampo<TipoLocalidadePermitido | null> {
+  if (valor === undefined || valor === null || valor === '') {
+    return { ok: true, valor: null }
+  }
+  if (!ehTipoLocalidadePermitido(valor)) {
+    return { ok: false, erro: 'Tipo de localidade invalido. Use: sede, distrito ou vila' }
+  }
+  return { ok: true, valor: valor as TipoLocalidadePermitido }
+}
+
+export function validarConsistenciaLocalidade(
+  localidadeId: number | null,
+  tipoLocalidade: TipoLocalidadePermitido | null
+): string | null {
+  const temId = localidadeId !== null
+  const temTipo = tipoLocalidade !== null
+
+  if (temId !== temTipo) {
+    return 'localidade_id e tipo_localidade devem ser informados juntos ou omitidos juntos'
+  }
+  return null
+}
+
 export function validarSolicitacao(
   body: unknown,
   opcoes: OpcoesValidacaoSolicitacao = {}
@@ -331,6 +383,18 @@ export function validarSolicitacao(
   })
   if (!localizacao.ok) erros.push(localizacao.erro)
 
+  const localidadeId = validarLocalidadeId(campos.localidade_id)
+  if (!localidadeId.ok) erros.push(localidadeId.erro)
+
+  const tipoLocalidade = validarTipoLocalidade(campos.tipo_localidade)
+  if (!tipoLocalidade.ok) erros.push(tipoLocalidade.erro)
+
+  const erroConsistencia = validarConsistenciaLocalidade(
+    localidadeId.ok ? localidadeId.valor : null,
+    tipoLocalidade.ok ? tipoLocalidade.valor : null
+  )
+  if (erroConsistencia) erros.push(erroConsistencia)
+
   const coordenadas = validarCoordenadas(campos.latitude, campos.longitude)
 
   if (
@@ -362,6 +426,8 @@ export function validarSolicitacao(
       codigo_poste: normalizarCampoOpcional(campos.codigo_poste),
       latitude: coordenadas.valor.latitude,
       longitude: coordenadas.valor.longitude,
+      localidade_id: (localidadeId.ok ? localidadeId.valor : null),
+      tipo_localidade: (tipoLocalidade.ok ? tipoLocalidade.valor : null),
     },
   }
 }

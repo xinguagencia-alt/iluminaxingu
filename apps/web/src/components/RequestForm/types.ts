@@ -8,6 +8,8 @@ export interface FormData {
   codigoPoste: string
   posteId: number | null
   tipoProblema: string
+  tipoLocalidade: '' | 'sede' | 'distrito' | 'vila'
+  localidadeId: string
   descricao: string
   consentimentoLgpd: boolean
 }
@@ -17,6 +19,7 @@ export interface FormErrors {
   contato?: string
   tipoProblema?: string
   localizacao?: string
+  localidade?: string
   consentimentoLgpd?: string
 }
 

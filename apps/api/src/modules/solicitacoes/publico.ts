@@ -121,6 +121,23 @@ export async function montarRespostaPublica(
 
   const os = await buscarEstadoOsPublico(Number(row.id))
 
+  let localidade_nome: string | null = null
+  let localidade_tipo: string | null = null
+  if (row.localidade_id != null) {
+    try {
+      const locResult = await db.query(
+        'SELECT nome, tipo FROM localidades WHERE id = $1',
+        [row.localidade_id]
+      )
+      if (locResult.rows.length > 0) {
+        localidade_nome = String(locResult.rows[0].nome)
+        localidade_tipo = String(locResult.rows[0].tipo)
+      }
+    } catch {
+      // Ignora erro de busca de localidade
+    }
+  }
+
   const resposta: Record<string, unknown> = {
     id: Number(row.id),
     protocolo: String(row.protocolo),
@@ -136,6 +153,8 @@ export async function montarRespostaPublica(
     fluxo: contexto.fluxo,
     elegivel_os_automatica: contexto.elegivelOsAutomatica ?? false,
     os_automatica: contexto.osAutomatica ?? null,
+    localidade_nome,
+    localidade_tipo,
   }
 
   if (contexto.incluirDetalhesCriacao) {

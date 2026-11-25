@@ -3,9 +3,10 @@ import { useAuditoria } from '../../hooks/useAuditoria'
 import { useExport } from '../../hooks/useExport'
 import { useFluxo } from '../../hooks/useFluxo'
 import { useFilaDistribuicao } from '../../hooks/useFilaDistribuicao'
+import { LocalidadesManager } from '../LocalidadesManager/LocalidadesManager'
 import styles from './AdminPanel.module.css'
 
-type Tab = 'auditoria' | 'exportar' | 'fluxo' | 'fila'
+type Tab = 'auditoria' | 'exportar' | 'fluxo' | 'fila' | 'localidades'
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
@@ -30,9 +31,13 @@ const ACOES_LABELS: Record<string, string> = {
 
 function Toast({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
   return (
-    <div className={`${styles.toast} ${type === 'error' ? styles.toastError : styles.toastSuccess}`}>
+    <div
+      className={`${styles.toast} ${type === 'error' ? styles.toastError : styles.toastSuccess}`}
+      role={type === 'error' ? 'alert' : 'status'}
+      aria-live={type === 'error' ? 'assertive' : 'polite'}
+    >
       <span>{message}</span>
-      <button className={styles.toastClose} onClick={onClose}>×</button>
+      <button className={styles.toastClose} onClick={onClose} aria-label="Fechar aviso">×</button>
     </div>
   )
 }
@@ -225,20 +230,30 @@ export function AdminPanel() {
         <button
           className={`${styles.tab} ${tab === 'auditoria' ? styles.tabActive : ''}`}
           onClick={() => setTab('auditoria')}
+          aria-pressed={tab === 'auditoria'}
         >
           Auditoria
         </button>
         <button
           className={`${styles.tab} ${tab === 'fluxo' ? styles.tabActive : ''}`}
           onClick={() => setTab('fluxo')}
+          aria-pressed={tab === 'fluxo'}
         >
           Fluxo
         </button>
         <button
           className={`${styles.tab} ${tab === 'fila' ? styles.tabActive : ''}`}
           onClick={() => setTab('fila')}
+          aria-pressed={tab === 'fila'}
         >
           Fila OS
+        </button>
+        <button
+          className={`${styles.tab} ${tab === 'localidades' ? styles.tabActive : ''}`}
+          onClick={() => setTab('localidades')}
+          aria-pressed={tab === 'localidades'}
+        >
+          Localidades
         </button>
         <button
           className={`${styles.tab} ${tab === 'exportar' ? styles.tabActive : ''}`}
@@ -246,6 +261,7 @@ export function AdminPanel() {
             setTab('exportar')
             fetchSummary()
           }}
+          aria-pressed={tab === 'exportar'}
         >
           Exportar Dados
         </button>
@@ -254,6 +270,7 @@ export function AdminPanel() {
       <div className={styles.content}>
         {tab === 'fluxo' && <FluxoTab showToast={showToast} />}
         {tab === 'fila' && <FilaTab showToast={showToast} />}
+        {tab === 'localidades' && <LocalidadesManager showToast={showToast} />}
 
         {tab === 'auditoria' && (
           <div>

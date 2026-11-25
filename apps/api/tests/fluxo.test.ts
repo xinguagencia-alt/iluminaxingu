@@ -212,6 +212,8 @@ test('fluxo online: consulta publica devolve o tipo e o historico', async () => 
 
   assert.equal(corpo.solicitacao.tipo_problema, VALOR)
   assert.equal(corpo.solicitacao.protocolo, protocoloCriado)
+  assert.equal(corpo.solicitacao.localidade_nome, null, 'registro antigo sem localidade continua consultável')
+  assert.equal(corpo.solicitacao.localidade_tipo, null)
   assert.ok(Array.isArray(corpo.historico))
   assert.ok(corpo.historico.some((h: { status_novo: string }) => h.status_novo === 'enviada'))
 })
@@ -335,6 +337,42 @@ test('dashboard agrega o tipo novo junto com os demais', async () => {
   assert.ok(resumo.ordens.total >= 1)
   assert.ok(resumo.por_status['concluida'] >= 1)
   assert.ok(resumo.por_prioridade['urgente'] >= 1)
+})
+
+test('consulta pública, lista e dashboard mostram localidade sem expor dados adicionais', async () => {
+  const localidadeResult = await executar(
+    `INSERT INTO localidades (nome, nome_normalizado, tipo, ativo)
+     VALUES ($1, $2, $3, TRUE) RETURNING id`,
+    ['Vila Etapa Cinco', 'vila etapa cinco', 'vila']
+  )
+  const localidadeId = Number(localidadeResult.rows[0].id)
+  const criadaComLocalidade = await postSolicitacao(payload({
+    nome_solicitante: 'Morador Vila Etapa Cinco',
+    endereco_informado: 'Rua Exclusiva Etapa Cinco, 500, Bairro Teste',
+    tipo_problema: 'risco_eletrico',
+    localidade_id: localidadeId,
+    tipo_localidade: 'vila',
+  }))
+  assert.equal(criadaComLocalidade.status, 201, JSON.stringify(criadaComLocalidade.json))
+
+  const consulta = await fetch(`${baseUrl}/api/solicitacoes/publica/${criadaComLocalidade.json.protocolo}`)
+  assert.equal(consulta.status, 200)
+  const publica = await consulta.json()
+  assert.equal(publica.solicitacao.localidade_nome, 'Vila Etapa Cinco')
+  assert.equal(publica.solicitacao.localidade_tipo, 'vila')
+
+  const listadas = await getSolicitacoes(`?localidade_id=${localidadeId}&tipo_localidade=vila`)
+  const itemLista = listadas.find((item) => item.id === criadaComLocalidade.json.id)
+  assert.equal(itemLista?.localidade_nome, 'Vila Etapa Cinco')
+  assert.equal(itemLista?.localidade_tipo, 'vila')
+
+  const respostaDashboard = await fetch(`${baseUrl}/api/dashboard/resumo`, { headers: cabecalhoAuth })
+  assert.equal(respostaDashboard.status, 200)
+  const resumo = await respostaDashboard.json()
+  const itemDashboard = resumo.por_localidade.find((item: { localidade_id: number }) => item.localidade_id === localidadeId)
+  assert.ok(itemDashboard)
+  assert.equal(itemDashboard.localidade_nome, 'Vila Etapa Cinco')
+  assert.equal(itemDashboard.tipo_localidade, 'vila')
 })
 
 test('resumo de exportacao conta as solicitacoes', async () => {

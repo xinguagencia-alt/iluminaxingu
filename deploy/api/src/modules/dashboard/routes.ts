@@ -27,9 +27,11 @@ router.get('/resumo', async (_req: Request, res: Response) => {
       db.query(
         `SELECT s.id, s.protocolo, s.nome_solicitante, s.tipo_problema,
                 s.status_atual, s.prioridade, s.criado_em, s.atualizado_em,
-                s.endereco_informado,
+                s.endereco_informado, s.localidade_id, s.tipo_localidade,
+                l.nome AS localidade_nome,
                 os.id as ordem_servico_id
          FROM solicitacoes s
+         LEFT JOIN localidades l ON l.id = s.localidade_id
          LEFT JOIN ordens_servico os ON os.solicitacao_id = s.id
          ORDER BY s.criado_em DESC`
       ),
@@ -116,12 +118,32 @@ router.get('/resumo', async (_req: Request, res: Response) => {
       porBairro[bairro] = (porBairro[bairro] || 0) + 1
     }
 
-    const porTipoProblema: Record<string, number> = {}
-    for (const s of solicitacoes) {
-      porTipoProblema[s.tipo_problema] = (porTipoProblema[s.tipo_problema] || 0) + 1
+const porTipoProblema: Record<string, number> = {}
+  const porLocalidade: Record<string, { localidade_id: number | null; tipo_localidade: string | null; localidade_nome: string | null; total: number }> = {}
+  const porTipoLocalidade: Record<string, number> = {}
+  for (const s of solicitacoes) {
+    porTipoProblema[s.tipo_problema] = (porTipoProblema[s.tipo_problema] || 0) + 1
+    const localidadeId = s.localidade_id == null ? null : Number(s.localidade_id)
+    const localidadeNome = typeof s.localidade_nome === 'string' ? s.localidade_nome : null
+    const tipoLocalidade = typeof s.tipo_localidade === 'string' ? s.tipo_localidade : null
+    const chaveLocalidade = localidadeId === null || !localidadeNome
+      ? 'sem-localidade'
+      : `${tipoLocalidade}:${localidadeId}`
+    if (!porLocalidade[chaveLocalidade]) {
+      porLocalidade[chaveLocalidade] = {
+        localidade_id: localidadeNome ? localidadeId : null,
+        tipo_localidade: localidadeNome ? tipoLocalidade : null,
+        localidade_nome: localidadeNome,
+        total: 0,
+      }
     }
+    porLocalidade[chaveLocalidade].total++
+    if (s.tipo_localidade) {
+      porTipoLocalidade[s.tipo_localidade] = (porTipoLocalidade[s.tipo_localidade] || 0) + 1
+    }
+  }
 
-    const urgentes = solicitacoes
+  const urgentes = solicitacoes
       .filter((s) => {
         const isFechado = STATUS_FECHADOS.includes(s.status_atual)
         return !isFechado && (s.prioridade === 'urgente' || s.prioridade === 'alta')
@@ -184,6 +206,12 @@ router.get('/resumo', async (_req: Request, res: Response) => {
         .map(([bairro, total]) => ({ bairro, total }))
         .sort((a, b) => b.total - a.total),
       por_tipo_problema: Object.entries(porTipoProblema)
+        .map(([tipo, total]) => ({ tipo, total }))
+        .sort((a, b) => b.total - a.total),
+      por_localidade: Object.entries(porLocalidade)
+        .map(([, item]) => item)
+        .sort((a, b) => b.total - a.total || (a.localidade_nome || '').localeCompare(b.localidade_nome || '')),
+      por_tipo_localidade: Object.entries(porTipoLocalidade)
         .map(([tipo, total]) => ({ tipo, total }))
         .sort((a, b) => b.total - a.total),
       urgentes,

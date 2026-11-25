@@ -1,0 +1,30 @@
+.container { display: grid; gap: 18px; }
+.header { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.header h3 { margin: 0; color: #374151; font-size: 1.15rem; }
+.header p { margin: 6px 0 0; color: #6b7280; font-size: .9rem; line-height: 1.5; }
+.refreshButton,.secondaryButton { padding: 9px 13px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; color: #374151; font-weight: 700; cursor: pointer; }
+.refreshButton:disabled,.secondaryButton:disabled,.deactivateButton:disabled,.primaryButton:disabled { opacity: .6; cursor: not-allowed; }
+.form { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(150px, .55fr) auto; align-items: end; gap: 12px; padding: 16px; border: 1px solid #ffedd5; border-radius: 16px; background: #fffaf3; }
+.field { display: grid; gap: 6px; }
+.field label { color: #374151; font-size: .84rem; font-weight: 700; }
+.field input,.field select { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 9px; background: #fff; color: #1f2937; font: inherit; }
+.field input:focus,.field select:focus { outline: 3px solid rgba(245,158,11,.22); border-color: #f59e0b; }
+.formActions,.itemActions { display: flex; gap: 8px; flex-wrap: wrap; }
+.primaryButton { min-height: 42px; padding: 10px 14px; border: 0; border-radius: 9px; background: linear-gradient(135deg,#f59e0b,#ea580c); color: white; font-weight: 700; cursor: pointer; }
+.deactivateButton { padding: 9px 12px; border: 1px solid #fecaca; border-radius: 9px; background: #fff; color: #b91c1c; font-weight: 700; cursor: pointer; }
+.groups { display: grid; gap: 14px; }
+.group { padding: 14px; border: 1px solid #f3f4f6; border-radius: 14px; }
+.group h4 { margin: 0 0 10px; color: #7c2d12; }
+.group h4 span { color: #9ca3af; font-size: .85rem; font-weight: 500; }
+.list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #ffedd5; border-radius: 10px; }
+.name { color: #374151; font-weight: 650; }
+.state { padding: 24px 12px; margin: 0; color: #6b7280; text-align: center; }
+.error { grid-column: 1 / -1; padding: 10px 12px; margin: 0; border: 1px solid #fecaca; border-radius: 9px; background: #fef2f2; color: #b91c1c; font-size: .9rem; }
+.note { margin: 0; color: #6b7280; font-size: .82rem; line-height: 1.5; }
+@media (max-width: 760px) {
+  .header { flex-direction: column; }
+  .form { grid-template-columns: 1fr; }
+  .formActions { align-items: stretch; }
+  .item { align-items: flex-start; flex-direction: column; }
+}

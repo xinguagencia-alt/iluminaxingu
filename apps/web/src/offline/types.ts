@@ -17,6 +17,9 @@ export interface SolicitacaoPayload {
   tipo_problema: string
   descricao: string | null
   consentimento_lgpd: boolean
+  /** Opcional para manter compatibilidade com itens antigos da fila offline. */
+  localidade_id?: number | null
+  tipo_localidade?: 'sede' | 'distrito' | 'vila' | null
 }
 
 export type EstadoPendente = 'pendente' | 'enviando' | 'enviada' | 'erro'

@@ -9,6 +9,7 @@ import {
   type StatusSla,
 } from '../SolicitacaoList/types'
 import styles from './Dashboard.module.css'
+import { rotuloLocalidade } from '../../localidades'
 
 function formatCount(value: number): string {
   return value.toLocaleString('pt-BR')
@@ -97,10 +98,11 @@ export function Dashboard() {
 
   if (!data) return null
 
-  const { contadores, ordens, sla, por_status, por_prioridade, por_bairro, por_tipo_problema, urgentes } = data
+  const { contadores, ordens, sla, por_status, por_prioridade, por_bairro, por_tipo_problema, por_localidade, urgentes } = data
 
   const maxBairro = Math.max(...por_bairro.map((b) => b.total), 1)
   const maxTipo = Math.max(...por_tipo_problema.map((t) => t.total), 1)
+  const maxLocalidade = Math.max(...por_localidade.map((item) => item.total), 1)
   const maxStatus = Math.max(...Object.values(por_status), 1)
   const maxPrioridade = Math.max(...Object.values(por_prioridade), 1)
 
@@ -249,6 +251,37 @@ export function Dashboard() {
           </div>
         </section>
       </div>
+
+      <section className={styles.panel}>
+        <div className={styles.panelHeader}>
+          <h3>Solicitações por localidade</h3>
+          <span className={styles.panelBadge}>{por_localidade.length} localidade(s)</span>
+        </div>
+        {por_localidade.length === 0 ? (
+          <p className={styles.emptyText}>Nenhuma solicitação registrada.</p>
+        ) : (
+          <div className={styles.barChart}>
+            {por_localidade.slice(0, 10).map((item) => {
+              const label = rotuloLocalidade(item.localidade_nome, item.tipo_localidade)
+              const key = item.localidade_id === null
+                ? 'sem-localidade'
+                : `${item.tipo_localidade}:${item.localidade_id}`
+              return (
+                <div key={key} className={styles.barRow}>
+                  <span className={styles.barLabel}>{label}</span>
+                  <div className={styles.barTrack}>
+                    <div
+                      className={styles.barFill}
+                      style={{ width: `${(item.total / maxLocalidade) * 100}%`, backgroundColor: '#7c3aed' }}
+                    />
+                  </div>
+                  <span className={styles.barValue}>{formatCount(item.total)}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
 
       <div className={styles.twoColumns}>
         <section className={styles.panel}>

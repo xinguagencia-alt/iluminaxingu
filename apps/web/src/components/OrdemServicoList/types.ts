@@ -16,6 +16,10 @@ export interface OrdemServico {
   protocolo: string
   tipo_problema: string
   endereco_informado: string | null
+  localidade_id?: number | null
+  tipo_localidade?: 'sede' | 'distrito' | 'vila' | null
+  localidade_nome?: string | null
+  localidade_tipo?: 'sede' | 'distrito' | 'vila' | null
 }
 
 export const STATUS_ORDEM_LABELS: Record<StatusOrdemServico, string> = {

@@ -9,6 +9,7 @@ import postesRoutes from './modules/postes/routes.js'
 import ordensServicoRoutes from './modules/ordens_servico/routes.js'
 import equipesRoutes from './modules/equipes/routes.js'
 import bairrosRoutes from './modules/bairros/routes.js'
+import localidadesRoutes from './modules/localidades/routes.js'
 import ruasRoutes from './modules/ruas/routes.js'
 import anexosRoutes from './modules/anexos/routes.js'
 import auditoriaRoutes from './modules/auditoria/routes.js'
@@ -61,7 +62,7 @@ export function createApp() {
         status: dbStatus,
         checked_at: checkedAt,
       },
-      modules: ['solicitacoes', 'postes', 'ordens_servico', 'equipes', 'bairros', 'ruas', 'anexos', 'auditoria', 'export', 'estoque', 'dashboard', 'fluxo'],
+      modules: ['solicitacoes', 'postes', 'ordens_servico', 'equipes', 'bairros', 'localidades', 'ruas', 'anexos', 'auditoria', 'export', 'estoque', 'dashboard', 'fluxo'],
     })
   })
 
@@ -82,8 +83,9 @@ export function createApp() {
   app.use('/api/postes', postesRoutes)
   app.use('/api/ordens-servico', authMiddleware, ordensServicoRoutes)
   app.use('/api/equipes', authMiddleware, equipesRoutes)
-  app.use('/api/bairros', bairrosRoutes)
-  app.use('/api/ruas', ruasRoutes)
+app.use('/api/bairros', bairrosRoutes)
+app.use('/api/localidades', localidadesRoutes)
+app.use('/api/ruas', ruasRoutes)
   app.use('/api/anexos', anexosRoutes)
   app.use('/api/auditoria', auditoriaRoutes)
   app.use('/api/export', exportRoutes)

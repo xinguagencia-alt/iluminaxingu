@@ -15,6 +15,14 @@ import { API_URL } from '../../config/api'
 import { enfileirarSolicitacao } from '../../offline/queue'
 import type { SolicitacaoPayload } from '../../offline/types'
 import {
+  localidadesDoTipo,
+  normalizarLocalidades,
+  selecaoAposTrocarTipo,
+  validarSelecaoLocalidade,
+  type EstadoCatalogoLocalidades,
+  type LocalidadeOpcao,
+} from './localidadeForm'
+import {
   ehTipoPermitido,
   validarEmail,
   validarLocalizacao,
@@ -71,6 +79,8 @@ const INITIAL_STATE: FormData = {
   codigoPoste: '',
   posteId: null,
   tipoProblema: '',
+  tipoLocalidade: '',
+  localidadeId: '',
   descricao: '',
   consentimentoLgpd: false,
 }
@@ -91,7 +101,43 @@ export function RequestForm() {
   const [copyFeedback, setCopyFeedback] = useState(false)
   const [salvoOffline, setSalvoOffline] = useState<SalvoOffline | null>(null)
   const [duplicada, setDuplicada] = useState<DuplicadaInfo | null>(null)
+  const [localidades, setLocalidades] = useState<LocalidadeOpcao[]>([])
+  const [estadoCatalogoLocalidades, setEstadoCatalogoLocalidades] =
+    useState<EstadoCatalogoLocalidades>('carregando')
   const { postes } = usePostes()
+
+  useEffect(() => {
+    const controller = new AbortController()
+    let desmontado = false
+    const timeout = window.setTimeout(() => controller.abort(), 12000)
+
+    async function carregarLocalidades() {
+      try {
+        const response = await fetch(`${API_URL}/api/localidades`, {
+          signal: controller.signal,
+        })
+        if (!response.ok) throw new Error('Falha ao carregar localidades')
+        const data: unknown = await response.json()
+        if (!Array.isArray(data)) throw new Error('Resposta de localidades invalida')
+        setLocalidades(normalizarLocalidades(data))
+        setEstadoCatalogoLocalidades('pronto')
+      } catch {
+        if (!desmontado) {
+          setLocalidades([])
+          setEstadoCatalogoLocalidades('erro')
+        }
+      } finally {
+        window.clearTimeout(timeout)
+      }
+    }
+
+    void carregarLocalidades()
+    return () => {
+      desmontado = true
+      window.clearTimeout(timeout)
+      controller.abort()
+    }
+  }, [])
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -152,6 +198,14 @@ export function RequestForm() {
     if (!ehTipoPermitido(formData.tipoProblema)) {
       newErrors.tipoProblema = 'Selecione um tipo de problema valido'
     }
+
+    const erroLocalidade = validarSelecaoLocalidade(
+      formData.tipoLocalidade,
+      formData.localidadeId,
+      localidades,
+      estadoCatalogoLocalidades
+    )
+    if (erroLocalidade) newErrors.localidade = erroLocalidade
 
     const localizacao = validarLocalizacao({
       poste_id: formData.posteId,
@@ -217,6 +271,8 @@ export function RequestForm() {
       tipo_problema: formData.tipoProblema,
       descricao: formData.descricao.trim() || null,
       consentimento_lgpd: formData.consentimentoLgpd,
+      localidade_id: formData.localidadeId ? Number(formData.localidadeId) : null,
+      tipo_localidade: formData.tipoLocalidade || null,
     }
 
     // 1) POST: falha real de rede (fetch nao retorna) => salva localmente
@@ -317,6 +373,14 @@ export function RequestForm() {
     if (field === 'enderecoManual' || field === 'codigoPoste') {
       limparErroLocalizacao()
     }
+  }
+
+  function handleTipoLocalidadeChange(tipo: string) {
+    const tipoValido = tipo === '' || tipo === 'sede' || tipo === 'distrito' || tipo === 'vila'
+      ? tipo
+      : ''
+    setFormData((prev) => ({ ...prev, ...selecaoAposTrocarTipo(tipoValido) }))
+    setErrors((prev) => ({ ...prev, localidade: undefined }))
   }
 
   function handleLocationSelect(lat: number, lng: number) {
@@ -742,6 +806,71 @@ Atualizar GPS
             onChange={(e) => handleChange('codigoPoste', e.target.value)}
             placeholder="Ex: POSTE-00123"
           />
+        </div>
+
+        <div className={styles.localityBlock}>
+          <h3>Localidade do problema</h3>
+          {estadoCatalogoLocalidades === 'carregando' ? (
+            <p className={styles.helperText} role="status">Carregando localidades...</p>
+          ) : estadoCatalogoLocalidades === 'erro' ? (
+            <p className={styles.localityNotice} role="status">
+              Nao foi possivel carregar as localidades. Voce pode continuar sem informar esse dado; tente recarregar a pagina para busca-lo novamente.
+            </p>
+          ) : localidades.length === 0 ? (
+            <p className={styles.localityNotice} role="status">
+              As localidades ainda nao foram cadastradas. A solicitacao pode ser enviada sem essa informacao neste momento.
+            </p>
+          ) : (
+            <>
+              <p className={styles.helperText}>
+                Selecione uma opcao. A lista de localidades muda conforme o tipo escolhido.
+              </p>
+              <div className={styles.field}>
+                <label htmlFor="tipoLocalidade">Tipo de localidade *</label>
+                <select
+                  id="tipoLocalidade"
+                  value={formData.tipoLocalidade}
+                  onChange={(e) => handleTipoLocalidadeChange(e.target.value)}
+                  disabled={submitting}
+                  aria-describedby={errors.localidade ? 'erroLocalidade' : undefined}
+                >
+                  <option value="">Selecione...</option>
+                  <option value="sede">Sede</option>
+                  <option value="distrito">Distrito</option>
+                  <option value="vila">Vila</option>
+                </select>
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="localidadeId">Localidade *</label>
+                <select
+                  id="localidadeId"
+                  value={formData.localidadeId}
+                  onChange={(e) => handleChange('localidadeId', e.target.value)}
+                  disabled={!formData.tipoLocalidade || submitting}
+                  aria-describedby={errors.localidade ? 'erroLocalidade' : undefined}
+                >
+                  <option value="">
+                    {formData.tipoLocalidade ? 'Selecione a localidade...' : 'Selecione primeiro o tipo...'}
+                  </option>
+                  {localidadesDoTipo(localidades, formData.tipoLocalidade).map((localidade) => (
+                    <option key={localidade.id} value={localidade.id}>
+                      {localidade.nome}
+                    </option>
+                  ))}
+                </select>
+                {formData.tipoLocalidade && localidadesDoTipo(localidades, formData.tipoLocalidade).length === 0 && (
+                  <span className={styles.helperText}>
+                    Ainda nao ha localidades ativas cadastradas para este tipo.
+                  </span>
+                )}
+              </div>
+              {errors.localidade && (
+                <span id="erroLocalidade" className={styles.error} role="alert">
+                  {errors.localidade}
+                </span>
+              )}
+            </>
+          )}
         </div>
 
         {errors.localizacao && (

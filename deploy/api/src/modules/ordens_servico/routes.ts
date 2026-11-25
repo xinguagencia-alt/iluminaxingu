@@ -134,9 +134,11 @@ router.get('/', async (_req: Request, res: Response) => {
   try {
     const result = await db.query(
       `SELECT os.*, s.protocolo, s.tipo_problema, s.endereco_informado,
+        s.localidade_id, s.tipo_localidade, l.nome as localidade_nome, l.tipo as localidade_tipo,
         e.nome as equipe_nome
       FROM ordens_servico os
       JOIN solicitacoes s ON os.solicitacao_id = s.id
+      LEFT JOIN localidades l ON s.localidade_id = l.id
       LEFT JOIN equipes e ON os.equipe_id = e.id
       ORDER BY os.criado_em DESC`
     )
@@ -188,12 +190,14 @@ router.get('/:id/detalhe', async (req: Request, res: Response) => {
         s.codigo_poste_informado, s.poste_id, s.prioridade,
         s.status_atual as solicitacao_status_atual, s.atualizado_em as solicitacao_atualizado_em,
         s.latitude as solicitacao_latitude, s.longitude as solicitacao_longitude,
+        s.localidade_id, s.tipo_localidade, l.nome as localidade_nome, l.tipo as localidade_tipo,
         p.codigo as poste_codigo, p.endereco as poste_endereco,
         p.rua as poste_rua, p.numero as poste_numero, p.bairro as poste_bairro,
         p.complemento as poste_complemento, p.latitude as poste_latitude, p.longitude as poste_longitude,
         e.nome as equipe_nome
       FROM ordens_servico os
       JOIN solicitacoes s ON os.solicitacao_id = s.id
+      LEFT JOIN localidades l ON s.localidade_id = l.id
       LEFT JOIN postes p ON s.poste_id = p.id
       LEFT JOIN equipes e ON os.equipe_id = e.id
       WHERE os.id = $1`,

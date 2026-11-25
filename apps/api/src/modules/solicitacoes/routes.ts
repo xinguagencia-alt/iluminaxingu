@@ -28,6 +28,7 @@ import {
   ERRO_POSTE_NAO_ENCONTRADO,
   primeiraMensagemDeErro,
   validarSolicitacao,
+  validarConsistenciaLocalidade,
 } from './validacao.js'
 import {
   registrarConfirmacao,
@@ -78,7 +79,7 @@ const publicSolicitacaoLimiter = rateLimit({
 })
 
 router.get('/', authMiddleware, async (req: Request, res: Response) => {
-  const { status, prioridade, tipo, busca } = req.query
+  const { status, prioridade, tipo, busca, localidade_id, tipo_localidade } = req.query
 
   const conditions: string[] = []
   const values: unknown[] = []
@@ -102,6 +103,23 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
     paramIndex++
   }
 
+  if (localidade_id && typeof localidade_id === 'string') {
+    const id = Number(localidade_id)
+    if (Number.isInteger(id) && id > 0) {
+      conditions.push(`s.localidade_id = $${paramIndex}`)
+      values.push(id)
+      paramIndex++
+    }
+  }
+
+  if (tipo_localidade && typeof tipo_localidade === 'string') {
+    if (['sede', 'distrito', 'vila'].includes(tipo_localidade)) {
+      conditions.push(`s.tipo_localidade = $${paramIndex}`)
+      values.push(tipo_localidade)
+      paramIndex++
+    }
+  }
+
   if (busca && typeof busca === 'string') {
     const tiposEncontrados = tiposProblemaQueContem(busca)
     if (tiposEncontrados.length > 0) {
@@ -121,9 +139,11 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
 
   try {
     const result = await db.query(
-      `SELECT s.*, os.id as ordem_servico_id
+      `SELECT s.*, os.id as ordem_servico_id,
+        l.nome as localidade_nome, l.tipo as localidade_tipo
        FROM solicitacoes s
        LEFT JOIN ordens_servico os ON os.solicitacao_id = s.id
+       LEFT JOIN localidades l ON s.localidade_id = l.id
        ${whereClause}
        ORDER BY s.criado_em DESC`,
       values
@@ -164,11 +184,14 @@ router.get('/publica/:protocolo', publicGetLimiter, async (req: Request, res: Re
     const solResult = await db.query(
       `SELECT s.id, s.protocolo, s.codigo_poste_informado, s.tipo_problema,
         s.status_atual, s.prioridade, s.criado_em, s.atualizado_em,
+        s.localidade_id, s.tipo_localidade,
+        l.nome as localidade_nome, l.tipo as localidade_tipo,
         os.id as ordem_servico_id, os.status as os_status,
         os.data_abertura as os_data_abertura,
         os.data_encerramento as os_data_encerramento
       FROM solicitacoes s
       LEFT JOIN ordens_servico os ON os.solicitacao_id = s.id
+      LEFT JOIN localidades l ON s.localidade_id = l.id
       WHERE s.protocolo = $1`,
       [protocolo]
     )
@@ -381,7 +404,7 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
           codigo_poste_final = postesProximos.rows[0].codigo
           auto_identificado = true
         }
-      } catch (gpsError) {
+} catch (gpsError) {
         if (ehErroDeConsultaGpsNaoSuportada(gpsError)) {
           console.warn(
             `[SOLICITACAO] Funcao geografica indisponivel neste banco; seguindo sem auto-identificacao (lat=${valores.latitude}, lng=${valores.longitude}): ${
@@ -391,6 +414,48 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
         } else {
           throw gpsError
         }
+      }
+    }
+
+    // Validar localidade se informada
+    if (valores.localidade_id != null || valores.tipo_localidade != null) {
+      const erroConsistencia = validarConsistenciaLocalidade(
+        valores.localidade_id,
+        valores.tipo_localidade
+      )
+      if (erroConsistencia) {
+        res.status(400).json({ error: erroConsistencia })
+        return
+      }
+
+      try {
+        const localidadeResult = await db.query(
+          'SELECT id, tipo, ativo FROM localidades WHERE id = $1',
+          [valores.localidade_id]
+        )
+        if (localidadeResult.rows.length === 0) {
+          res.status(400).json({ error: 'Localidade nao encontrada' })
+          return
+        }
+        const localidade = localidadeResult.rows[0]
+        if (!localidade.ativo) {
+          res.status(400).json({ error: 'Localidade inativa' })
+          return
+        }
+        if (localidade.tipo !== valores.tipo_localidade) {
+          res.status(400).json({ error: 'Tipo de localidade divergente do cadastro' })
+          return
+        }
+      } catch (dbError) {
+        const err = dbError as { code?: string }
+        if (err.code === '42P01') {
+          res.status(503).json({
+            error: 'Recurso indisponivel',
+            detalhe: 'A tabela de localidades ainda nao foi criada. Execute a migration da Etapa 1 antes de usar este endpoint.',
+          })
+          return
+        }
+        throw dbError
       }
     }
 
@@ -430,6 +495,8 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
         'prioridade',
         'consentimento_lgpd',
         'auto_identificado',
+        'localidade_id',
+        'tipo_localidade',
       ]
       const parametros: unknown[] = [
         protocolo,
@@ -446,6 +513,8 @@ router.post('/', publicSolicitacaoLimiter, async (req: Request, res: Response) =
         prioridade,
         true,
         auto_identificado,
+        valores.localidade_id,
+        valores.tipo_localidade,
       ]
 
       if (clientRequestId) {

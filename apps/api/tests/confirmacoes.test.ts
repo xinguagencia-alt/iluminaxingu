@@ -21,6 +21,8 @@ const CHAVES_PUBLICAS = [
   'fluxo',
   'elegivel_os_automatica',
   'os_automatica',
+  'localidade_nome',
+  'localidade_tipo',
 ]
 
 function payload(extra: Record<string, unknown> = {}): Record<string, unknown> {

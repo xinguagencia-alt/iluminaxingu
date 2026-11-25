@@ -37,6 +37,13 @@ export interface ItemTipoProblema {
   total: number
 }
 
+export interface ItemLocalidade {
+  localidade_id: number | null
+  tipo_localidade: 'sede' | 'distrito' | 'vila' | null
+  localidade_nome: string | null
+  total: number
+}
+
 export interface SolicitacaoUrgente {
   id: number
   protocolo: string
@@ -58,6 +65,8 @@ export interface DashboardData {
   por_prioridade: Record<string, number>
   por_bairro: ItemBairro[]
   por_tipo_problema: ItemTipoProblema[]
+  por_localidade: ItemLocalidade[]
+  por_tipo_localidade: { tipo: string; total: number }[]
   urgentes: SolicitacaoUrgente[]
   postes_por_bairro: ItemBairro[]
 }
@@ -89,7 +98,11 @@ export function useDashboard(): UseDashboardResult {
       }
 
       const result = await response.json()
-      setData(result)
+      setData({
+        ...result,
+        por_localidade: Array.isArray(result.por_localidade) ? result.por_localidade : [],
+        por_tipo_localidade: Array.isArray(result.por_tipo_localidade) ? result.por_tipo_localidade : [],
+      })
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Erro ao conectar com o servidor'

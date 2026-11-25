@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useOrdensServico } from './useOrdensServico'
 import { useEquipes } from '../../hooks/useEquipes'
+import { useLocalidades } from '../../hooks/useLocalidades'
 import {
   STATUS_ORDEM_COLORS,
   STATUS_ORDEM_LABELS,
   type OrdemServico,
   type StatusOrdemServico,
 } from './types'
+import { rotuloLocalidade } from '../../localidades'
 import styles from './OrdemServicoList.module.css'
 
 function formatDate(dateString: string | null): string {
@@ -120,8 +122,10 @@ function StatusModal({
 export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => void }) {
   const { ordens, loading, error, refetch, atualizarStatus, excluir } = useOrdensServico()
   const { equipes } = useEquipes()
+  const { localidades, loading: carregandoLocalidades, indisponivel: catalogoIndisponivel } = useLocalidades()
   const [filtro, setFiltro] = useState<'' | StatusOrdemServico>('')
   const [filtroEquipe, setFiltroEquipe] = useState<'' | number>('')
+  const [filtroLocalidade, setFiltroLocalidade] = useState<'' | number>('')
   const [editingId, setEditingId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
@@ -139,8 +143,11 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
     if (filtroEquipe !== '') {
       filtradas = filtradas.filter((ordem) => ordem.equipe_id === filtroEquipe)
     }
+    if (filtroLocalidade !== '') {
+      filtradas = filtradas.filter((ordem) => ordem.localidade_id === filtroLocalidade)
+    }
     return filtradas
-  }, [filtro, filtroEquipe, ordens])
+  }, [filtro, filtroEquipe, filtroLocalidade, ordens])
 
   const editingOrdem = editingId ? ordens.find((ordem) => ordem.id === editingId) || null : null
 
@@ -162,6 +169,11 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
           <div className={styles.spinner} />
           <p>Carregando ordens de serviço...</p>
         </div>
+        {catalogoIndisponivel && (
+          <p className={styles.count} role="status">
+            O catálogo de localidades está indisponível; o filtro por localidade não pode ser usado agora.
+          </p>
+        )}
       </div>
     )
   }
@@ -259,6 +271,20 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
         </select>
         <select
           className={styles.select}
+          aria-label="Filtrar ordens por localidade"
+          value={filtroLocalidade}
+          onChange={(e) => setFiltroLocalidade(e.target.value ? Number(e.target.value) : '')}
+          disabled={carregandoLocalidades || localidades.length === 0}
+        >
+          <option value="">Todas as localidades</option>
+          {localidades.map((localidade) => (
+            <option key={localidade.id} value={localidade.id}>
+              {rotuloLocalidade(localidade.nome, localidade.tipo)}
+            </option>
+          ))}
+        </select>
+        <select
+          className={styles.select}
           value={filtroEquipe}
           onChange={(e) => setFiltroEquipe(e.target.value ? Number(e.target.value) : '')}
         >
@@ -286,6 +312,7 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
                 <th>Protocolo</th>
                 <th>Status</th>
                 <th>Equipe</th>
+                <th>Localidade</th>
                 <th>Endereco</th>
                 <th>Aberta em</th>
                 <th>Execução</th>
@@ -311,6 +338,7 @@ export function OrdemServicoList({ onDetalhes }: { onDetalhes?: (id: number) => 
                       '-'
                     )}
                   </td>
+                  <td>{rotuloLocalidade(ordem.localidade_nome, ordem.localidade_tipo)}</td>
                   <td>{ordem.endereco_informado || '-'}</td>
                   <td>{formatDate(ordem.data_abertura)}</td>
                   <td>{formatDate(ordem.data_execucao)}</td>

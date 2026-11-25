@@ -38,6 +38,10 @@ export interface Solicitacao {
   prazo_sla: string
   status_sla: StatusSla
   horas_restantes: number | null
+  localidade_id?: number | null
+  tipo_localidade?: 'sede' | 'distrito' | 'vila' | null
+  localidade_nome?: string | null
+  localidade_tipo?: 'sede' | 'distrito' | 'vila' | null
 }
 
 export const STATUS_LABELS: Record<StatusSolicitacao, string> = {

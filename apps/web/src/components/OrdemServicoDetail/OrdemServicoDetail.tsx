@@ -10,6 +10,7 @@ import { STATUS_LABELS, STATUS_COLORS, STATUS_SLA_LABELS, STATUS_SLA_COLORS, TIP
 import { FileUpload } from '../FileUpload/FileUpload'
 import { PosteForm } from '../PosteForm/PosteForm'
 import { API_URL } from '../../config/api'
+import { rotuloLocalidade } from '../../localidades'
 import type { ItemEstoque } from '../../hooks/useEstoque'
 import styles from './OrdemServicoDetail.module.css'
 
@@ -377,6 +378,12 @@ export function OrdemServicoDetail({ ordemId, onVoltar }: OrdemServicoDetailProp
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>Endereço</span>
             <span className={styles.infoValue}>{ordem.endereco_informado || '-'}</span>
+          </div>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>Localidade</span>
+            <span className={styles.infoValue}>
+              {rotuloLocalidade(ordem.localidade_nome, ordem.localidade_tipo)}
+            </span>
           </div>
         </div>
       </div>

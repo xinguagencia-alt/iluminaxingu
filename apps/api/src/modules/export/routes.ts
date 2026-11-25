@@ -7,7 +7,7 @@ const router = Router()
 router.get('/:tabela', authMiddleware, requireRole(['admin']), async (req: Request, res: Response) => {
   const tabela = String(req.params.tabela)
 
-  const tabelasPermitidas = ['postes', 'bairros', 'ruas', 'solicitacoes', 'ordens_servico', 'equipes']
+  const tabelasPermitidas = ['postes', 'bairros', 'ruas', 'solicitacoes', 'ordens_servico', 'equipes', 'localidades']
 
   if (!tabelasPermitidas.includes(tabela)) {
     res.status(400).json({ error: 'Tabela nao permitida para exportacao' })
@@ -29,9 +29,15 @@ router.get('/:tabela', authMiddleware, requireRole(['admin']), async (req: Reque
         query = `SELECT id, nome, tipo, ativo, criado_em FROM ruas WHERE ativo = TRUE ORDER BY tipo, nome`
         break
       case 'solicitacoes':
-        query = `SELECT id, protocolo, nome_solicitante, telefone, email, codigo_poste_informado, endereco_informado,
-          latitude, longitude, tipo_problema, descricao, status_atual, prioridade, criado_em
-          FROM solicitacoes ORDER BY criado_em DESC`
+        query = `SELECT s.id, s.protocolo, s.nome_solicitante, s.telefone, s.email, s.codigo_poste_informado, s.endereco_informado,
+          s.latitude, s.longitude, s.tipo_problema, s.descricao, s.status_atual, s.prioridade, s.criado_em,
+          l.nome as localidade_nome, l.tipo as localidade_tipo
+          FROM solicitacoes s
+          LEFT JOIN localidades l ON s.localidade_id = l.id
+          ORDER BY s.criado_em DESC`
+        break
+      case 'localidades':
+        query = `SELECT id, nome, tipo, ativo, criado_em, atualizado_em FROM localidades ORDER BY tipo, nome`
         break
       case 'ordens_servico':
         query = `SELECT id, solicitacao_id, equipe_id, status, observacao_execucao, resultado, material_utilizado, criado_em, atualizado_em
@@ -60,13 +66,14 @@ router.get('/:tabela', authMiddleware, requireRole(['admin']), async (req: Reque
 
 router.get('/', authMiddleware, requireRole(['admin']), async (_req: Request, res: Response) => {
   try {
-    const [postes, bairros, ruas, solicitacoes, ordens, equipes] = await Promise.all([
+    const [postes, bairros, ruas, solicitacoes, ordens, equipes, localidades] = await Promise.all([
       db.query(`SELECT COUNT(*) as count FROM postes WHERE status_ativo = TRUE`),
       db.query(`SELECT COUNT(*) as count FROM bairros WHERE ativo = TRUE`),
       db.query(`SELECT COUNT(*) as count FROM ruas WHERE ativo = TRUE`),
       db.query(`SELECT COUNT(*) as count FROM solicitacoes`),
       db.query(`SELECT COUNT(*) as count FROM ordens_servico`),
       db.query(`SELECT COUNT(*) as count FROM equipes WHERE ativo = TRUE`),
+      db.query(`SELECT COUNT(*) as count FROM localidades WHERE ativo = TRUE`),
     ])
 
     res.json({
@@ -76,6 +83,7 @@ router.get('/', authMiddleware, requireRole(['admin']), async (_req: Request, re
       solicitacoes: Number(solicitacoes.rows[0].count),
       ordens_servico: Number(ordens.rows[0].count),
       equipes: Number(equipes.rows[0].count),
+      localidades: Number(localidades.rows[0].count),
     })
   } catch (error) {
     console.error('Erro ao obter resumo:', error)

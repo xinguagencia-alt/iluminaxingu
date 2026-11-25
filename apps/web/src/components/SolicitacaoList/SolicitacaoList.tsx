@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useSolicitacoes } from './useSolicitacoes'
 import { useEquipes } from '../../hooks/useEquipes'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLocalidades } from '../../hooks/useLocalidades'
 import { API_URL } from '../../config/api'
+import { rotuloLocalidade, TIPO_LOCALIDADE_LABELS } from '../../localidades'
 import {
   Solicitacao,
   StatusSolicitacao,
@@ -256,11 +258,12 @@ export function SolicitacaoList() {
   } = useSolicitacoes()
 
   const { token } = useAuth()
+  const { localidades, loading: carregandoLocalidades, indisponivel: catalogoIndisponivel } = useLocalidades()
   const [editingId, setEditingId] = useState<number | null>(null)
   const [gerandoOrdemPara, setGerandoOrdemPara] = useState<number | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
-  const temFiltros = filtros.status || filtros.prioridade || filtros.tipo || filtros.busca || filtros.status_sla
+  const temFiltros = Object.values(filtros).some(Boolean)
 
   function showToast(message: string, type: 'success' | 'error') {
     setToast({ message, type })
@@ -501,12 +504,51 @@ export function SolicitacaoList() {
           ))}
         </select>
 
+        <select
+          className={styles.select}
+          aria-label="Filtrar pelo tipo de localidade"
+          value={filtros.tipo_localidade}
+          onChange={(e) => {
+            setFiltro('tipo_localidade', e.target.value)
+            setFiltro('localidade_id', '')
+          }}
+        >
+          <option value="">Todos os tipos de localidade</option>
+          {Object.entries(TIPO_LOCALIDADE_LABELS).map(([tipo, label]) => (
+            <option key={tipo} value={tipo}>{label}</option>
+          ))}
+        </select>
+
+        <select
+          className={styles.select}
+          aria-label="Filtrar pela localidade"
+          value={filtros.localidade_id}
+          onChange={(e) => setFiltro('localidade_id', e.target.value)}
+          disabled={carregandoLocalidades || localidades.length === 0}
+        >
+          <option value="">
+            {carregandoLocalidades ? 'Carregando localidades...' : 'Todas as localidades'}
+          </option>
+          {localidades
+            .filter((localidade) => !filtros.tipo_localidade || localidade.tipo === filtros.tipo_localidade)
+            .map((localidade) => (
+              <option key={localidade.id} value={localidade.id}>
+                {rotuloLocalidade(localidade.nome, localidade.tipo)}
+              </option>
+            ))}
+        </select>
+
         {temFiltros && (
           <button className={styles.clearButton} onClick={limparFiltros}>
             Limpar filtros
           </button>
         )}
         </div>
+        {catalogoIndisponivel && (
+          <p className={styles.count} role="status">
+            O catálogo de localidades está indisponível; os filtros por localidade não podem ser usados agora.
+          </p>
+        )}
       </div>
 
       {solicitacoes.length === 0 ? (
@@ -527,6 +569,7 @@ export function SolicitacaoList() {
                 <th>Protocolo</th>
                 <th>Nome</th>
                 <th>Tipo</th>
+                <th>Localidade</th>
                 <th>Status</th>
                 <th>Prioridade</th>
                 <th>SLA</th>
@@ -563,6 +606,7 @@ export function SolicitacaoList() {
                     {TIPOS_PROBLEMA[solicitacao.tipo_problema] ||
                       solicitacao.tipo_problema}
                   </td>
+                  <td>{rotuloLocalidade(solicitacao.localidade_nome, solicitacao.localidade_tipo)}</td>
                   <td>
                     <StatusBadge status={solicitacao.status_atual} />
                   </td>

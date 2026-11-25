@@ -204,6 +204,7 @@ test('enfileirar recusa payload invalido antes de salvar qualquer coisa', async 
     { payload: payloadValido({ endereco_informado: null }), esperado: /localizacao/i },
     { payload: payloadValido({ latitude: -1.4, longitude: null }), esperado: /juntas/i },
     { payload: payloadValido({ email: 'invalido' }), esperado: /e-mail/i },
+    { payload: payloadValido({ localidade_id: 12 }), esperado: /localidade_id e tipo_localidade/i },
   ]
 
   for (const caso of casos) {
@@ -263,7 +264,10 @@ test('item antigo com outro nao e reenviado e fica com erro claro na fila', asyn
 test('sincronizacao valida antes de enviar e preserva client_request_id', async () => {
   await limparFila()
 
-  const enfileirado = await enfileirarSolicitacao(payloadValido(), [])
+  const enfileirado = await enfileirarSolicitacao(
+    payloadValido({ localidade_id: 12, tipo_localidade: 'vila' }),
+    []
+  )
 
   let corpoEnviado: Record<string, unknown> | null = null
   let urlEnviada = ''
@@ -305,6 +309,8 @@ test('sincronizacao valida antes de enviar e preserva client_request_id', async 
   )
   assert.equal(corpoEnviado.telefone, '(69) 99999-0001', 'payload original preservado')
   assert.equal(corpoEnviado.tipo_problema, 'lampada_acesa_dia')
+  assert.equal(corpoEnviado.localidade_id, 12, 'localidade preservada na fila e enviada')
+  assert.equal(corpoEnviado.tipo_localidade, 'vila', 'tipo preservado na fila e enviado')
 
   const lista = await listarSolicitacoesPendentes()
   assert.equal(lista.length, 1, 'item mantido apos recusa do servidor')
