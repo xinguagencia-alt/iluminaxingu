@@ -65,6 +65,23 @@ export function useAdminPostes(): UseAdminPostesResult {
     fetchPostes()
   }, [fetchPostes])
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchPostes()
+      }
+    }
+    const handleFocus = () => {
+      fetchPostes()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [fetchPostes])
+
   const bairrosDisponiveis = useMemo(() => {
     const nomesApi = bairros.map((b: Bairro) => b.nome)
     const nomesPostes = new Set<string>()

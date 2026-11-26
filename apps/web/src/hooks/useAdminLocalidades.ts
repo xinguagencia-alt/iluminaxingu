@@ -49,6 +49,23 @@ export function useAdminLocalidades() {
     void recarregar()
   }, [recarregar])
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        recarregar()
+      }
+    }
+    const handleFocus = () => {
+      recarregar()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [recarregar])
+
   const operar = useCallback(async (
     url: string,
     method: 'POST' | 'PUT' | 'PATCH',

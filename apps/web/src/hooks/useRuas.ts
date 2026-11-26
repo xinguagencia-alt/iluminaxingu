@@ -16,6 +16,7 @@ interface UseRuasResult {
   refetch: () => void
   criarRua: (nome: string, tipo: 'avenida' | 'rua') => Promise<{ ok: boolean; erro?: string }>
   excluirRua: (id: number) => Promise<{ ok: boolean; erro?: string }>
+  atualizarRua: (id: number, dados: { nome?: string; tipo?: 'avenida' | 'rua' }) => Promise<{ ok: boolean; erro?: string }>
 }
 
 export function useRuas(): UseRuasResult {
@@ -44,6 +45,23 @@ export function useRuas(): UseRuasResult {
 
   useEffect(() => {
     fetchRuas()
+  }, [fetchRuas])
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchRuas()
+      }
+    }
+    const handleFocus = () => {
+      fetchRuas()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
   }, [fetchRuas])
 
   const avenidas = useMemo(
@@ -75,6 +93,36 @@ export function useRuas(): UseRuasResult {
         }
 
         setTodasRuas((prev) => [...prev, data].sort((a, b) => {
+          if (a.tipo !== b.tipo) return a.tipo === 'avenida' ? -1 : 1
+          return a.nome.localeCompare(b.nome, 'pt-BR')
+        }))
+        return { ok: true }
+      } catch {
+        return { ok: false, erro: 'Erro ao conectar com o servidor' }
+      }
+    },
+    [token]
+  )
+
+  const atualizarRua = useCallback(
+    async (id: number, dados: { nome?: string; tipo?: 'avenida' | 'rua' }): Promise<{ ok: boolean; erro?: string }> => {
+      try {
+        const response = await fetch(`${API_URL}/api/ruas/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(dados),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          return { ok: false, erro: data.error || 'Erro ao atualizar rua/avenida' }
+        }
+
+        setTodasRuas((prev) => prev.map((r) => (r.id === id ? data : r)).sort((a, b) => {
           if (a.tipo !== b.tipo) return a.tipo === 'avenida' ? -1 : 1
           return a.nome.localeCompare(b.nome, 'pt-BR')
         }))
@@ -118,6 +166,7 @@ export function useRuas(): UseRuasResult {
     error,
     refetch: fetchRuas,
     criarRua,
+    atualizarRua,
     excluirRua,
   }
 }

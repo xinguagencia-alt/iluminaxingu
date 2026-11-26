@@ -15,6 +15,7 @@ interface UseBairrosResult {
   refetch: () => void
   criarBairro: (nome: string, cor?: string) => Promise<{ ok: boolean; erro?: string }>
   excluirBairro: (id: number) => Promise<{ ok: boolean; erro?: string }>
+  atualizarBairro: (id: number, dados: { nome?: string; cor?: string | null }) => Promise<{ ok: boolean; erro?: string }>
 }
 
 export function useBairros(): UseBairrosResult {
@@ -45,6 +46,23 @@ export function useBairros(): UseBairrosResult {
     fetchBairros()
   }, [fetchBairros])
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchBairros()
+      }
+    }
+    const handleFocus = () => {
+      fetchBairros()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [fetchBairros])
+
   const criarBairro = useCallback(
     async (nome: string, cor?: string): Promise<{ ok: boolean; erro?: string }> => {
       try {
@@ -64,6 +82,33 @@ export function useBairros(): UseBairrosResult {
         }
 
         setBairros((prev) => [...prev, data].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')))
+        return { ok: true }
+      } catch {
+        return { ok: false, erro: 'Erro ao conectar com o servidor' }
+      }
+    },
+    [token]
+  )
+
+  const atualizarBairro = useCallback(
+    async (id: number, dados: { nome?: string; cor?: string | null }): Promise<{ ok: boolean; erro?: string }> => {
+      try {
+        const response = await fetch(`${API_URL}/api/bairros/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(dados),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          return { ok: false, erro: data.error || 'Erro ao atualizar bairro' }
+        }
+
+        setBairros((prev) => prev.map((b) => (b.id === id ? data : b)).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')))
         return { ok: true }
       } catch {
         return { ok: false, erro: 'Erro ao conectar com o servidor' }
@@ -103,6 +148,7 @@ export function useBairros(): UseBairrosResult {
     error,
     refetch: fetchBairros,
     criarBairro,
+    atualizarBairro,
     excluirBairro,
   }
 }

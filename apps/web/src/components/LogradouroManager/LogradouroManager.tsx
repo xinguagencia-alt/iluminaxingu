@@ -2,8 +2,6 @@ import { useState, useMemo } from 'react'
 import { useBairros } from '../../hooks/useBairros'
 import { useRuas } from '../../hooks/useRuas'
 import { useLocalidades } from '../../hooks/useLocalidades'
-import { useAuth } from '../../contexts/AuthContext'
-import { API_URL } from '../../config/api'
 import styles from './LogradouroManager.module.css'
 
 type Tab = 'bairros' | 'avenidas' | 'ruas' | 'distritos' | 'vilas'
@@ -24,8 +22,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
 }
 
 export function LogradouroManager() {
-  const { token } = useAuth()
-  const { bairros, loading: loadingBairros, criarBairro, excluirBairro, refetch: refetchBairros } = useBairros()
+  const { bairros, loading: loadingBairros, criarBairro, excluirBairro, atualizarBairro } = useBairros()
   const { avenidas, ruas, loading: loadingRuas, criarRua, excluirRua } = useRuas()
   const { localidades, loading: loadingLocalidades, criarLocalidade, atualizarLocalidade, desativarLocalidade } = useLocalidades()
 
@@ -152,18 +149,13 @@ export function LogradouroManager() {
 
   async function handleUpdateCor(id: number, cor: string) {
     try {
-      const response = await fetch(`${API_URL}/api/bairros/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ cor }),
-      })
-      if (!response.ok) throw new Error('Erro ao atualizar cor')
+      const result = await atualizarBairro(id, { cor })
+      if (!result.ok) {
+        showToast(result.erro || 'Erro ao atualizar cor', 'error')
+        return
+      }
       setEditingCor(null)
       showToast('Cor do bairro atualizada!', 'success')
-      refetchBairros()
     } catch {
       showToast('Erro ao atualizar cor do bairro', 'error')
     }

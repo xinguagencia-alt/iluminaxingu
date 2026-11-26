@@ -64,6 +64,23 @@ export function useLocalidades(): UseLocalidadesResult {
     fetchLocalidades()
   }, [fetchLocalidades])
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchLocalidades()
+      }
+    }
+    const handleFocus = () => {
+      fetchLocalidades()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [fetchLocalidades])
+
   const criarLocalidade = useCallback(
     async (nome: string, tipo: 'distrito' | 'vila'): Promise<{ ok: boolean; erro?: string }> => {
       try {
